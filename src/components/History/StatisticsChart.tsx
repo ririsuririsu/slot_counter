@@ -27,17 +27,22 @@ export function StatisticsChart() {
     );
   }
 
-  // グラフ用データに変換
-  const chartData = history.map((entry, index) => ({
-    name: `#${index + 1}`,
-    games: entry.totalGames,
-    probability: entry.probability ? entry.probability : null,
-    setting1: entry.settingAnalysis.setting1,
-    setting2: entry.settingAnalysis.setting2,
-    setting4: entry.settingAnalysis.setting4,
-    setting5: entry.settingAnalysis.setting5,
-    setting6: entry.settingAnalysis.setting6,
-  }));
+  // グラフ用データに変換（ゲーム数でソート）
+  const chartData = [...history]
+    .sort((a, b) => a.totalGames - b.totalGames)
+    .map((entry) => ({
+      games: entry.totalGames,
+      probability: entry.probability ? entry.probability : null,
+      setting1: entry.settingAnalysis.setting1,
+      setting2: entry.settingAnalysis.setting2,
+      setting4: entry.settingAnalysis.setting4,
+      setting5: entry.settingAnalysis.setting5,
+      setting6: entry.settingAnalysis.setting6,
+    }));
+
+  // X軸の範囲を計算
+  const minGames = Math.min(...chartData.map((d) => d.games));
+  const maxGames = Math.max(...chartData.map((d) => d.games));
 
   // 設定の理論値ライン
   const settingLines = settingProbabilities.map((sp) => ({
@@ -57,6 +62,8 @@ export function StatisticsChart() {
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
               <XAxis
                 dataKey="games"
+                type="number"
+                domain={[minGames, maxGames]}
                 fontSize={12}
                 tickFormatter={(v) => `${v}G`}
               />
@@ -70,7 +77,7 @@ export function StatisticsChart() {
                 labelFormatter={(games) => `${games}G`}
               />
               <Line
-                type="monotone"
+                type="linear"
                 dataKey="probability"
                 stroke="#1a73e8"
                 strokeWidth={2}
@@ -116,6 +123,8 @@ export function StatisticsChart() {
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
               <XAxis
                 dataKey="games"
+                type="number"
+                domain={[minGames, maxGames]}
                 fontSize={12}
                 tickFormatter={(v) => `${v}G`}
               />
@@ -133,7 +142,7 @@ export function StatisticsChart() {
               />
               <Legend />
               <Line
-                type="monotone"
+                type="linear"
                 dataKey="setting1"
                 stroke="#EF5350"
                 strokeWidth={2}
@@ -141,7 +150,7 @@ export function StatisticsChart() {
                 name="設定1"
               />
               <Line
-                type="monotone"
+                type="linear"
                 dataKey="setting2"
                 stroke="#FFA726"
                 strokeWidth={2}
@@ -149,7 +158,7 @@ export function StatisticsChart() {
                 name="設定2"
               />
               <Line
-                type="monotone"
+                type="linear"
                 dataKey="setting4"
                 stroke="#FFEE58"
                 strokeWidth={2}
@@ -157,7 +166,7 @@ export function StatisticsChart() {
                 name="設定4"
               />
               <Line
-                type="monotone"
+                type="linear"
                 dataKey="setting5"
                 stroke="#66BB6A"
                 strokeWidth={2}
@@ -165,7 +174,7 @@ export function StatisticsChart() {
                 name="設定5"
               />
               <Line
-                type="monotone"
+                type="linear"
                 dataKey="setting6"
                 stroke="#42A5F5"
                 strokeWidth={2}
