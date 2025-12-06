@@ -1,0 +1,56 @@
+.header {
+  background-color: var(--color-primary);
+  color: white;
+  padding: var(--spacing-md);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-md);
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+}
+
+.machineSelector {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.machineSelect {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  border: none;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: var(--font-size-md);
+  cursor: pointer;
+}
+
+.machineSelect option {
+  color: var(--color-text);
+  background-color: white;
+}
+
+.resetButton {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.resetButton:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}

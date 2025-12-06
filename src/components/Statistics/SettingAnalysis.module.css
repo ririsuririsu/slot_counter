@@ -1,0 +1,64 @@
+.container {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.title {
+  font-size: var(--font-size-md);
+  font-weight: bold;
+  margin-bottom: var(--spacing-md);
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.settingItem {
+  text-align: center;
+}
+
+.settingLabel {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  margin-bottom: var(--spacing-xs);
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  color: white;
+}
+
+.setting1 {
+  background-color: var(--color-setting-1);
+}
+
+.setting2 {
+  background-color: var(--color-setting-2);
+}
+
+.setting4 {
+  background-color: var(--color-setting-4);
+  color: var(--color-text);
+}
+
+.setting5 {
+  background-color: var(--color-setting-5);
+  color: var(--color-text);
+}
+
+.setting6 {
+  background-color: var(--color-setting-6);
+}
+
+.settingValue {
+  font-size: var(--font-size-md);
+  font-weight: bold;
+}
+
+.highProbability {
+  color: var(--color-primary);
+}
