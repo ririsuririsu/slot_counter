@@ -55,7 +55,11 @@ export function StatisticsChart() {
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-              <XAxis dataKey="name" fontSize={12} />
+              <XAxis
+                dataKey="games"
+                fontSize={12}
+                tickFormatter={(v) => `${v}G`}
+              />
               <YAxis
                 fontSize={12}
                 domain={[20, 45]}
@@ -63,7 +67,7 @@ export function StatisticsChart() {
               />
               <Tooltip
                 formatter={(value: number) => [`1/${value.toFixed(1)}`, '確率']}
-                labelFormatter={(label) => `記録${label}`}
+                labelFormatter={(games) => `${games}G`}
               />
               <Line
                 type="monotone"
@@ -110,7 +114,11 @@ export function StatisticsChart() {
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-              <XAxis dataKey="name" fontSize={12} />
+              <XAxis
+                dataKey="games"
+                fontSize={12}
+                tickFormatter={(v) => `${v}G`}
+              />
               <YAxis
                 fontSize={12}
                 domain={[0, 100]}
@@ -121,7 +129,7 @@ export function StatisticsChart() {
                   `${value.toFixed(1)}%`,
                   name,
                 ]}
-                labelFormatter={(label) => `記録${label}`}
+                labelFormatter={(games) => `${games}G`}
               />
               <Legend />
               <Line
