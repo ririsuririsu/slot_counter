@@ -10,11 +10,9 @@ interface GameInputModalProps {
 export function GameInputModal({ isOpen, onClose }: GameInputModalProps) {
   const machine = useMachineStore((state) => state.getCurrentMachine());
   const updateTotalGames = useMachineStore((state) => state.updateTotalGames);
-  const addHistoryEntry = useMachineStore((state) => state.addHistoryEntry);
 
   const handleConfirm = (value: number) => {
     updateTotalGames(value);
-    addHistoryEntry();
     onClose();
   };
 

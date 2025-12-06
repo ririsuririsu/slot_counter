@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useMachineStore } from '../../stores/machineStore';
 import { calculateProbabilityDenominator } from '../../utils/binomialDistribution';
 import { GameInputModal } from '../GameInput/GameInputModal';
+import { HistoryModal } from '../History/HistoryModal';
 import styles from './ProbabilityDisplay.module.css';
 
 export function ProbabilityDisplay() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isGameModalOpen, setIsGameModalOpen] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const machine = useMachineStore((state) => state.getCurrentMachine());
   const fiveCardTotal = useMachineStore((state) => state.getFiveCardTotal());
   const addHistoryEntry = useMachineStore((state) => state.addHistoryEntry);
@@ -35,7 +37,7 @@ export function ProbabilityDisplay() {
           <span className={styles.label}>ゲーム数</span>
           <button
             className={styles.valueButton}
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => setIsGameModalOpen(true)}
           >
             <span>{String(totalGames).padStart(4, '0')}</span>
             <span className={styles.editIcon}>✏️</span>
@@ -53,18 +55,31 @@ export function ProbabilityDisplay() {
             {formatProbability()}
           </span>
         </div>
-        <button
-          type="button"
-          className={`${styles.recordButton} ${!canRecord ? styles.disabled : ''}`}
-          onClick={handleRecordHistory}
-          disabled={!canRecord}
-        >
-          履歴に記録
-        </button>
+        <div className={styles.buttonGroup}>
+          <button
+            type="button"
+            className={styles.chartButton}
+            onClick={() => setIsHistoryModalOpen(true)}
+          >
+            グラフを確認
+          </button>
+          <button
+            type="button"
+            className={`${styles.recordButton} ${!canRecord ? styles.disabled : ''}`}
+            onClick={handleRecordHistory}
+            disabled={!canRecord}
+          >
+            履歴に記録
+          </button>
+        </div>
       </div>
       <GameInputModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isGameModalOpen}
+        onClose={() => setIsGameModalOpen(false)}
+      />
+      <HistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
       />
     </>
   );

@@ -44,6 +44,20 @@ export function StatisticsChart() {
   const minGames = Math.min(...chartData.map((d) => d.games));
   const maxGames = Math.max(...chartData.map((d) => d.games));
 
+  // 設定確率のY軸範囲を動的に計算
+  const allSettingValues = chartData.flatMap((d) => [
+    d.setting1,
+    d.setting2,
+    d.setting4,
+    d.setting5,
+    d.setting6,
+  ]);
+  const minSettingValue = Math.min(...allSettingValues);
+  const maxSettingValue = Math.max(...allSettingValues);
+  // 余白を持たせて見やすくする（5%刻みで丸める）
+  const settingYMin = Math.max(0, Math.floor((minSettingValue - 5) / 5) * 5);
+  const settingYMax = Math.min(100, Math.ceil((maxSettingValue + 5) / 5) * 5);
+
   // 設定の理論値ライン
   const settingLines = settingProbabilities.map((sp) => ({
     setting: sp.setting,
@@ -130,7 +144,7 @@ export function StatisticsChart() {
               />
               <YAxis
                 fontSize={12}
-                domain={[0, 100]}
+                domain={[settingYMin, settingYMax]}
                 tickFormatter={(v) => `${v}%`}
               />
               <Tooltip
