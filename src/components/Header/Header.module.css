@@ -1,11 +1,13 @@
 .header {
-  background-color: var(--color-primary);
-  color: white;
+  background-color: rgba(28, 28, 30, 0.72);
+  -webkit-backdrop-filter: blur(var(--blur-regular));
+  backdrop-filter: blur(var(--blur-regular));
+  color: var(--color-text);
   padding: var(--spacing-md);
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: var(--shadow-md);
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.15);
 }
 
 .content {
@@ -18,7 +20,8 @@
 
 .title {
   font-size: var(--font-size-lg);
-  font-weight: bold;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .machineSelector {
@@ -28,29 +31,36 @@
 }
 
 .machineSelect {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
   border: none;
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  font-size: var(--font-size-md);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
   cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.machineSelect:hover {
+  background-color: rgba(99, 99, 102, 0.48);
 }
 
 .machineSelect option {
   color: var(--color-text);
-  background-color: white;
+  background-color: var(--color-surface);
 }
 
 .resetButton {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
+  background-color: rgba(255, 69, 58, 0.2);
+  color: var(--apple-red);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
+  font-weight: 600;
   transition: background-color var(--transition-fast);
 }
 
 .resetButton:hover {
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 69, 58, 0.3);
 }

@@ -1,9 +1,8 @@
 .container {
   background-color: var(--color-surface);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: var(--spacing-md);
   margin-bottom: var(--spacing-md);
-  box-shadow: var(--shadow-sm);
 }
 
 .gameInput {
@@ -12,7 +11,7 @@
   justify-content: space-between;
   margin-bottom: var(--spacing-md);
   padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 0.5px solid var(--color-border);
 }
 
 .label {
@@ -25,17 +24,19 @@
   align-items: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-sm) var(--spacing-md);
-  background-color: var(--color-background);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-lg);
+  border: none;
   font-size: var(--font-size-lg);
-  font-weight: bold;
+  font-weight: 700;
+  color: var(--color-text);
   cursor: pointer;
-  transition: background-color var(--transition-fast);
+  transition: filter var(--transition-fast);
+  font-variant-numeric: tabular-nums;
 }
 
 .valueButton:hover {
-  background-color: var(--color-border);
+  filter: brightness(1.2);
 }
 
 .editIcon {
@@ -52,12 +53,14 @@
 .probabilityLabel {
   font-size: var(--font-size-md);
   font-weight: 500;
+  color: var(--color-text);
 }
 
 .probabilityValue {
   font-size: var(--font-size-xl);
-  font-weight: bold;
+  font-weight: 700;
   color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .noData {
@@ -72,41 +75,40 @@
 
 .chartButton {
   flex: 1;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background-color: var(--color-surface);
+  padding: 12px var(--spacing-md);
+  background-color: rgba(10, 132, 255, 0.15);
   color: var(--color-primary);
-  border: 2px solid var(--color-primary);
-  border-radius: var(--radius-md);
+  border: none;
+  border-radius: var(--radius-lg);
   font-size: var(--font-size-md);
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color var(--transition-fast);
+  transition: filter var(--transition-fast);
 }
 
 .chartButton:hover {
-  background-color: var(--color-primary);
-  color: white;
+  filter: brightness(1.2);
 }
 
 .recordButton {
   flex: 1;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 12px var(--spacing-md);
   background-color: var(--color-primary);
   color: white;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   font-size: var(--font-size-md);
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color var(--transition-fast);
+  transition: filter var(--transition-fast);
 }
 
 .recordButton:hover:not(:disabled) {
-  background-color: var(--color-primary-dark);
+  filter: brightness(1.1);
 }
 
 .recordButton.disabled {
-  background-color: var(--color-border);
-  color: var(--color-text-secondary);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-tertiary);
   cursor: not-allowed;
 }

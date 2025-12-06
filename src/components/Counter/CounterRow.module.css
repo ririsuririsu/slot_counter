@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   margin-bottom: var(--spacing-xs);
 }
 
@@ -14,6 +14,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--color-text);
 }
 
 .controls {
@@ -27,26 +28,27 @@
   height: var(--counter-button-size);
   border-radius: var(--radius-full);
   font-size: var(--font-size-xl);
-  font-weight: bold;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform var(--transition-fast), background-color var(--transition-fast);
+  transition: transform var(--transition-fast), filter var(--transition-fast);
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 
 .countButton:active {
   transform: scale(0.92);
+  filter: brightness(0.9);
 }
 
 .decrementButton {
-  background-color: #e0e0e0;
-  color: #666;
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
 }
 
 .decrementButton:hover {
-  background-color: #d0d0d0;
+  filter: brightness(1.1);
 }
 
 .incrementButton {
@@ -55,12 +57,14 @@
 }
 
 .incrementButton:hover {
-  background-color: var(--color-primary-dark);
+  filter: brightness(1.1);
 }
 
 .countValue {
   font-size: var(--font-size-xl);
-  font-weight: bold;
+  font-weight: 700;
   min-width: 48px;
   text-align: center;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
 }

@@ -73,7 +73,7 @@ export function StatisticsChart() {
         <div className={styles.chartWrapper}>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(84, 84, 88, 0.4)" />
               <XAxis
                 dataKey="games"
                 type="number"
@@ -93,10 +93,10 @@ export function StatisticsChart() {
               <Line
                 type="linear"
                 dataKey="probability"
-                stroke="#1a73e8"
+                stroke="#0A84FF"
                 strokeWidth={2}
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
+                dot={{ r: 4, fill: '#0A84FF' }}
+                activeDot={{ r: 6, fill: '#0A84FF' }}
                 name="実測値"
               />
               {/* 設定の理論値ライン */}
@@ -134,7 +134,7 @@ export function StatisticsChart() {
         <div className={styles.chartWrapper}>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(84, 84, 88, 0.4)" />
               <XAxis
                 dataKey="games"
                 type="number"
@@ -158,41 +158,41 @@ export function StatisticsChart() {
               <Line
                 type="linear"
                 dataKey="setting1"
-                stroke="#EF5350"
+                stroke="#FF453A"
                 strokeWidth={2}
-                dot={{ r: 3 }}
+                dot={{ r: 3, fill: '#FF453A' }}
                 name="設定1"
               />
               <Line
                 type="linear"
                 dataKey="setting2"
-                stroke="#FFA726"
+                stroke="#FF9F0A"
                 strokeWidth={2}
-                dot={{ r: 3 }}
+                dot={{ r: 3, fill: '#FF9F0A' }}
                 name="設定2"
               />
               <Line
                 type="linear"
                 dataKey="setting4"
-                stroke="#FFEE58"
+                stroke="#BF5AF2"
                 strokeWidth={2}
-                dot={{ r: 3 }}
+                dot={{ r: 3, fill: '#BF5AF2' }}
                 name="設定4"
               />
               <Line
                 type="linear"
                 dataKey="setting5"
-                stroke="#66BB6A"
+                stroke="#30D158"
                 strokeWidth={2}
-                dot={{ r: 3 }}
+                dot={{ r: 3, fill: '#30D158' }}
                 name="設定5"
               />
               <Line
                 type="linear"
                 dataKey="setting6"
-                stroke="#42A5F5"
+                stroke="#0A84FF"
                 strokeWidth={2}
-                dot={{ r: 3 }}
+                dot={{ r: 3, fill: '#0A84FF' }}
                 name="設定6"
               />
             </LineChart>
@@ -203,19 +203,20 @@ export function StatisticsChart() {
   );
 }
 
+// Apple System Colors for dark mode
 function getSettingColor(setting: number): string {
   switch (setting) {
     case 1:
-      return '#EF5350';
+      return '#FF453A'; // Apple Red
     case 2:
-      return '#FFA726';
+      return '#FF9F0A'; // Apple Orange
     case 4:
-      return '#FFEE58';
+      return '#BF5AF2'; // Apple Purple
     case 5:
-      return '#66BB6A';
+      return '#30D158'; // Apple Green
     case 6:
-      return '#42A5F5';
+      return '#0A84FF'; // Apple Blue
     default:
-      return '#999';
+      return '#8E8E93'; // Apple Gray
   }
 }
