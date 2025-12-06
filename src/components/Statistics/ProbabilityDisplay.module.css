@@ -63,3 +63,27 @@
 .noData {
   color: var(--color-text-secondary);
 }
+
+.recordButton {
+  width: 100%;
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-md);
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.recordButton:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+.recordButton.disabled {
+  background-color: var(--color-border);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}

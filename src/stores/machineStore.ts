@@ -27,6 +27,7 @@ interface MachineStore {
   // Game Actions
   updateTotalGames: (games: number) => void;
   addHistoryEntry: () => void;
+  deleteHistoryEntry: (entryId: string) => void;
 
   // Reset
   resetCurrentMachine: () => void;
@@ -183,6 +184,20 @@ export const useMachineStore = create<MachineStore>()(
           machines: state.machines.map((m) =>
             m.id === state.currentMachineId
               ? { ...m, history: [...m.history, entry], updatedAt: Date.now() }
+              : m
+          ),
+        }));
+      },
+
+      deleteHistoryEntry: (entryId: string) => {
+        set((state) => ({
+          machines: state.machines.map((m) =>
+            m.id === state.currentMachineId
+              ? {
+                  ...m,
+                  history: m.history.filter((h) => h.id !== entryId),
+                  updatedAt: Date.now(),
+                }
               : m
           ),
         }));

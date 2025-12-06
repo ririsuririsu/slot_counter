@@ -8,6 +8,7 @@ export function ProbabilityDisplay() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const machine = useMachineStore((state) => state.getCurrentMachine());
   const fiveCardTotal = useMachineStore((state) => state.getFiveCardTotal());
+  const addHistoryEntry = useMachineStore((state) => state.addHistoryEntry);
 
   const totalGames = machine?.totalGames ?? 0;
   const denominator = calculateProbabilityDenominator(fiveCardTotal, totalGames);
@@ -18,6 +19,14 @@ export function ProbabilityDisplay() {
     }
     return `1/${denominator.toFixed(1)}`;
   };
+
+  const handleRecordHistory = () => {
+    if (totalGames > 0 && fiveCardTotal > 0) {
+      addHistoryEntry();
+    }
+  };
+
+  const canRecord = totalGames > 0 && fiveCardTotal > 0;
 
   return (
     <>
@@ -44,6 +53,14 @@ export function ProbabilityDisplay() {
             {formatProbability()}
           </span>
         </div>
+        <button
+          type="button"
+          className={`${styles.recordButton} ${!canRecord ? styles.disabled : ''}`}
+          onClick={handleRecordHistory}
+          disabled={!canRecord}
+        >
+          履歴に記録
+        </button>
       </div>
       <GameInputModal
         isOpen={isModalOpen}
