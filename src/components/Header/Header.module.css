@@ -13,42 +13,25 @@
 .content {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--spacing-sm);
   max-width: 600px;
   margin: 0 auto;
 }
 
+.backBtn {
+  font-size: 24px;
+  font-weight: 300;
+  color: var(--apple-blue);
+  padding: 0 var(--spacing-xs);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .title {
+  flex: 1;
   font-size: var(--font-size-lg);
   font-weight: 700;
   letter-spacing: -0.02em;
-}
-
-.machineSelector {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.machineSelect {
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
-  border: none;
-  background-color: var(--color-surface-elevated);
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color var(--transition-fast);
-}
-
-.machineSelect:hover {
-  background-color: rgba(99, 99, 102, 0.48);
-}
-
-.machineSelect option {
-  color: var(--color-text);
-  background-color: var(--color-surface);
 }
 
 .resetButton {
@@ -58,66 +41,10 @@
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 600;
+  flex-shrink: 0;
   transition: background-color var(--transition-fast);
 }
 
-.resetButton:hover {
+.resetButton:active {
   background-color: rgba(255, 69, 58, 0.3);
-}
-
-/* 機種選択メニュー */
-.addMenuOverlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  z-index: 200;
-  padding: var(--spacing-md);
-}
-
-.addMenu {
-  background-color: var(--color-surface-elevated);
-  border-radius: var(--radius-lg);
-  width: 100%;
-  max-width: 400px;
-  padding: var(--spacing-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.addMenuTitle {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  text-align: center;
-  padding: var(--spacing-sm) 0;
-  font-weight: 600;
-}
-
-.addMenuItem {
-  padding: var(--spacing-md);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface);
-  color: var(--apple-blue);
-  font-size: var(--font-size-base);
-  font-weight: 500;
-  text-align: center;
-  transition: background-color var(--transition-fast);
-}
-
-.addMenuItem:hover {
-  background-color: rgba(99, 99, 102, 0.24);
-}
-
-.addMenuCancel {
-  padding: var(--spacing-md);
-  border-radius: var(--radius-md);
-  background-color: transparent;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-base);
-  font-weight: 500;
-  text-align: center;
-  margin-top: var(--spacing-xs);
 }

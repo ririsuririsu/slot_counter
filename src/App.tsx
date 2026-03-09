@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Header } from './components/Header/Header';
+import { HomeScreen } from './components/Home/HomeScreen';
 import { ProbabilityDisplay } from './components/Statistics/ProbabilityDisplay';
 import { SettingAnalysis } from './components/Statistics/SettingAnalysis';
 import { CounterList } from './components/Counter/CounterList';
@@ -26,7 +27,12 @@ function App() {
     initializeStore();
   }, []);
 
-  const isHokuto = currentMachine && isHokutoMachine(currentMachine);
+  // No machine selected → show home screen
+  if (!currentMachine) {
+    return <HomeScreen />;
+  }
+
+  const isHokuto = isHokutoMachine(currentMachine);
 
   return (
     <>

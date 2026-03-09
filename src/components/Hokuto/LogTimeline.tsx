@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useMemo } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import type { HokutoLog, ResetStatus, ModeDistribution } from '../../types';
 import {
   YAKU_LABELS, INTERNAL_STATE_LABELS, TROPHY_LABELS, LAMP_COLOR_LABELS,
@@ -8,6 +8,7 @@ import {
 } from '../../data/hokutoDefinitions';
 import { estimateModesForAllATs, calculateTengekiExpectedRate } from '../../utils/hokutoEstimation';
 import type { EffectHintLog, FakeZenchoLog, LampState, HokutoMode } from '../../types';
+import { ConfirmDialog } from '../common/ConfirmDialog';
 import { LogEditForm } from './InlineLogEntry';
 import styles from './LogTimeline.module.css';
 
@@ -189,6 +190,7 @@ function LogEntry({ log, onDelete, onEdit, onInfo, modeEstimate }: { log: Hokuto
 }
 
 export function LogTimeline({ logs, resetStatus, onDeleteLog, editingLog, onEditLog, onUpdateLog, onCancelEdit, onInfoLog }: Props) {
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const editAreaRef = useRef<HTMLDivElement>(null);
 
   const atModeEstimates = useMemo(
@@ -223,7 +225,7 @@ export function LogTimeline({ logs, resetStatus, onDeleteLog, editingLog, onEdit
         <div key={log.id}>
           <LogEntry
             log={log}
-            onDelete={() => onDeleteLog(log.id)}
+            onDelete={() => setDeleteTargetId(log.id)}
             onEdit={() => onEditLog(log)}
             onInfo={() => onInfoLog(log)}
             modeEstimate={log.type === 'at-win' ? atModeEstimates[log.id] : undefined}
@@ -235,6 +237,19 @@ export function LogTimeline({ logs, resetStatus, onDeleteLog, editingLog, onEdit
           )}
         </div>
       ))}
+
+      <ConfirmDialog
+        isOpen={deleteTargetId !== null}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={() => {
+          if (deleteTargetId) onDeleteLog(deleteTargetId);
+        }}
+        title="ログの削除"
+        message="このログを削除しますか？この操作は取り消せません。"
+        confirmText="削除"
+        cancelText="キャンセル"
+        danger
+      />
     </div>
   );
 }

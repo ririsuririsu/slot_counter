@@ -167,7 +167,7 @@ export const useMachineStore = create<MachineStore>()(
       },
 
       selectMachine: (id: string) => {
-        set({ currentMachineId: id });
+        set({ currentMachineId: id || null });
       },
 
       updateMachineName: (id: string, name: string) => {
