@@ -1,0 +1,166 @@
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: var(--spacing-md);
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.1s;
+}
+
+.entry:active {
+  background-color: var(--color-surface-elevated);
+}
+
+.entryNested {
+  margin-left: var(--spacing-lg);
+  background-color: var(--color-surface-elevated);
+}
+
+.entryAT {
+  background-color: rgba(255, 69, 58, 0.1);
+  border-left: 3px solid var(--apple-red);
+}
+
+.entryTengeki {
+  background-color: rgba(48, 209, 88, 0.1);
+  border-left: 3px solid var(--apple-green);
+}
+
+.editArea {
+  padding: var(--spacing-md);
+  background-color: var(--color-surface);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  margin-top: -2px;
+  margin-bottom: var(--spacing-xs);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.badge {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  padding: 3px var(--spacing-md);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 42px;
+  text-align: center;
+}
+
+.badgeRed {
+  background-color: rgba(255, 69, 58, 0.2);
+  color: var(--apple-red);
+}
+
+.badgeBlue {
+  background-color: rgba(10, 132, 255, 0.2);
+  color: var(--apple-blue);
+}
+
+.badgeYellow {
+  background-color: rgba(255, 159, 10, 0.2);
+  color: var(--apple-orange);
+}
+
+.badgePurple {
+  background-color: rgba(191, 90, 242, 0.2);
+  color: var(--apple-purple);
+}
+
+.badgeGreen {
+  background-color: rgba(48, 209, 88, 0.2);
+  color: var(--apple-green);
+}
+
+.entryText {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hintInline {
+  color: var(--apple-teal);
+  font-weight: 600;
+}
+
+.numGame {
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  color: var(--apple-blue);
+  font-variant-numeric: tabular-nums;
+}
+
+.numAbeshi {
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  color: var(--apple-orange);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.editBtn {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  opacity: 0.5;
+  transition: all var(--transition-fast);
+}
+
+.editBtn:active {
+  opacity: 1;
+  color: var(--apple-blue);
+}
+
+.deleteBtn {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  opacity: 0.5;
+  transition: all var(--transition-fast);
+}
+
+.deleteBtn:active {
+  opacity: 1;
+  color: var(--apple-red);
+}
+
+.empty {
+  text-align: center;
+  padding: var(--spacing-xl) var(--spacing-md);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+}
+
+.emptySub {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}

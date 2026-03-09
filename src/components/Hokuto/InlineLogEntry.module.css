@@ -1,0 +1,340 @@
+.container {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--spacing-sm) var(--spacing-md);
+  padding-bottom: max(var(--spacing-md), env(safe-area-inset-bottom));
+  flex-shrink: 0;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.typeButtons {
+  display: flex;
+  gap: var(--spacing-xs);
+  padding-bottom: var(--spacing-xs);
+}
+
+.typeBtn {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  min-height: 40px;
+  transition: all var(--transition-fast);
+}
+
+.typeBtnActive {
+  color: white;
+}
+
+.typeBtnATWin {
+  background-color: rgba(255, 69, 58, 0.8);
+}
+
+.typeBtnTenha {
+  background-color: rgba(10, 132, 255, 0.8);
+}
+
+.typeBtnZencho {
+  background-color: rgba(255, 159, 10, 0.8);
+}
+
+.typeBtnEffect {
+  background-color: rgba(191, 90, 242, 0.8);
+}
+
+.typeBtnDensho {
+  background-color: rgba(48, 209, 88, 0.8);
+}
+
+.formArea {
+  margin-top: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  min-width: 56px;
+  flex-shrink: 0;
+}
+
+/* 数値表示 */
+.numDisplay {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text);
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  text-align: right;
+  min-height: 44px;
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.numDisplayActive {
+  outline: 2px solid var(--apple-blue);
+}
+
+/* カスタム数字パッド */
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-top: var(--spacing-xs);
+}
+
+.numKey {
+  min-height: 48px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.1s;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.numKey:active {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.numKeyAction {
+  background-color: rgba(10, 132, 255, 0.15);
+  color: var(--apple-blue);
+  font-size: var(--font-size-base);
+}
+
+.numKeyAction:active {
+  background-color: rgba(10, 132, 255, 0.3);
+}
+
+.numKeyDanger {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-base);
+}
+
+.select {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: none;
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.select option {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+.toggleGroup {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.toggle {
+  flex: 1;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  min-height: 40px;
+  transition: all var(--transition-fast);
+}
+
+.toggleActive {
+  background-color: rgba(10, 132, 255, 0.2);
+  color: var(--apple-blue);
+}
+
+.submitRow {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.submitBtn {
+  flex: 1;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  background-color: var(--apple-blue);
+  color: white;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  min-height: 44px;
+  transition: opacity var(--transition-fast);
+}
+
+.cancelBtn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  min-height: 44px;
+}
+
+/* 天撃セクション */
+.tengekiSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-md);
+}
+
+.tengekiHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tengekiLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.addGameBtn {
+  font-size: var(--font-size-xs);
+  color: var(--apple-blue);
+  font-weight: 600;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  background-color: rgba(10, 132, 255, 0.1);
+  min-height: 32px;
+}
+
+.tengekiRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.tengekiNum {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  min-width: 20px;
+  font-weight: 600;
+}
+
+.tengekiRow .select {
+  flex: 1;
+  font-size: var(--font-size-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  min-height: 36px;
+}
+
+.toggleSmall {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  min-height: 32px;
+  transition: all var(--transition-fast);
+}
+
+.activeGreen {
+  background-color: rgba(48, 209, 88, 0.2);
+  color: var(--apple-green);
+}
+
+.activeRed {
+  background-color: rgba(255, 69, 58, 0.2);
+  color: var(--apple-red);
+}
+
+.removeGameBtn {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  min-height: 32px;
+}
+
+.removeGameBtn:hover {
+  color: var(--apple-red);
+}
+
+/* 成功期待度 */
+.expectedRate {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) 0;
+}
+
+.expectedRateLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  min-width: 56px;
+  flex-shrink: 0;
+}
+
+.expectedRateBar {
+  flex: 1;
+  height: 20px;
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.expectedRateFill {
+  height: 100%;
+  border-radius: var(--radius-sm);
+  transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+.expectedRateLow {
+  background-color: rgba(255, 69, 58, 0.6);
+}
+
+.expectedRateMid {
+  background-color: rgba(255, 159, 10, 0.6);
+}
+
+.expectedRateHigh {
+  background-color: rgba(48, 209, 88, 0.6);
+}
+
+.expectedRateValue {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text);
+  min-width: 72px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

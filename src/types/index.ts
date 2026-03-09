@@ -1,3 +1,27 @@
+import type { HokutoSession, HokutoLog } from './hokuto';
+
+// Re-export all hokuto types
+export * from './hokuto';
+
+// ========================================
+// 共通
+// ========================================
+
+export type MachineType = 'monkey-turn-v' | 'hokuto-tensei2';
+
+interface BaseMachine {
+  id: string;
+  machineType: MachineType;
+  name: string;
+  number?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+// ========================================
+// モンキーターンV
+// ========================================
+
 // 小役カテゴリ
 export type KoyakuCategory =
   | '5枚役'
@@ -20,7 +44,7 @@ export interface CounterState {
   [koyakuId: string]: number;
 }
 
-// 設定判別結果
+// 設定判別結果（モンキーターンV用: 設定3なし）
 export interface SettingAnalysis {
   setting1: number;
   setting2: number;
@@ -39,17 +63,30 @@ export interface HistoryEntry {
   settingAnalysis: SettingAnalysis;
 }
 
-// 台データ
-export interface Machine {
-  id: string;
-  name: string;
-  number?: string;
-  createdAt: number;
-  updatedAt: number;
+export interface MonkeyTurnMachine extends BaseMachine {
+  machineType: 'monkey-turn-v';
   counters: CounterState;
   history: HistoryEntry[];
   totalGames: number;
 }
+
+// ========================================
+// 北斗の拳 転生の章2
+// ========================================
+
+export interface HokutoMachine extends BaseMachine {
+  machineType: 'hokuto-tensei2';
+  session: HokutoSession;
+  logs: HokutoLog[];
+  totalGames: number;
+  totalAbeshi: number;
+}
+
+// ========================================
+// 判別共用体
+// ========================================
+
+export type Machine = MonkeyTurnMachine | HokutoMachine;
 
 // 設定確率データ
 export interface SettingProbability {

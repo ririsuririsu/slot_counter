@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import type { KoyakuDefinition } from '../../types';
-import { useMachineStore } from '../../stores/machineStore';
+import { useMachineStore, isMonkeyTurnMachine } from '../../stores/machineStore';
 import styles from './CounterRow.module.css';
 
 interface CounterRowProps {
@@ -12,7 +12,7 @@ export const CounterRow = memo(function CounterRow({ koyaku }: CounterRowProps) 
   const incrementCounter = useMachineStore((state) => state.incrementCounter);
   const decrementCounter = useMachineStore((state) => state.decrementCounter);
 
-  const count = machine?.counters[koyaku.id] ?? 0;
+  const count = (machine && isMonkeyTurnMachine(machine)) ? (machine.counters[koyaku.id] ?? 0) : 0;
 
   const handleIncrement = () => {
     incrementCounter(koyaku.id);

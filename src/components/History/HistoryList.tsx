@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMachineStore } from '../../stores/machineStore';
+import { useMachineStore, isMonkeyTurnMachine } from '../../stores/machineStore';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import styles from './HistoryList.module.css';
 
@@ -8,7 +8,7 @@ export function HistoryList() {
   const machine = useMachineStore((state) => state.getCurrentMachine());
   const deleteHistoryEntry = useMachineStore((state) => state.deleteHistoryEntry);
 
-  const history = machine?.history ?? [];
+  const history = (machine && isMonkeyTurnMachine(machine)) ? machine.history : [];
 
   if (history.length === 0) {
     return (

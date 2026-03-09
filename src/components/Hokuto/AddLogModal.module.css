@@ -1,0 +1,186 @@
+.typeSelector {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+  overflow-x: auto;
+  padding-bottom: var(--spacing-xs);
+}
+
+.typeBtn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.typeBtnActive {
+  background-color: rgba(10, 132, 255, 0.2);
+  color: var(--apple-blue);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.field label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.field input,
+.field select {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: none;
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+}
+
+.field select {
+  cursor: pointer;
+}
+
+.field select option {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+.toggleGroup {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.toggle {
+  flex: 1;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.toggle.active {
+  background-color: rgba(10, 132, 255, 0.2);
+  color: var(--apple-blue);
+}
+
+.toggleSmall {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.activeGreen {
+  background-color: rgba(48, 209, 88, 0.2);
+  color: var(--apple-green);
+}
+
+.activeRed {
+  background-color: rgba(255, 69, 58, 0.2);
+  color: var(--apple-red);
+}
+
+.submitBtn {
+  padding: var(--spacing-md);
+  border-radius: var(--radius-lg);
+  background-color: var(--apple-blue);
+  color: white;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  transition: opacity var(--transition-fast);
+  margin-top: var(--spacing-sm);
+}
+
+.submitBtn:hover {
+  opacity: 0.85;
+}
+
+/* 天撃チャレンジセクション */
+.tengekiSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-md);
+}
+
+.tengekiHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tengekiHeader label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.addGameBtn {
+  font-size: var(--font-size-xs);
+  color: var(--apple-blue);
+  font-weight: 600;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  background-color: rgba(10, 132, 255, 0.1);
+}
+
+.tengekiRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.tengekiNum {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  min-width: 24px;
+  font-weight: 600;
+}
+
+.tengekiRow select {
+  flex: 1;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  border: none;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+}
+
+.tengekiRow select option {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+.removeGameBtn {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.removeGameBtn:hover {
+  color: var(--apple-red);
+}

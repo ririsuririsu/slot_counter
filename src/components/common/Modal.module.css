@@ -17,8 +17,8 @@
 .modal {
   background-color: var(--color-surface);
   border-radius: var(--radius-xl);
-  width: 100%;
-  max-width: calc(100vw - var(--spacing-md));
+  width: 90%;
+  max-width: 360px;
   max-height: 90vh;
   overflow: auto;
 }

@@ -1,0 +1,66 @@
+.container {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  min-width: 64px;
+}
+
+.toggleGroup {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex: 1;
+}
+
+.toggleButton {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-xs);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.toggleButton.active {
+  background-color: rgba(10, 132, 255, 0.2);
+  color: var(--apple-blue);
+}
+
+.inputGroup {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.numberInput {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: none;
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  text-align: right;
+}
+
+.numberInput::placeholder {
+  color: var(--color-text-tertiary);
+}

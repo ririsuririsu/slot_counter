@@ -8,13 +8,13 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { useMachineStore } from '../../stores/machineStore';
+import { useMachineStore, isMonkeyTurnMachine } from '../../stores/machineStore';
 import { settingProbabilities } from '../../data/settingProbabilities';
 import styles from './StatisticsChart.module.css';
 
 export function StatisticsChart() {
   const machine = useMachineStore((state) => state.getCurrentMachine());
-  const history = machine?.history ?? [];
+  const history = (machine && isMonkeyTurnMachine(machine)) ? machine.history : [];
 
   if (history.length < 2) {
     return (
