@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import { useMachineStore, isMonkeyTurnMachine, isHokutoMachine } from '../../stores/machineStore';
 import { ConfirmDialog } from '../common/ConfirmDialog';
+import type { MachineType } from '../../types';
 import styles from './Header.module.css';
+
+const MACHINE_TYPE_LABELS: Record<MachineType, string> = {
+  'monkey-turn-v': 'モンキーターンV',
+  'hokuto-tensei2': '北斗の拳 転生の章2',
+};
 
 export function Header() {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
@@ -24,6 +30,10 @@ export function Header() {
   };
 
   const title = currentMachine?.name ?? 'スロットカウンター';
+  const subtitle = currentMachine ? MACHINE_TYPE_LABELS[currentMachine.machineType] : '';
+  const timestamp = currentMachine
+    ? new Date(currentMachine.createdAt).toLocaleDateString('ja-JP', { year: 'numeric', month: 'short', day: 'numeric' })
+    : '';
 
   const resetMessage =
     currentMachine && isMonkeyTurnMachine(currentMachine)
@@ -37,7 +47,10 @@ export function Header() {
           <button className={styles.backBtn} onClick={handleBack}>
             ‹
           </button>
-          <h1 className={styles.title}>{title}</h1>
+          <div className={styles.titleGroup}>
+            <h1 className={styles.title}>{title}</h1>
+            <span className={styles.subtitle}>{subtitle} · {timestamp}</span>
+          </div>
           <button
             className={styles.resetButton}
             onClick={() => setIsResetDialogOpen(true)}

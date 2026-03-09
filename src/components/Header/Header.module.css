@@ -27,11 +27,22 @@
   flex-shrink: 0;
 }
 
-.title {
+.titleGroup {
   flex: 1;
+  min-width: 0;
+}
+
+.title {
   font-size: var(--font-size-lg);
   font-weight: 700;
   letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  line-height: 1.2;
 }
 
 .resetButton {
