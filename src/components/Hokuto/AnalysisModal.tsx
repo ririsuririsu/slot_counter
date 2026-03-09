@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
 import type { HokutoLog, HokutoSettingAnalysis, ModeDistribution, TengekiStats, ResetStatus } from '../../types';
-import type { HokutoMode } from '../../types';
+import type { HokutoMode, ATWinLog, TenhaLog } from '../../types';
 import { filterLogsByType, estimateModesForAllATs } from '../../utils/hokutoEstimation';
-import type { ATWinLog, TenhaLog } from '../../types';
 import { MODE_LABELS } from '../../data/hokutoDefinitions';
 import { Modal } from '../common/Modal';
 import styles from './AnalysisModal.module.css';
@@ -15,7 +14,6 @@ interface Props {
   totalAbeshi: number;
   resetStatus: ResetStatus;
   settingAnalysis: HokutoSettingAnalysis;
-  modeDistribution: ModeDistribution;
   tengekiStats: TengekiStats;
 }
 
@@ -50,7 +48,6 @@ export function AnalysisModal({
   totalGames,
   resetStatus,
   settingAnalysis,
-  modeDistribution,
   tengekiStats,
 }: Props) {
   const atWinCount = filterLogsByType<ATWinLog>(logs, 'at-win').length;

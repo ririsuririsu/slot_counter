@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { useMachineStore, isHokutoMachine } from '../../stores/machineStore';
 import {
   calculateHokutoSettingProbabilities,
-  estimateCurrentMode,
   calculateTengekiStats,
 } from '../../utils/hokutoEstimation';
 import type { ResetStatus, HokutoLog } from '../../types';
@@ -25,18 +24,16 @@ export function HokutoMain() {
 
   if (!machine || !isHokutoMachine(machine)) return null;
 
-  const { session, logs, totalGames, totalAbeshi } = machine;
+  const { session, logs, totalAbeshi } = machine;
 
   // ログから総ゲーム数を算出
   // gameCountはAT間のG数（AT当選でリセット）なので、
   // 全ATのgameCountを合算 + 最終AT以降の最大gameCountを加算
   let sumATGames = 0;
   let currentCycleMax = 0;
-  let lastATIndex = -1;
   for (let i = 0; i < logs.length; i++) {
     if (logs[i].type === 'at-win') {
       sumATGames += (logs[i] as { gameCount: number }).gameCount;
-      lastATIndex = i;
       currentCycleMax = 0;
     } else if (logs[i].type === 'tenha') {
       const g = (logs[i] as { gameCount: number }).gameCount;
@@ -46,7 +43,6 @@ export function HokutoMain() {
   const effectiveGames = sumATGames + currentCycleMax;
 
   const settingAnalysis = calculateHokutoSettingProbabilities(logs, effectiveGames);
-  const modeDistribution = estimateCurrentMode(logs, session.resetStatus);
   const tengekiStats = calculateTengekiStats(logs);
   const atCount = logs.filter((l) => l.type === 'at-win').length;
   const tenhaCount = logs.filter((l) => l.type === 'tenha').length;
@@ -96,7 +92,6 @@ export function HokutoMain() {
         totalAbeshi={totalAbeshi}
         resetStatus={session.resetStatus}
         settingAnalysis={settingAnalysis}
-        modeDistribution={modeDistribution}
         tengekiStats={tengekiStats}
       />
     </div>

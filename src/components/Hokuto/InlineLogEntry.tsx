@@ -20,7 +20,6 @@ import {
   INTERNAL_STATE_LABELS,
   TROPHY_LABELS,
   LAMP_COLOR_LABELS,
-  ZENCHO_CATEGORY_LABELS,
 } from '../../data/hokutoDefinitions';
 import { calculateTengekiExpectedRate } from '../../utils/hokutoEstimation';
 import styles from './InlineLogEntry.module.css';
@@ -40,7 +39,7 @@ const TYPE_OPTIONS: { value: FormType; label: string; activeClass: string }[] = 
 ];
 
 // --- カスタム数字パッド ---
-function NumPad({ value, onChange, onSubmit }: { value: number; onChange: (v: number) => void; onSubmit?: () => void }) {
+function NumPad({ value, onChange }: { value: number; onChange: (v: number) => void; onSubmit?: () => void }) {
   const tap = useCallback((digit: number) => {
     const next = value * 10 + digit;
     if (next <= 99999) onChange(next);
@@ -66,8 +65,8 @@ function NumPad({ value, onChange, onSubmit }: { value: number; onChange: (v: nu
   );
 }
 
-function NumField({ label, value, onChange, active, onFocus }: {
-  label: string; value: number; onChange: (v: number) => void;
+function NumField({ label, value, active, onFocus }: {
+  label: string; value: number; onChange?: (v: number) => void;
   active: boolean; onFocus: () => void;
 }) {
   return (
