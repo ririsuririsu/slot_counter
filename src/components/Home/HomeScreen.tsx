@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMachineStore } from '../../stores/machineStore';
 import { ConfirmDialog } from '../common/ConfirmDialog';
+import { supabase } from '../../lib/supabase';
 import type { MachineType } from '../../types';
 import styles from './HomeScreen.module.css';
 
@@ -12,10 +13,43 @@ const MACHINE_TYPES: { type: MachineType; label: string; sub: string }[] = [
 export function HomeScreen() {
   const [showAdd, setShowAdd] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const machines = useMachineStore((state) => state.machines);
   const selectMachine = useMachineStore((state) => state.selectMachine);
   const addMachine = useMachineStore((state) => state.addMachine);
   const deleteMachine = useMachineStore((state) => state.deleteMachine);
+  const syncToSupabase = useMachineStore((state) => state.syncToSupabase);
+  const loadFromSupabase = useMachineStore((state) => state.loadFromSupabase);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    setSyncMessage(null);
+    try {
+      await syncToSupabase();
+      setSyncMessage('アップロード完了');
+    } catch {
+      setSyncMessage('同期に失敗しました');
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncMessage(null), 2000);
+    }
+  };
+
+  const handleLoad = async () => {
+    setLoading(true);
+    setSyncMessage(null);
+    try {
+      const success = await loadFromSupabase();
+      setSyncMessage(success ? 'データ読み込み完了' : '読み込みに失敗しました');
+    } catch {
+      setSyncMessage('読み込みに失敗しました');
+    } finally {
+      setLoading(false);
+      setTimeout(() => setSyncMessage(null), 2000);
+    }
+  };
 
   const handleAdd = (type: MachineType) => {
     addMachine(type);
@@ -73,6 +107,30 @@ export function HomeScreen() {
           </button>
         </div>
       )}
+      {supabase && (
+        <div className={styles.syncSection}>
+          <div className={styles.syncButtons}>
+            <button
+              className={styles.syncBtn}
+              onClick={handleSync}
+              disabled={syncing || loading}
+            >
+              {syncing ? '送信中...' : 'クラウドに保存'}
+            </button>
+            <button
+              className={styles.loadBtn}
+              onClick={handleLoad}
+              disabled={syncing || loading}
+            >
+              {loading ? '読込中...' : 'クラウドから復元'}
+            </button>
+          </div>
+          {syncMessage && (
+            <p className={styles.syncMessage}>{syncMessage}</p>
+          )}
+        </div>
+      )}
+
       <ConfirmDialog
         isOpen={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}

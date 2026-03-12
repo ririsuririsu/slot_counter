@@ -145,3 +145,57 @@
   font-weight: 500;
   text-align: center;
 }
+
+/* Supabase同期 */
+
+.syncSection {
+  margin-top: var(--spacing-xl);
+  width: 100%;
+  border-top: 1px solid var(--color-separator);
+  padding-top: var(--spacing-lg);
+}
+
+.syncButtons {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.syncBtn,
+.loadBtn {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  transition: background-color var(--transition-fast);
+}
+
+.syncBtn {
+  background-color: rgba(48, 209, 88, 0.15);
+  color: var(--apple-green);
+}
+
+.syncBtn:active {
+  background-color: rgba(48, 209, 88, 0.25);
+}
+
+.syncBtn:disabled,
+.loadBtn:disabled {
+  opacity: 0.5;
+}
+
+.loadBtn {
+  background-color: rgba(10, 132, 255, 0.15);
+  color: var(--apple-blue);
+}
+
+.loadBtn:active {
+  background-color: rgba(10, 132, 255, 0.25);
+}
+
+.syncMessage {
+  margin-top: var(--spacing-sm);
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}

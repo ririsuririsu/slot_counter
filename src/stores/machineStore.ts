@@ -13,6 +13,16 @@ import type {
 } from '../types';
 import { createInitialCounters, fiveCardIds } from '../data/koyakuDefinitions';
 import { calculateSettingProbabilities } from '../utils/binomialDistribution';
+import {
+  upsertMachine,
+  deleteMachineRemote,
+  upsertHistoryEntry,
+  deleteHistoryEntryRemote,
+  upsertHokutoLog,
+  deleteHokutoLogRemote,
+  syncAllMachines,
+  loadAllMachines,
+} from '../lib/supabaseSync';
 
 // ========================================
 // 型ガード
@@ -70,6 +80,10 @@ interface MachineStore {
 
   // Hokuto: Reset
   resetHokutoMachine: () => void;
+
+  // Supabase同期
+  syncToSupabase: () => Promise<void>;
+  loadFromSupabase: () => Promise<boolean>;
 }
 
 // ========================================
@@ -126,6 +140,15 @@ function updateCurrentMachine(
 }
 
 // ========================================
+// ヘルパー: バックグラウンド同期（fire-and-forget）
+// ========================================
+
+function syncCurrentMachine(get: () => MachineStore) {
+  const machine = get().getCurrentMachine();
+  if (machine) upsertMachine(machine).catch(() => {});
+}
+
+// ========================================
 // ストア
 // ========================================
 
@@ -164,6 +187,7 @@ export const useMachineStore = create<MachineStore>()(
           machines: [...machines, newMachine],
           currentMachineId: newMachine.id,
         });
+        upsertMachine(newMachine).catch(() => {});
       },
 
       selectMachine: (id: string) => {
@@ -176,6 +200,8 @@ export const useMachineStore = create<MachineStore>()(
             m.id === id ? { ...m, name, updatedAt: Date.now() } : m
           ),
         }));
+        const machine = get().machines.find((m) => m.id === id);
+        if (machine) upsertMachine(machine).catch(() => {});
       },
 
       updateMachineNumber: (id: string, number: string) => {
@@ -184,6 +210,8 @@ export const useMachineStore = create<MachineStore>()(
             m.id === id ? { ...m, number, updatedAt: Date.now() } : m
           ),
         }));
+        const machine = get().machines.find((m) => m.id === id);
+        if (machine) upsertMachine(machine).catch(() => {});
       },
 
       deleteMachine: (id: string) => {
@@ -197,6 +225,7 @@ export const useMachineStore = create<MachineStore>()(
           machines: filteredMachines,
           currentMachineId: newCurrentId,
         });
+        deleteMachineRemote(id).catch(() => {});
       },
 
       // --- MonkeyTurn: Counter Actions ---
@@ -215,6 +244,7 @@ export const useMachineStore = create<MachineStore>()(
             };
           })
         );
+        syncCurrentMachine(get);
       },
 
       decrementCounter: (koyakuId: string) => {
@@ -233,6 +263,7 @@ export const useMachineStore = create<MachineStore>()(
             };
           })
         );
+        syncCurrentMachine(get);
       },
 
       // --- MonkeyTurn: Game Actions ---
@@ -244,6 +275,7 @@ export const useMachineStore = create<MachineStore>()(
             return { ...m, totalGames: games, updatedAt: Date.now() };
           })
         );
+        syncCurrentMachine(get);
       },
 
       addHistoryEntry: () => {
@@ -283,6 +315,9 @@ export const useMachineStore = create<MachineStore>()(
             };
           })
         );
+        syncCurrentMachine(get);
+        const machineId = get().currentMachineId;
+        if (machineId) upsertHistoryEntry(machineId, entry).catch(() => {});
       },
 
       deleteHistoryEntry: (entryId: string) => {
@@ -296,9 +331,12 @@ export const useMachineStore = create<MachineStore>()(
             };
           })
         );
+        syncCurrentMachine(get);
+        deleteHistoryEntryRemote(entryId).catch(() => {});
       },
 
       resetCurrentMachine: () => {
+        const machineId = get().currentMachineId;
         set((state) =>
           updateCurrentMachine(state, (m) => {
             if (!isMonkeyTurnMachine(m)) return m;
@@ -311,6 +349,12 @@ export const useMachineStore = create<MachineStore>()(
             };
           })
         );
+        syncCurrentMachine(get);
+        // リセット時はSupabase側の履歴も削除（machineを再upsertで対応）
+        if (machineId) deleteMachineRemote(machineId).then(() => {
+          const machine = get().getCurrentMachine();
+          if (machine) upsertMachine(machine).catch(() => {});
+        }).catch(() => {});
       },
 
       // --- Hokuto: Session ---
@@ -326,6 +370,7 @@ export const useMachineStore = create<MachineStore>()(
             };
           })
         );
+        syncCurrentMachine(get);
       },
 
       // --- Hokuto: Logs ---
@@ -341,6 +386,9 @@ export const useMachineStore = create<MachineStore>()(
             };
           })
         );
+        syncCurrentMachine(get);
+        const machineId = get().currentMachineId;
+        if (machineId) upsertHokutoLog(machineId, log).catch(() => {});
       },
 
       updateHokutoLog: (log: HokutoLog) => {
@@ -354,6 +402,9 @@ export const useMachineStore = create<MachineStore>()(
             };
           })
         );
+        syncCurrentMachine(get);
+        const machineId = get().currentMachineId;
+        if (machineId) upsertHokutoLog(machineId, log).catch(() => {});
       },
 
       deleteHokutoLog: (logId: string) => {
@@ -367,6 +418,8 @@ export const useMachineStore = create<MachineStore>()(
             };
           })
         );
+        syncCurrentMachine(get);
+        deleteHokutoLogRemote(logId).catch(() => {});
       },
 
       // --- Hokuto: Game state ---
@@ -383,11 +436,13 @@ export const useMachineStore = create<MachineStore>()(
             };
           })
         );
+        syncCurrentMachine(get);
       },
 
       // --- Hokuto: Reset ---
 
       resetHokutoMachine: () => {
+        const machineId = get().currentMachineId;
         set((state) =>
           updateCurrentMachine(state, (m) => {
             if (!isHokutoMachine(m)) return m;
@@ -401,6 +456,27 @@ export const useMachineStore = create<MachineStore>()(
             };
           })
         );
+        syncCurrentMachine(get);
+        if (machineId) deleteMachineRemote(machineId).then(() => {
+          const machine = get().getCurrentMachine();
+          if (machine) upsertMachine(machine).catch(() => {});
+        }).catch(() => {});
+      },
+      // --- Supabase同期 ---
+
+      syncToSupabase: async () => {
+        const { machines } = get();
+        await syncAllMachines(machines);
+      },
+
+      loadFromSupabase: async () => {
+        const machines = await loadAllMachines();
+        if (!machines) return false;
+        set({
+          machines,
+          currentMachineId: machines[0]?.id || null,
+        });
+        return true;
       },
     }),
     {
