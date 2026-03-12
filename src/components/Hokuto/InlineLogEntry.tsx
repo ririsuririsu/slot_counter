@@ -20,6 +20,7 @@ import {
   INTERNAL_STATE_LABELS,
   TROPHY_LABELS,
   LAMP_COLOR_LABELS,
+  LAMP_POSITION_LABELS,
 } from '../../data/hokutoDefinitions';
 import { calculateTengekiExpectedRate } from '../../utils/hokutoEstimation';
 import styles from './InlineLogEntry.module.css';
@@ -471,7 +472,7 @@ function EffectHintForm({ onSubmit, onCancel, initial }: { onSubmit: (log: Effec
             <button key={pos} className={`${styles.toggle} ${lampPos === pos ? styles.toggleActive : ''}`} onClick={() => {
               setLampPos(lampPos === pos ? '' : pos);
               setLampValue('');
-            }}>{pos}</button>
+            }}>{LAMP_POSITION_LABELS[pos]}</button>
           ))}
         </div>
       </div>

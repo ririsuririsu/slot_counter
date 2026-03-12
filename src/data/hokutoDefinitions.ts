@@ -274,34 +274,34 @@ export interface LampInterpretation {
 }
 
 export const LAMP_A_INTERPRETATIONS: LampInterpretation[] = [
-  { color: 'white', pattern: 'solid', settingFloor: null, note: 'デフォルト' },
-  { color: 'white', pattern: 'blink', settingFloor: null, note: '設定2以上示唆' },
-  { color: 'cyan', pattern: 'solid', settingFloor: null, note: '高設定示唆（弱）' },
-  { color: 'cyan', pattern: 'blink', settingFloor: null, note: '高設定示唆（強）' },
-  { color: 'cyan', pattern: 'solid', upperWhiteFlow: true, settingFloor: 4, note: '設定4以上確定' },
-  { color: 'cyan', pattern: 'blink', upperWhiteFlow: true, settingFloor: 5, note: '設定5以上確定' },
-  { color: 'yellow-green', pattern: 'solid', settingFloor: 3, note: '設定3以上確定' },
-  { color: 'yellow-green', pattern: 'blink', settingFloor: 5, note: '設定5以上確定' },
-  { color: 'gold', pattern: 'solid', settingFloor: 4, note: '設定4以上確定' },
-  { color: 'gold', pattern: 'blink', settingFloor: 6, note: '設定6確定' },
-  { color: 'purple', pattern: 'solid', settingFloor: null, note: '偶数設定示唆' },
-  { color: 'purple', pattern: 'blink', settingFloor: null, note: '奇数設定示唆' },
+  { color: 'white', pattern: 'solid', settingFloor: null, note: '1280あべし以内期待度UP（弱）' },
+  { color: 'white', pattern: 'blink', settingFloor: null, note: '1280あべし以内期待度UP（強）' },
+  { color: 'cyan', pattern: 'solid', settingFloor: null, note: '896あべし以内期待度UP（弱）' },
+  { color: 'cyan', pattern: 'blink', settingFloor: null, note: '576あべし以内期待度UP（弱）' },
+  { color: 'cyan', pattern: 'solid', upperWhiteFlow: true, settingFloor: null, note: '896あべし以内期待度UP（強）' },
+  { color: 'cyan', pattern: 'blink', upperWhiteFlow: true, settingFloor: null, note: '576あべし以内期待度UP（強）' },
+  { color: 'yellow-green', pattern: 'solid', settingFloor: 2, note: '通常B以上示唆 否定で設定2以上濃厚' },
+  { color: 'yellow-green', pattern: 'blink', settingFloor: 2, note: '通常C以上示唆 否定で設定2以上濃厚' },
+  { color: 'gold', pattern: 'solid', settingFloor: 4, note: '通常B以上示唆 否定で設定4以上濃厚' },
+  { color: 'gold', pattern: 'blink', settingFloor: 4, note: '通常C以上示唆 否定で設定4以上濃厚' },
+  { color: 'purple', pattern: 'solid', settingFloor: 6, note: '通常B以上示唆 否定で設定6濃厚' },
+  { color: 'purple', pattern: 'blink', settingFloor: 6, note: '通常C以上示唆 否定で設定6濃厚' },
 ];
 
 export const LAMP_B_INTERPRETATIONS: LampInterpretation[] = [
-  { color: 'white', pattern: 'solid', settingFloor: null, note: '偶数設定示唆（設定2・4）' },
-  { color: 'white', pattern: 'blink', settingFloor: null, note: '奇数設定示唆（設定3・5）' },
+  { color: 'white', pattern: 'solid', settingFloor: null, note: '設定2・4示唆' },
+  { color: 'white', pattern: 'blink', settingFloor: null, note: '設定3・5示唆' },
   { color: 'cyan', pattern: 'solid', settingFloor: null, note: '高設定示唆（弱）' },
   { color: 'cyan', pattern: 'blink', settingFloor: null, note: '高設定示唆（強）' },
-  { color: 'yellow-green', pattern: 'solid', settingFloor: 2, note: '設定2以上確定' },
-  { color: 'yellow-green', pattern: 'blink', settingFloor: 4, note: '設定4以上確定' },
-  { color: 'gold', pattern: 'solid', settingFloor: 6, note: '設定6確定' },
+  { color: 'yellow-green', pattern: 'solid', settingFloor: 2, note: '設定2以上濃厚' },
+  { color: 'yellow-green', pattern: 'blink', settingFloor: 4, note: '設定4以上濃厚' },
+  { color: 'gold', pattern: 'solid', settingFloor: 6, note: '設定6濃厚' },
 ];
 
 export const LAMP_C_INTERPRETATIONS: LampInterpretation[] = [
-  { color: 'cyan', pattern: 'solid', settingFloor: null, note: '896以内（モードB以上）示唆' },
-  { color: 'yellow-green', pattern: 'solid', settingFloor: null, note: 'モードB以上濃厚' },
-  { color: 'gold', pattern: 'solid', settingFloor: null, note: 'モードC以上 or 天国濃厚' },
+  { color: 'cyan', pattern: 'solid', settingFloor: null, note: '早い初当たり示唆（弱）' },
+  { color: 'yellow-green', pattern: 'solid', settingFloor: null, note: '早い初当たり示唆（中）' },
+  { color: 'gold', pattern: 'solid', settingFloor: null, note: '早い初当たり示唆（強）' },
 ];
 
 // --- 日本語ラベル ---
@@ -338,6 +338,12 @@ export const TROPHY_LABELS: Record<string, string> = {
   'gold': '金',
   'kirin': 'キリン柄',
   'rainbow': '虹',
+};
+
+export const LAMP_POSITION_LABELS: Record<string, string> = {
+  'A': '上部サイド',
+  'B': '上部中央',
+  'C': 'サブ液晶',
 };
 
 export const LAMP_COLOR_LABELS: Record<string, string> = {

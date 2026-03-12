@@ -27,3 +27,4 @@ dist-ssr
 .playwright-mcp/
 
 .vercel
+.env*.local

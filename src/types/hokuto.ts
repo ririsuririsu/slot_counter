@@ -118,7 +118,7 @@ export interface EffectHintLog {
 export interface LampState {
   color: 'white' | 'cyan' | 'gold' | 'purple' | 'yellow-green';
   pattern: 'solid' | 'blink';
-  upperWhiteFlow?: boolean; // 上白流れ（ランプA水色のみ）
+  upperWhiteFlow?: boolean; // 上白流れ（上部サイドランプ水色のみ）
 }
 
 export type TrophyColor = 'bronze' | 'silver' | 'gold' | 'kirin' | 'rainbow';

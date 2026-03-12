@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import type { HokutoLog, ResetStatus, ModeDistribution } from '../../types';
 import {
-  YAKU_LABELS, INTERNAL_STATE_LABELS, TROPHY_LABELS, LAMP_COLOR_LABELS,
+  YAKU_LABELS, INTERNAL_STATE_LABELS, TROPHY_LABELS, LAMP_COLOR_LABELS, LAMP_POSITION_LABELS,
   TROPHY_SETTING_FLOOR, LAMP_A_INTERPRETATIONS, LAMP_B_INTERPRETATIONS, LAMP_C_INTERPRETATIONS,
   ZENCHO_CATEGORY_LABELS, SHUTTER_CHECKPOINTS, TENMEI_ZONES, MODE_LABELS,
   type LampInterpretation,
@@ -157,7 +157,7 @@ function LogEntry({ log, onDelete, onEdit, onInfo, modeEstimate }: { log: Hokuto
       const lampEntries: [string, typeof log.lampA][] = [['A', log.lampA], ['B', log.lampB], ['C', log.lampC]];
       for (const [pos, lamp] of lampEntries) {
         if (lamp) {
-          let text = `ランプ${pos} ${LAMP_COLOR_LABELS[lamp.color]}`;
+          let text = `${LAMP_POSITION_LABELS[pos]} ${LAMP_COLOR_LABELS[lamp.color]}`;
           if (lamp.pattern === 'blink') text += '点滅';
           if (lamp.upperWhiteFlow) text += '+上白流れ';
           parts.push(text);
@@ -169,7 +169,8 @@ function LogEntry({ log, onDelete, onEdit, onInfo, modeEstimate }: { log: Hokuto
         <div className={entryClass} onClick={onInfo}>
           <span className={`${styles.badge} ${styles.badgePurple}`}>演出</span>
           <span className={styles.entryText}>
-            {display}{hints.length > 0 && <> / <span className={styles.hintInline}>{hints.join(' / ')}</span></>}
+            {display}
+            {hints.length > 0 && <span className={styles.hintBlock}>{hints.join(' / ')}</span>}
           </span>
           <ActionButtons onEdit={onEdit} onDelete={onDelete} />
         </div>

@@ -173,7 +173,7 @@ export function getConfirmedSettingFloor(logs: HokutoLog[]): number {
       floor = Math.max(floor, TROPHY_SETTING_FLOOR[log.trophy]);
     }
 
-    // ランプB箇所
+    // 上部中央ランプ（B箇所）
     if (log.lampB) {
       const match = LAMP_B_INTERPRETATIONS.find(
         (l) => l.color === log.lampB!.color && l.pattern === log.lampB!.pattern
@@ -353,15 +353,15 @@ export function estimateCurrentMode(
     }
   }
 
-  // ランプC箇所による示唆
+  // サブ液晶ランプ（C箇所）による示唆 — 早い初当たり示唆
   for (const log of effectLogs) {
     if (!log.lampC) continue;
     if (log.lampC.color === 'cyan') {
-      // 896以内 or 576以内示唆
+      // 早い初当たり示唆（弱）
       dist.modeA *= 0.3;
     }
     if (log.lampC.color === 'yellow-green' || log.lampC.color === 'gold') {
-      // モードB以上濃厚
+      // 早い初当たり示唆（中/強）
       dist.modeA *= 0.05;
     }
   }

@@ -87,14 +87,20 @@
   flex: 1;
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  min-width: 0;
+  line-height: 1.4;
 }
 
 .hintInline {
   color: var(--apple-teal);
   font-weight: 600;
+}
+
+.hintBlock {
+  display: block;
+  color: var(--apple-teal);
+  font-weight: 600;
+  font-size: var(--font-size-xs);
 }
 
 .numGame {
