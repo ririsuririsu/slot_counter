@@ -274,34 +274,34 @@ export interface LampInterpretation {
 }
 
 export const LAMP_A_INTERPRETATIONS: LampInterpretation[] = [
-  { color: 'white', pattern: 'solid', settingFloor: null, note: '1280あべし以内期待度UP（弱）' },
-  { color: 'white', pattern: 'blink', settingFloor: null, note: '1280あべし以内期待度UP（強）' },
-  { color: 'cyan', pattern: 'solid', settingFloor: null, note: '896あべし以内期待度UP（弱）' },
-  { color: 'cyan', pattern: 'blink', settingFloor: null, note: '576あべし以内期待度UP（弱）' },
-  { color: 'cyan', pattern: 'solid', upperWhiteFlow: true, settingFloor: null, note: '896あべし以内期待度UP（強）' },
-  { color: 'cyan', pattern: 'blink', upperWhiteFlow: true, settingFloor: null, note: '576あべし以内期待度UP（強）' },
-  { color: 'yellow-green', pattern: 'solid', settingFloor: 2, note: '通常B以上示唆 否定で設定2以上濃厚' },
-  { color: 'yellow-green', pattern: 'blink', settingFloor: 2, note: '通常C以上示唆 否定で設定2以上濃厚' },
-  { color: 'gold', pattern: 'solid', settingFloor: 4, note: '通常B以上示唆 否定で設定4以上濃厚' },
-  { color: 'gold', pattern: 'blink', settingFloor: 4, note: '通常C以上示唆 否定で設定4以上濃厚' },
-  { color: 'purple', pattern: 'solid', settingFloor: 6, note: '通常B以上示唆 否定で設定6濃厚' },
-  { color: 'purple', pattern: 'blink', settingFloor: 6, note: '通常C以上示唆 否定で設定6濃厚' },
+  { color: 'white', pattern: 'solid', settingFloor: null, note: '1280以内（弱）' },
+  { color: 'white', pattern: 'blink', settingFloor: null, note: '1280以内（強）' },
+  { color: 'cyan', pattern: 'solid', settingFloor: null, note: '896以内（弱）' },
+  { color: 'cyan', pattern: 'blink', settingFloor: null, note: '576以内（弱）' },
+  { color: 'cyan', pattern: 'solid', upperWhiteFlow: true, settingFloor: null, note: '896以内（強）' },
+  { color: 'cyan', pattern: 'blink', upperWhiteFlow: true, settingFloor: null, note: '576以内（強）' },
+  { color: 'yellow-green', pattern: 'solid', settingFloor: 2, note: 'B以上（否定で設定2↑）' },
+  { color: 'yellow-green', pattern: 'blink', settingFloor: 2, note: 'C以上（否定で設定2↑）' },
+  { color: 'gold', pattern: 'solid', settingFloor: 4, note: 'B以上（否定で設定4↑）' },
+  { color: 'gold', pattern: 'blink', settingFloor: 4, note: 'C以上（否定で設定4↑）' },
+  { color: 'purple', pattern: 'solid', settingFloor: 6, note: 'B以上（否定で設定6濃厚）' },
+  { color: 'purple', pattern: 'blink', settingFloor: 6, note: 'C以上（否定で設定6濃厚）' },
 ];
 
 export const LAMP_B_INTERPRETATIONS: LampInterpretation[] = [
   { color: 'white', pattern: 'solid', settingFloor: null, note: '設定2・4示唆' },
   { color: 'white', pattern: 'blink', settingFloor: null, note: '設定3・5示唆' },
-  { color: 'cyan', pattern: 'solid', settingFloor: null, note: '高設定示唆（弱）' },
-  { color: 'cyan', pattern: 'blink', settingFloor: null, note: '高設定示唆（強）' },
-  { color: 'yellow-green', pattern: 'solid', settingFloor: 2, note: '設定2以上濃厚' },
-  { color: 'yellow-green', pattern: 'blink', settingFloor: 4, note: '設定4以上濃厚' },
+  { color: 'cyan', pattern: 'solid', settingFloor: null, note: '高設定（弱）' },
+  { color: 'cyan', pattern: 'blink', settingFloor: null, note: '高設定（強）' },
+  { color: 'yellow-green', pattern: 'solid', settingFloor: 2, note: '設定2↑' },
+  { color: 'yellow-green', pattern: 'blink', settingFloor: 4, note: '設定4↑' },
   { color: 'gold', pattern: 'solid', settingFloor: 6, note: '設定6濃厚' },
 ];
 
 export const LAMP_C_INTERPRETATIONS: LampInterpretation[] = [
-  { color: 'cyan', pattern: 'solid', settingFloor: null, note: '早い初当たり示唆（弱）' },
-  { color: 'yellow-green', pattern: 'solid', settingFloor: null, note: '早い初当たり示唆（中）' },
-  { color: 'gold', pattern: 'solid', settingFloor: null, note: '早い初当たり示唆（強）' },
+  { color: 'cyan', pattern: 'solid', settingFloor: null, note: '初当たり近（弱）' },
+  { color: 'yellow-green', pattern: 'solid', settingFloor: null, note: '初当たり近（中）' },
+  { color: 'gold', pattern: 'solid', settingFloor: null, note: '初当たり近（強）' },
 ];
 
 // --- 日本語ラベル ---
@@ -341,9 +341,9 @@ export const TROPHY_LABELS: Record<string, string> = {
 };
 
 export const LAMP_POSITION_LABELS: Record<string, string> = {
-  'A': '上部サイド',
-  'B': '上部中央',
-  'C': 'サブ液晶',
+  'A': 'サイド',
+  'B': '中央',
+  'C': '液晶',
 };
 
 export const LAMP_COLOR_LABELS: Record<string, string> = {
