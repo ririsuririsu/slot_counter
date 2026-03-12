@@ -10,11 +10,13 @@ import { StatusBar } from './StatusBar';
 import { LogTimeline } from './LogTimeline';
 import { InlineLogEntry } from './InlineLogEntry';
 import { AnalysisModal } from './AnalysisModal';
+import { LogDetailModal } from './LogDetailModal';
 import styles from './HokutoMain.module.css';
 
 export function HokutoMain() {
   const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
   const [editingLog, setEditingLog] = useState<HokutoLog | null>(null);
+  const [infoLog, setInfoLog] = useState<HokutoLog | null>(null);
   const machine = useMachineStore((state) => state.getCurrentMachine());
   const setSessionResetStatus = useMachineStore((state) => state.setSessionResetStatus);
   const addHokutoLog = useMachineStore((state) => state.addHokutoLog);
@@ -78,11 +80,18 @@ export function HokutoMain() {
           onEditLog={setEditingLog}
           onUpdateLog={handleUpdateLog}
           onCancelEdit={() => setEditingLog(null)}
-          onInfoLog={() => {/* TODO: next implementation */}}
+          onInfoLog={setInfoLog}
         />
       </div>
 
       {!editingLog && <InlineLogEntry onAddLog={handleAddLog} />}
+
+      <LogDetailModal
+        log={infoLog}
+        logs={logs}
+        resetStatus={session.resetStatus}
+        onClose={() => setInfoLog(null)}
+      />
 
       <AnalysisModal
         isOpen={isAnalysisOpen}

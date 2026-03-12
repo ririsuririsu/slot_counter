@@ -1,0 +1,188 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* --- テーブル共通 --- */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.table th,
+.table td {
+  padding: 6px var(--spacing-sm);
+  text-align: left;
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+.table th {
+  color: var(--color-text-tertiary);
+  font-weight: 600;
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.table td {
+  color: var(--color-text-secondary);
+}
+
+.rowHighlight td {
+  background-color: rgba(10, 132, 255, 0.15);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* --- セクション --- */
+
+.section {
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+}
+
+/* --- サマリー行 --- */
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.summaryLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.summaryValue {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryHint {
+  font-size: var(--font-size-xs);
+  color: var(--apple-teal);
+  font-weight: 600;
+}
+
+/* --- モード推定バー --- */
+
+.modeBar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.modeBarLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  min-width: 48px;
+}
+
+.modeBarTrack {
+  flex: 1;
+  height: 16px;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.modeBarFill {
+  height: 100%;
+  border-radius: var(--radius-sm);
+  background-color: rgba(48, 209, 88, 0.5);
+  transition: width 0.3s ease;
+}
+
+.modeBarFillTop {
+  background-color: rgba(48, 209, 88, 0.8);
+}
+
+.modeBarValue {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-weight: 600;
+  min-width: 40px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 天撃ゲーム別 --- */
+
+.tengekiGame {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 4px 0;
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+.tengekiGame:last-child {
+  border-bottom: none;
+}
+
+.tengekiGameLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  font-weight: 600;
+  min-width: 28px;
+}
+
+.tengekiGameYaku {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  flex: 1;
+}
+
+.tengekiGameRate {
+  font-size: var(--font-size-sm);
+  color: var(--apple-teal);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.resultBadge {
+  display: inline-block;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  padding: 2px var(--spacing-sm);
+  border-radius: var(--radius-sm);
+}
+
+.resultSuccess {
+  background-color: rgba(48, 209, 88, 0.2);
+  color: var(--apple-green);
+}
+
+.resultFailure {
+  background-color: rgba(255, 69, 58, 0.2);
+  color: var(--apple-red);
+}
+
+/* --- 注記 --- */
+
+.note {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  line-height: 1.5;
+  margin-top: var(--spacing-xs);
+}
