@@ -447,13 +447,35 @@ function TengekiDetail({ log }: { log: TengekiLog }) {
       </div>
 
       <div className={styles.section}>
+        <h4 className={styles.sectionTitle}>契機別成功率</h4>
+        <table className={styles.compactTable}>
+          <thead><tr><th>成立役</th><th>0G</th><th>1G</th><th>2G</th><th>3G</th></tr></thead>
+          <tbody>
+            {[
+              { label: 'ハズレ', rates: [`${(TENGEKI_HAZURE_RATES[1]*100).toFixed(1)}〜${(TENGEKI_HAZURE_RATES[6]*100).toFixed(1)}%`, '0%', '0%', `${(TENGEKI_HAZURE_RATES[1]*100).toFixed(1)}〜${(TENGEKI_HAZURE_RATES[6]*100).toFixed(1)}%`], keys: ['hazure'] },
+              { label: 'リプ/ベル', rates: ['18%', '18%', '18%', '100%'], keys: ['replay', 'bell'] },
+              { label: 'レア役', rates: ['100%', '100%', '100%', '100%'], keys: Array.from(TENGEKI_RARE_YAKU) },
+            ].map((row) => {
+              const hasMatch = log.games.some((y) => row.keys.includes(y));
+              return (
+                <tr key={row.label} className={hasMatch ? styles.rowHighlight : ''}>
+                  <td>{row.label}</td>
+                  {row.rates.map((r, i) => <td key={i}>{r}</td>)}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <div className={styles.section}>
         <h4 className={styles.sectionTitle}>天撃トータル成功率（設定別）</h4>
-        <table className={styles.table}>
+        <table className={styles.compactTable}>
           <thead><tr><th>設定</th><th>成功率</th><th>ハズレ時</th></tr></thead>
           <tbody>
             {HOKUTO_SETTINGS.map((s) => (
               <tr key={s}>
-                <td>設定{s}</td>
+                <td>{s}</td>
                 <td>{(TENGEKI_TOTAL_RATES[s] * 100).toFixed(1)}%</td>
                 <td>{(TENGEKI_HAZURE_RATES[s] * 100).toFixed(1)}%</td>
               </tr>
