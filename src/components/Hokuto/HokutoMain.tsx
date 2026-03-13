@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useMachineStore, isHokutoMachine } from '../../stores/machineStore';
 import {
@@ -11,6 +11,7 @@ import { LogTimeline } from './LogTimeline';
 import { InlineLogEntry } from './InlineLogEntry';
 import { AnalysisModal } from './AnalysisModal';
 import { LogDetailModal } from './LogDetailModal';
+import { Modal } from '../common/Modal';
 import styles from './HokutoMain.module.css';
 
 export function HokutoMain() {
@@ -24,6 +25,13 @@ export function HokutoMain() {
   const deleteHokutoLog = useMachineStore((state) => state.deleteHokutoLog);
   const updateHokutoGameState = useMachineStore((state) => state.updateHokutoGameState);
   const updateExtraGames = useMachineStore((state) => state.updateExtraGames);
+  const showLogEntry = useMachineStore((state) => state.showLogEntry);
+  const setShowLogEntry = useMachineStore((state) => state.setShowLogEntry);
+
+  // ヘッダーのログ追加ボタンで開いたモーダルを閉じるときにリセット
+  useEffect(() => {
+    return () => setShowLogEntry(false);
+  }, [setShowLogEntry]);
 
   if (!machine || !isHokutoMachine(machine)) return null;
 
@@ -108,6 +116,13 @@ export function HokutoMain() {
         settingAnalysis={settingAnalysis}
         tengekiStats={tengekiStats}
       />
+
+      <Modal isOpen={showLogEntry} onClose={() => setShowLogEntry(false)} title="ログ追加">
+        <InlineLogEntry onAddLog={(log) => {
+          handleAddLog(log);
+          setShowLogEntry(false);
+        }} />
+      </Modal>
     </div>
   );
 }

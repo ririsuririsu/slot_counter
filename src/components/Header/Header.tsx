@@ -9,7 +9,11 @@ const MACHINE_TYPE_LABELS: Record<MachineType, string> = {
   'hokuto-tensei2': '北斗の拳 転生の章2',
 };
 
-export function Header() {
+interface HeaderProps {
+  onAddLog?: () => void;
+}
+
+export function Header({ onAddLog }: HeaderProps = {}) {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
 
   const currentMachine = useMachineStore((state) => state.getCurrentMachine());
@@ -51,6 +55,11 @@ export function Header() {
             <h1 className={styles.title}>{title}</h1>
             <span className={styles.subtitle}>{subtitle} · {timestamp}</span>
           </div>
+          {onAddLog && (
+            <button className={styles.addLogBtn} onClick={onAddLog}>
+              ＋ログ
+            </button>
+          )}
           <button
             className={styles.resetButton}
             onClick={() => setIsResetDialogOpen(true)}

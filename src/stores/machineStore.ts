@@ -43,6 +43,8 @@ export function isHokutoMachine(m: Machine): m is HokutoMachine {
 interface MachineStore {
   machines: Machine[];
   currentMachineId: string | null;
+  showLogEntry: boolean;
+  setShowLogEntry: (show: boolean) => void;
 
   // Getters
   getCurrentMachine: () => Machine | null;
@@ -159,6 +161,8 @@ export const useMachineStore = create<MachineStore>()(
     (set, get) => ({
       machines: [],
       currentMachineId: null,
+      showLogEntry: false,
+      setShowLogEntry: (show: boolean) => set({ showLogEntry: show }),
 
       // --- Getters ---
 

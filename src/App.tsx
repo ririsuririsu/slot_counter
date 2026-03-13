@@ -22,6 +22,7 @@ function MonkeyTurnView() {
 
 function App() {
   const currentMachine = useMachineStore((state) => state.getCurrentMachine());
+  const setShowLogEntry = useMachineStore((state) => state.setShowLogEntry);
 
   useEffect(() => {
     initializeStore();
@@ -36,7 +37,7 @@ function App() {
 
   return (
     <>
-      <Header />
+      <Header onAddLog={isHokuto ? () => setShowLogEntry(true) : undefined} />
       <main className={`container ${isHokuto ? styles.mainHokuto : styles.main}`}>
         {isHokuto ? <HokutoMain /> : <MonkeyTurnView />}
       </main>
