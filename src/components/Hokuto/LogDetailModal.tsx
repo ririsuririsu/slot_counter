@@ -11,7 +11,7 @@ import {
   LAMP_A_INTERPRETATIONS, LAMP_B_INTERPRETATIONS, LAMP_C_INTERPRETATIONS,
   TROPHY_SETTING_FLOOR,
   TENGEKI_RARE_YAKU, TENGEKI_HAZURE_RATES, HOKUTO_SETTINGS,
-  AT_HIT_RATES,
+  ABESHI_DIST_RESET, ABESHI_DIST_NORMAL,
   TENHA_RATE_LOW, TENHA_RATE_NORMAL, TENHA_RATE_HIGH, TENHA_RATE_DENSHO,
   TENGEKI_TOTAL_RATES,
   type LampInterpretation,
@@ -261,27 +261,51 @@ function ATWinDetail({ log, logs, resetStatus }: { log: ATWinLog; logs: HokutoLo
   const estimates = estimateModesForAllATs(logs, resetStatus);
   const modeEst = estimates[log.id];
 
+  // このATが何回目かを判定（リセット台は1回目のみリセットテーブル）
+  const atLogs = logs.filter((l) => l.type === 'at-win');
+  const atIndex = atLogs.findIndex((l) => l.id === log.id); // 0-based
+  const useResetTable = resetStatus === 'reset' && atIndex === 0;
+  const distTable = useResetTable ? ABESHI_DIST_RESET : ABESHI_DIST_NORMAL;
+  const tableLabel = useResetTable ? 'リセット時' : '通常時';
+
+  function fmtPct(v: number): string {
+    if (v <= 0) return '-';
+    if (v < 0.01) return `${(v * 100).toFixed(2)}%`;
+    return `${(v * 100).toFixed(1)}%`;
+  }
+
   return (
     <>
       <div className={styles.summary}>
         <SummaryItem label="G数" value={String(log.gameCount)} />
         <SummaryItem label="あべし" value={String(log.abeshiCount)} />
         <SummaryItem label="契機" value={triggerText} />
+        {resetStatus === 'reset' && (
+          <SummaryItem label="テーブル" value={`${tableLabel}（${atIndex + 1}回目）`} />
+        )}
       </div>
 
       {modeEst && <ModeEstimateSection dist={modeEst} />}
 
       <div className={styles.section}>
-        <h4 className={styles.sectionTitle}>AT初当たり確率（設定別）</h4>
-        <table className={styles.table}>
-          <thead><tr><th>設定</th><th>初当たり</th></tr></thead>
+        <h4 className={styles.sectionTitle}>AT当選あべし分布（{tableLabel}）</h4>
+        <table className={styles.compactTable}>
+          <thead>
+            <tr><th>あべし</th><th>A</th><th>B</th><th>C</th><th>天国</th></tr>
+          </thead>
           <tbody>
-            {HOKUTO_SETTINGS.map((s) => (
-              <tr key={s}>
-                <td>設定{s}</td>
-                <td>1/{(1 / AT_HIT_RATES[s]).toFixed(1)}</td>
-              </tr>
-            ))}
+            {distTable.map((zone, i) => {
+              const hit = log.abeshiCount >= zone.min && log.abeshiCount <= zone.max;
+              return (
+                <tr key={i} className={hit ? styles.rowHighlight : ''}>
+                  <td>{zone.min}〜{zone.max}</td>
+                  <td>{fmtPct(zone.modeA)}</td>
+                  <td>{fmtPct(zone.modeB)}</td>
+                  <td>{fmtPct(zone.modeC)}</td>
+                  <td>{fmtPct(zone.tengoku)}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
