@@ -36,6 +36,32 @@
   font-weight: 600;
 }
 
+/* --- コンパクトテーブル（天破用） --- */
+
+.compactTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs);
+}
+
+.compactTable th,
+.compactTable td {
+  padding: 4px 6px;
+  text-align: left;
+  border-bottom: 0.5px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.compactTable th {
+  color: var(--color-text-tertiary);
+  font-weight: 600;
+}
+
+.compactTable td {
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
 /* --- セクション --- */
 
 .section {

@@ -97,14 +97,25 @@ function ZenchoDetail({ log }: { log: FakeZenchoLog }) {
 function TenhaDetail({ log }: { log: TenhaLog }) {
   const durationText = log.duration === 'infinite' ? '無限' : `${log.duration}G`;
   const st = log.estimatedState;
+  const isStUnknown = st === 'unknown';
 
   // 契機がどの列グループに該当するか判定（低確・通常テーブル用）
   const triggerCol = (() => {
     if (log.trigger === 'jaku-cherry' || log.trigger === 'suika') return 'weakChSuika';
     if (log.trigger === 'chance-me' || log.trigger === 'shobu-zoroi') return 'chanceMeShobu';
     if (log.trigger === 'kyou-cherry') return 'kyouCh';
-    return null;
+    return null; // unknown or kakutei-cherry
   })();
+  const isTrUnknown = log.trigger === 'unknown';
+  // unknown → highlight all columns
+  const hlCol = (col: string) => isTrUnknown || triggerCol === col;
+
+  // section active when state matches or unknown
+  const secActive = (s: string) => isStUnknown || st === s;
+
+  // cell highlight when both section and column match
+  const cellHl = (s: string, col: string) => secActive(s) && hlCol(col) ? styles.cellHighlight : '';
+  const colHl = (s: string, col: string) => secActive(s) && hlCol(col) ? styles.colHighlight : '';
 
   return (
     <>
@@ -116,24 +127,24 @@ function TenhaDetail({ log }: { log: TenhaLog }) {
       </div>
 
       {/* 低確 */}
-      <div className={`${styles.section} ${st === 'low' ? styles.sectionActive : ''}`}>
+      <div className={`${styles.section} ${secActive('low') ? styles.sectionActive : ''}`}>
         <h4 className={styles.sectionTitle}>低確滞在時</h4>
-        <table className={styles.table}>
+        <table className={styles.compactTable}>
           <thead>
             <tr>
-              <th>設定</th>
-              <th className={st === 'low' && triggerCol === 'weakChSuika' ? styles.colHighlight : ''}>弱チェ/スイカ</th>
-              <th className={st === 'low' && triggerCol === 'chanceMeShobu' ? styles.colHighlight : ''}>チャン目/勝舞</th>
-              <th className={st === 'low' && triggerCol === 'kyouCh' ? styles.colHighlight : ''}>強チェリー</th>
+              <th>設</th>
+              <th className={colHl('low', 'weakChSuika')}>弱チェ/スイカ</th>
+              <th className={colHl('low', 'chanceMeShobu')}>チャン目/勝舞</th>
+              <th className={colHl('low', 'kyouCh')}>強チェ</th>
             </tr>
           </thead>
           <tbody>
             {TENHA_RATE_LOW.map((r) => (
               <tr key={r.setting}>
-                <td>設定{r.setting}</td>
-                <td className={st === 'low' && triggerCol === 'weakChSuika' ? styles.cellHighlight : ''}>{r.weakChSuika}%</td>
-                <td className={st === 'low' && triggerCol === 'chanceMeShobu' ? styles.cellHighlight : ''}>{r.chanceMeShobu}%</td>
-                <td className={st === 'low' && triggerCol === 'kyouCh' ? styles.cellHighlight : ''}>{r.kyouCh}%</td>
+                <td>{r.setting}</td>
+                <td className={cellHl('low', 'weakChSuika')}>{r.weakChSuika}%</td>
+                <td className={cellHl('low', 'chanceMeShobu')}>{r.chanceMeShobu}%</td>
+                <td className={cellHl('low', 'kyouCh')}>{r.kyouCh}%</td>
               </tr>
             ))}
           </tbody>
@@ -141,24 +152,24 @@ function TenhaDetail({ log }: { log: TenhaLog }) {
       </div>
 
       {/* 通常 */}
-      <div className={`${styles.section} ${st === 'normal' ? styles.sectionActive : ''}`}>
+      <div className={`${styles.section} ${secActive('normal') ? styles.sectionActive : ''}`}>
         <h4 className={styles.sectionTitle}>通常滞在時</h4>
-        <table className={styles.table}>
+        <table className={styles.compactTable}>
           <thead>
             <tr>
-              <th>設定</th>
-              <th className={st === 'normal' && triggerCol === 'weakChSuika' ? styles.colHighlight : ''}>弱チェ/スイカ</th>
-              <th className={st === 'normal' && triggerCol === 'chanceMeShobu' ? styles.colHighlight : ''}>チャン目/勝舞</th>
-              <th className={st === 'normal' && triggerCol === 'kyouCh' ? styles.colHighlight : ''}>強チェリー</th>
+              <th>設</th>
+              <th className={colHl('normal', 'weakChSuika')}>弱チェ/スイカ</th>
+              <th className={colHl('normal', 'chanceMeShobu')}>チャン目/勝舞</th>
+              <th className={colHl('normal', 'kyouCh')}>強チェ</th>
             </tr>
           </thead>
           <tbody>
             {TENHA_RATE_NORMAL.map((r) => (
               <tr key={r.setting}>
-                <td>設定{r.setting}</td>
-                <td className={st === 'normal' && triggerCol === 'weakChSuika' ? styles.cellHighlight : ''}>{r.weakChSuika}%</td>
-                <td className={st === 'normal' && triggerCol === 'chanceMeShobu' ? styles.cellHighlight : ''}>{r.chanceMeShobu}%</td>
-                <td className={st === 'normal' && triggerCol === 'kyouCh' ? styles.cellHighlight : ''}>{r.kyouCh}%</td>
+                <td>{r.setting}</td>
+                <td className={cellHl('normal', 'weakChSuika')}>{r.weakChSuika}%</td>
+                <td className={cellHl('normal', 'chanceMeShobu')}>{r.chanceMeShobu}%</td>
+                <td className={cellHl('normal', 'kyouCh')}>{r.kyouCh}%</td>
               </tr>
             ))}
           </tbody>
@@ -166,10 +177,10 @@ function TenhaDetail({ log }: { log: TenhaLog }) {
       </div>
 
       {/* 高確 */}
-      <div className={`${styles.section} ${st === 'high' ? styles.sectionActive : ''}`}>
+      <div className={`${styles.section} ${secActive('high') ? styles.sectionActive : ''}`}>
         <h4 className={styles.sectionTitle}>高確滞在時（全設定共通）</h4>
-        <table className={styles.table}>
-          <thead><tr><th>スイカ</th><th>弱チェ/チャン目/勝舞</th><th>強チェリー</th></tr></thead>
+        <table className={styles.compactTable}>
+          <thead><tr><th>スイカ</th><th>弱チェ/チャン目/勝舞</th><th>強チェ</th></tr></thead>
           <tbody>
             <tr>
               <td>{TENHA_RATE_HIGH.suika}%</td>
@@ -181,9 +192,9 @@ function TenhaDetail({ log }: { log: TenhaLog }) {
       </div>
 
       {/* 伝承 */}
-      <div className={`${styles.section} ${st === 'densho' ? styles.sectionActive : ''}`}>
-        <h4 className={styles.sectionTitle}>伝承モード滞在時（全設定共通）</h4>
-        <table className={styles.table}>
+      <div className={`${styles.section} ${secActive('densho') ? styles.sectionActive : ''}`}>
+        <h4 className={styles.sectionTitle}>伝承モード（全設定共通）</h4>
+        <table className={styles.compactTable}>
           <thead><tr><th>成立役</th><th>当選率</th></tr></thead>
           <tbody>
             {TENHA_RATE_DENSHO.map((entry) => (
@@ -194,7 +205,7 @@ function TenhaDetail({ log }: { log: TenhaLog }) {
             ))}
           </tbody>
         </table>
-        <p className={styles.note}>※確定チェリーは状態を問わずAT直撃と赤天破(無限天破)が1:1</p>
+        <p className={styles.note}>※確定チェリーは状態不問でAT直撃と無限天破が1:1</p>
       </div>
 
       {log.duration === 'infinite' && (
