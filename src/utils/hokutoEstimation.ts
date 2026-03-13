@@ -509,7 +509,9 @@ export function estimateModesForAllATs(
     const effectiveReset = atOrdinal === 0 ? resetStatus : 'unknown';
 
     const logsBeforeAT = logs.slice(lastATIndex + 1, i);
-    result[atLog.id] = estimateModeForATWin(atLog.abeshiCount, effectiveReset, logsBeforeAT);
+    // あべし未入力時はG数をフォールバック
+    const effectiveAbeshi = atLog.abeshiCount > 0 ? atLog.abeshiCount : atLog.gameCount;
+    result[atLog.id] = estimateModeForATWin(effectiveAbeshi, effectiveReset, logsBeforeAT);
     lastATIndex = i;
     atOrdinal++;
   }

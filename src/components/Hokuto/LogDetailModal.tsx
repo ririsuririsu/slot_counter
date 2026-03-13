@@ -268,6 +268,9 @@ function ATWinDetail({ log, logs, resetStatus }: { log: ATWinLog; logs: HokutoLo
   const distTable = useResetTable ? ABESHI_DIST_RESET : ABESHI_DIST_NORMAL;
   const tableLabel = useResetTable ? 'リセット時' : '通常時';
 
+  // あべし未入力時はG数をフォールバック
+  const effectiveAbeshi = log.abeshiCount > 0 ? log.abeshiCount : log.gameCount;
+
   function fmtPct(v: number): string {
     if (v <= 0) return '-';
     if (v < 0.01) return `${(v * 100).toFixed(2)}%`;
@@ -278,7 +281,7 @@ function ATWinDetail({ log, logs, resetStatus }: { log: ATWinLog; logs: HokutoLo
     <>
       <div className={styles.summary}>
         <SummaryItem label="G数" value={String(log.gameCount)} />
-        <SummaryItem label="あべし" value={String(log.abeshiCount)} />
+        <SummaryItem label="あべし" value={log.abeshiCount > 0 ? String(log.abeshiCount) : `未入力（G数${log.gameCount}で参照）`} />
         <SummaryItem label="契機" value={triggerText} />
         {resetStatus === 'reset' && (
           <SummaryItem label="テーブル" value={`${tableLabel}（${atIndex + 1}回目）`} />
@@ -295,7 +298,7 @@ function ATWinDetail({ log, logs, resetStatus }: { log: ATWinLog; logs: HokutoLo
           </thead>
           <tbody>
             {distTable.map((zone, i) => {
-              const hit = log.abeshiCount >= zone.min && log.abeshiCount <= zone.max;
+              const hit = effectiveAbeshi >= zone.min && effectiveAbeshi <= zone.max;
               return (
                 <tr key={i} className={hit ? styles.rowHighlight : ''}>
                   <td>{zone.min}〜{zone.max}</td>
