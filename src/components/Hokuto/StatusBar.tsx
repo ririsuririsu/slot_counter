@@ -104,13 +104,13 @@ export function StatusBar({
         <div className={styles.separator} />
         <div className={styles.stat} onClick={() => setPopup('at')}>
           <span className={styles.statLabel}>AT</span>
-          <span className={styles.statCount}>{atCount}</span>
+          <span className={styles.statCount}>{atCount}回</span>
           <span className={styles.statRate}>{formatRate(atCount, displayGames)}</span>
         </div>
         <div className={styles.separator} />
         <div className={styles.stat} onClick={() => setPopup('tenha')}>
           <span className={styles.statLabel}>天破</span>
-          <span className={styles.statCount}>{tenhaCount}</span>
+          <span className={styles.statCount}>{tenhaCount}回</span>
           <span className={styles.statRate}>{formatRate(tenhaCount, displayGames)}</span>
         </div>
         <button
