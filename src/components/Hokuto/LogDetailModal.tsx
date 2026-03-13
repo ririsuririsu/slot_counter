@@ -6,7 +6,6 @@ import type { HokutoMode } from '../../types';
 import {
   YAKU_LABELS, INTERNAL_STATE_LABELS, MODE_LABELS, TROPHY_LABELS,
   LAMP_COLOR_LABELS, LAMP_POSITION_LABELS,
-  SHUTTER_CHECKPOINTS, TENMEI_ZONES,
   FAKE_ZENCHO_RATES, type ZenchoRateLabel,
   LAMP_A_INTERPRETATIONS, LAMP_B_INTERPRETATIONS, LAMP_C_INTERPRETATIONS,
   TROPHY_SETTING_FLOOR,
@@ -53,9 +52,6 @@ export function LogDetailModal({ log, logs, resetStatus, onClose }: Props) {
 // ========== 前兆 ==========
 
 function ZenchoDetail({ log }: { log: FakeZenchoLog }) {
-  const isShutter = log.zenchoCategory === 'shutter' || log.zenchoCategory === 'other';
-  const isTenmei = log.zenchoCategory === 'tenmei';
-
   return (
     <>
       <div className={styles.summary}>
@@ -65,48 +61,6 @@ function ZenchoDetail({ log }: { log: FakeZenchoLog }) {
           log.zenchoCategory === 'tenmei' ? '天命の刻' : 'その他前兆'
         } />
       </div>
-
-      {isShutter && (
-        <div className={styles.section}>
-          <h4 className={styles.sectionTitle}>シャッター判別ポイント</h4>
-          <table className={styles.table}>
-            <thead><tr><th>あべし帯</th><th>示唆</th></tr></thead>
-            <tbody>
-              {SHUTTER_CHECKPOINTS.map((cp, i) => {
-                const hit = log.abeshiCount >= cp.min && log.abeshiCount <= cp.max;
-                return (
-                  <tr key={i} className={hit ? styles.rowHighlight : ''}>
-                    <td>{cp.min}〜{cp.max}</td>
-                    <td>{cp.note}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      <FakeZenchoRateTable abeshiCount={log.abeshiCount} />
-
-      {isTenmei && (
-        <div className={styles.section}>
-          <h4 className={styles.sectionTitle}>天命の刻 ゾーン別モード示唆</h4>
-          <table className={styles.table}>
-            <thead><tr><th>あべし帯</th><th>示唆</th></tr></thead>
-            <tbody>
-              {TENMEI_ZONES.map((zone, i) => {
-                const hit = log.abeshiCount >= zone.min && log.abeshiCount <= zone.max;
-                return (
-                  <tr key={i} className={hit ? styles.rowHighlight : ''}>
-                    <td>{zone.min}〜{zone.max}</td>
-                    <td>{zone.note}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
 
       <FakeZenchoRateTable abeshiCount={log.abeshiCount} />
     </>
