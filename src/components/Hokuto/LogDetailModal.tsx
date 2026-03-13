@@ -117,6 +117,33 @@ function TenhaDetail({ log }: { log: TenhaLog }) {
   const cellHl = (s: string, col: string) => secActive(s) && hlCol(col) ? styles.cellHighlight : '';
   const colHl = (s: string, col: string) => secActive(s) && hlCol(col) ? styles.colHighlight : '';
 
+  // 高確テーブル: 列グループが低確/通常と異なる
+  const hlHighCol = (col: string) => {
+    if (isTrUnknown) return true;
+    const t = log.trigger;
+    if (col === 'suika') return t === 'suika';
+    if (col === 'weakChChanceMeShobu') return t === 'jaku-cherry' || t === 'chance-me' || t === 'shobu-zoroi';
+    if (col === 'kyouCh') return t === 'kyou-cherry';
+    return false;
+  };
+
+  // 伝承テーブル: trigger label → log.trigger のマッチ
+  const DENSHO_TRIGGER_MAP: Record<string, string[]> = {
+    '弱チェリー': ['jaku-cherry'],
+    'スイカ': ['suika'],
+    'チャンス目': ['chance-me'],
+    '勝舞揃い': ['shobu-zoroi'],
+    '強チェリー': ['kyou-cherry', 'kakutei-cherry'],
+    'ハズレ': [],
+    'リプレイ': [],
+    '右下がりベル': [],
+  };
+  const hlDensho = (label: string) => {
+    if (isTrUnknown) return true;
+    const ids = DENSHO_TRIGGER_MAP[label];
+    return ids ? ids.includes(log.trigger) : false;
+  };
+
   return (
     <>
       <div className={styles.summary}>
@@ -180,12 +207,18 @@ function TenhaDetail({ log }: { log: TenhaLog }) {
       <div className={`${styles.section} ${secActive('high') ? styles.sectionActive : ''}`}>
         <h4 className={styles.sectionTitle}>高確滞在時（全設定共通）</h4>
         <table className={styles.compactTable}>
-          <thead><tr><th>スイカ</th><th>弱チェ/チャン目/勝舞</th><th>強チェ</th></tr></thead>
+          <thead>
+            <tr>
+              <th className={secActive('high') && hlHighCol('suika') ? styles.colHighlight : ''}>スイカ</th>
+              <th className={secActive('high') && hlHighCol('weakChChanceMeShobu') ? styles.colHighlight : ''}>弱チェ/チャン目/勝舞</th>
+              <th className={secActive('high') && hlHighCol('kyouCh') ? styles.colHighlight : ''}>強チェ</th>
+            </tr>
+          </thead>
           <tbody>
             <tr>
-              <td>{TENHA_RATE_HIGH.suika}%</td>
-              <td>{TENHA_RATE_HIGH.weakChChanceMeShobu}%</td>
-              <td>{TENHA_RATE_HIGH.kyouCh}%</td>
+              <td className={secActive('high') && hlHighCol('suika') ? styles.cellHighlight : ''}>{TENHA_RATE_HIGH.suika}%</td>
+              <td className={secActive('high') && hlHighCol('weakChChanceMeShobu') ? styles.cellHighlight : ''}>{TENHA_RATE_HIGH.weakChChanceMeShobu}%</td>
+              <td className={secActive('high') && hlHighCol('kyouCh') ? styles.cellHighlight : ''}>{TENHA_RATE_HIGH.kyouCh}%</td>
             </tr>
           </tbody>
         </table>
@@ -197,12 +230,15 @@ function TenhaDetail({ log }: { log: TenhaLog }) {
         <table className={styles.compactTable}>
           <thead><tr><th>成立役</th><th>当選率</th></tr></thead>
           <tbody>
-            {TENHA_RATE_DENSHO.map((entry) => (
-              <tr key={entry.trigger}>
-                <td>{entry.trigger}</td>
-                <td>{entry.rate}%</td>
-              </tr>
-            ))}
+            {TENHA_RATE_DENSHO.map((entry) => {
+              const hit = secActive('densho') && hlDensho(entry.trigger);
+              return (
+                <tr key={entry.trigger} className={hit ? styles.rowHighlight : ''}>
+                  <td>{entry.trigger}</td>
+                  <td>{entry.rate}%</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         <p className={styles.note}>※確定チェリーは状態不問でAT直撃と無限天破が1:1</p>
