@@ -31,6 +31,8 @@
   gap: var(--spacing-sm);
 }
 
+/* --- カード --- */
+
 .card {
   display: flex;
   align-items: center;
@@ -38,6 +40,7 @@
   padding: var(--spacing-md) var(--spacing-lg);
   background-color: var(--color-surface);
   border-radius: var(--radius-lg);
+  border-left: 3px solid transparent;
   transition: background-color var(--transition-fast);
   text-align: left;
   cursor: pointer;
@@ -51,7 +54,14 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  min-width: 0;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
 }
 
 .cardName {
@@ -60,24 +70,108 @@
   color: var(--color-text);
 }
 
-.cardType {
+.cardNumber {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+  margin-left: 4px;
+}
+
+.cardTypeBadge {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cardSummary {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.cardTime {
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
 }
 
+.cardActions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-left: var(--spacing-sm);
+}
+
+.cardEdit,
 .cardDelete {
-  font-size: var(--font-size-lg);
-  color: var(--color-text-tertiary);
-  padding: var(--spacing-sm);
-  border-radius: var(--radius-full);
-  opacity: 0.5;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  opacity: 0.7;
   transition: all var(--transition-fast);
+}
+
+.cardEdit:active {
+  opacity: 1;
+  color: var(--apple-blue);
 }
 
 .cardDelete:active {
   opacity: 1;
   color: var(--apple-red);
 }
+
+/* --- 編集モード --- */
+
+.editRow {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.editInput {
+  flex: 1;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.editInputSmall {
+  width: 72px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.editActions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-xs);
+}
+
+.editSave {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  background-color: rgba(10, 132, 255, 0.2);
+  color: var(--apple-blue);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.editCancel {
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+/* --- 追加ボタン --- */
 
 .addBtn {
   margin-top: var(--spacing-lg);

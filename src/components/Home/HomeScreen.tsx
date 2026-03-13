@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useMachineStore } from '../../stores/machineStore';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { supabase } from '../../lib/supabase';
-import type { MachineType } from '../../types';
+import type { Machine, MachineType, MonkeyTurnMachine, HokutoMachine } from '../../types';
+import { fiveCardIds } from '../../data/koyakuDefinitions';
 import styles from './HomeScreen.module.css';
 
 const MACHINE_TYPES: { type: MachineType; label: string; sub: string }[] = [
@@ -10,9 +11,50 @@ const MACHINE_TYPES: { type: MachineType; label: string; sub: string }[] = [
   { type: 'hokuto-tensei2', label: '北斗の拳 転生の章2', sub: 'ログ＆設定推測' },
 ];
 
+const TYPE_COLORS: Record<MachineType, string> = {
+  'monkey-turn-v': 'var(--apple-blue)',
+  'hokuto-tensei2': 'var(--apple-red)',
+};
+
+function getMachineSummary(m: Machine): string {
+  if (m.machineType === 'monkey-turn-v') {
+    const mt = m as MonkeyTurnMachine;
+    const total5 = fiveCardIds.reduce((sum, id) => sum + (mt.counters[id] ?? 0), 0);
+    if (mt.totalGames > 0 && total5 > 0) {
+      return `${mt.totalGames}G / 5枚役 1/${(mt.totalGames / total5).toFixed(1)}`;
+    }
+    if (mt.totalGames > 0) return `${mt.totalGames}G`;
+    return 'データなし';
+  }
+  const hk = m as HokutoMachine;
+  const atCount = hk.logs.filter((l) => l.type === 'at-win').length;
+  const tenhaCount = hk.logs.filter((l) => l.type === 'tenha').length;
+  if (atCount > 0 || tenhaCount > 0) {
+    return `AT ${atCount}回 / 天破 ${tenhaCount}回`;
+  }
+  if (hk.logs.length > 0) return `ログ ${hk.logs.length}件`;
+  return 'データなし';
+}
+
+function formatUpdatedAt(ts: number): string {
+  const now = Date.now();
+  const diff = now - ts;
+  if (diff < 60_000) return 'たった今';
+  if (diff < 3600_000) return `${Math.floor(diff / 60_000)}分前`;
+  const date = new Date(ts);
+  const today = new Date();
+  if (date.toDateString() === today.toDateString()) {
+    return `今日 ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+  }
+  return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
 export function HomeScreen() {
   const [showAdd, setShowAdd] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editNumber, setEditNumber] = useState('');
   const [syncing, setSyncing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
@@ -20,6 +62,8 @@ export function HomeScreen() {
   const selectMachine = useMachineStore((state) => state.selectMachine);
   const addMachine = useMachineStore((state) => state.addMachine);
   const deleteMachine = useMachineStore((state) => state.deleteMachine);
+  const updateMachineName = useMachineStore((state) => state.updateMachineName);
+  const updateMachineNumber = useMachineStore((state) => state.updateMachineNumber);
   const syncToSupabase = useMachineStore((state) => state.syncToSupabase);
   const loadFromSupabase = useMachineStore((state) => state.loadFromSupabase);
 
@@ -56,31 +100,94 @@ export function HomeScreen() {
     setShowAdd(false);
   };
 
+  const startEdit = (m: Machine) => {
+    setEditingId(m.id);
+    setEditName(m.name);
+    setEditNumber(m.number ?? '');
+  };
+
+  const saveEdit = () => {
+    if (editingId) {
+      updateMachineName(editingId, editName || '台');
+      updateMachineNumber(editingId, editNumber);
+      setEditingId(null);
+    }
+  };
+
   return (
     <div className={styles.screen}>
       <h1 className={styles.title}>スロットカウンター</h1>
       <p className={styles.subtitle}>台を選択してください</p>
 
       <div className={styles.list}>
-        {machines.map((m) => {
+        {[...machines].sort((a, b) => b.updatedAt - a.updatedAt).map((m) => {
           const typeInfo = MACHINE_TYPES.find((t) => t.type === m.machineType);
+          const accentColor = TYPE_COLORS[m.machineType];
+          const isEditing = editingId === m.id;
+
+          if (isEditing) {
+            return (
+              <div key={m.id} className={styles.card} style={{ borderLeftColor: accentColor }}>
+                <div className={styles.cardInfo}>
+                  <div className={styles.editRow}>
+                    <input
+                      className={styles.editInput}
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      placeholder="台名"
+                      autoFocus
+                    />
+                    <input
+                      className={styles.editInputSmall}
+                      value={editNumber}
+                      onChange={(e) => setEditNumber(e.target.value)}
+                      placeholder="#番号"
+                    />
+                  </div>
+                  <div className={styles.editActions}>
+                    <button className={styles.editSave} onClick={saveEdit}>保存</button>
+                    <button className={styles.editCancel} onClick={() => setEditingId(null)}>取消</button>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
           return (
-            <button
+            <div
               key={m.id}
               className={styles.card}
+              style={{ borderLeftColor: accentColor }}
               onClick={() => selectMachine(m.id)}
             >
               <div className={styles.cardInfo}>
-                <span className={styles.cardName}>{m.name}</span>
-                <span className={styles.cardType}>{typeInfo?.label}</span>
+                <div className={styles.cardHeader}>
+                  <span className={styles.cardName}>
+                    {m.name}
+                    {m.number && <span className={styles.cardNumber}>#{m.number}</span>}
+                  </span>
+                  <span className={styles.cardTypeBadge} style={{ color: accentColor }}>
+                    {typeInfo?.label}
+                  </span>
+                </div>
+                <span className={styles.cardSummary}>{getMachineSummary(m)}</span>
+                <span className={styles.cardTime}>{formatUpdatedAt(m.updatedAt)}</span>
               </div>
-              <button
-                className={styles.cardDelete}
-                onClick={(e) => { e.stopPropagation(); setDeleteTarget(m.id); }}
-              >
-                ×
-              </button>
-            </button>
+              <div className={styles.cardActions}>
+                <button
+                  className={styles.cardEdit}
+                  onClick={(e) => { e.stopPropagation(); startEdit(m); }}
+                >
+                  &#9998;
+                </button>
+                <button
+                  className={styles.cardDelete}
+                  onClick={(e) => { e.stopPropagation(); setDeleteTarget(m.id); }}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
           );
         })}
       </div>

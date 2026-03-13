@@ -6,7 +6,8 @@ import type { HokutoMode } from '../../types';
 import {
   YAKU_LABELS, INTERNAL_STATE_LABELS, MODE_LABELS, TROPHY_LABELS,
   LAMP_COLOR_LABELS, LAMP_POSITION_LABELS,
-  SHUTTER_CHECKPOINTS, TENMEI_ZONES, FAKE_ZENCHO_ZONES,
+  SHUTTER_CHECKPOINTS, TENMEI_ZONES,
+  FAKE_ZENCHO_RATES, type ZenchoRateLabel,
   LAMP_A_INTERPRETATIONS, LAMP_B_INTERPRETATIONS, LAMP_C_INTERPRETATIONS,
   TROPHY_SETTING_FLOOR,
   TENGEKI_RARE_YAKU, TENGEKI_HAZURE_RATES, HOKUTO_SETTINGS,
@@ -85,25 +86,7 @@ function ZenchoDetail({ log }: { log: FakeZenchoLog }) {
         </div>
       )}
 
-      {isShutter && (
-        <div className={styles.section}>
-          <h4 className={styles.sectionTitle}>前兆あべし帯モード判別</h4>
-          <table className={styles.table}>
-            <thead><tr><th>あべし帯</th><th>示唆</th></tr></thead>
-            <tbody>
-              {FAKE_ZENCHO_ZONES.map((zone, i) => {
-                const hit = log.abeshiCount >= zone.min && log.abeshiCount <= zone.max;
-                return (
-                  <tr key={i} className={hit ? styles.rowHighlight : ''}>
-                    <td>{zone.min}〜{zone.max}</td>
-                    <td>{zone.note}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <FakeZenchoRateTable abeshiCount={log.abeshiCount} />
 
       {isTenmei && (
         <div className={styles.section}>
@@ -124,6 +107,8 @@ function ZenchoDetail({ log }: { log: FakeZenchoLog }) {
           </table>
         </div>
       )}
+
+      <FakeZenchoRateTable abeshiCount={log.abeshiCount} />
     </>
   );
 }
@@ -347,6 +332,49 @@ function TengekiDetail({ log }: { log: TengekiLog }) {
         </table>
       </div>
     </>
+  );
+}
+
+// ========== フェイク前兆発生率テーブル ==========
+
+const RATE_STYLE: Record<ZenchoRateLabel, string> = {
+  '—': '',
+  '10%以下': styles.ratelow,
+  '50%': styles.rateMid,
+  '濃厚': styles.rateHigh,
+  '天井': styles.rateCeiling,
+};
+
+function FakeZenchoRateTable({ abeshiCount }: { abeshiCount: number }) {
+  return (
+    <div className={styles.section}>
+      <h4 className={styles.sectionTitle}>ゾーン毎のフェイク前兆発生率</h4>
+      <table className={styles.rateTable}>
+        <thead>
+          <tr>
+            <th>あべし</th>
+            <th>A</th>
+            <th>B</th>
+            <th>C</th>
+            <th>天国</th>
+          </tr>
+        </thead>
+        <tbody>
+          {FAKE_ZENCHO_RATES.map((entry, i) => {
+            const hit = abeshiCount >= entry.min && abeshiCount <= entry.max;
+            return (
+              <tr key={i} className={hit ? styles.rowHighlight : ''}>
+                <td>{entry.min}〜{entry.max}</td>
+                <td className={RATE_STYLE[entry.modeA]}>{entry.modeA}</td>
+                <td className={RATE_STYLE[entry.modeB]}>{entry.modeB}</td>
+                <td className={RATE_STYLE[entry.modeC]}>{entry.modeC}</td>
+                <td className={RATE_STYLE[entry.tengoku]}>{entry.tengoku}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

@@ -474,7 +474,7 @@ export const useMachineStore = create<MachineStore>()(
         if (!machines) return false;
         set({
           machines,
-          currentMachineId: machines[0]?.id || null,
+          currentMachineId: null,
         });
         return true;
       },
@@ -482,6 +482,9 @@ export const useMachineStore = create<MachineStore>()(
     {
       name: 'slot-counter-storage',
       version: 2,
+      onRehydrateStorage: () => (state) => {
+        if (state) state.currentMachineId = null;
+      },
       migrate: (persisted: unknown, version: number) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const state = persisted as any;

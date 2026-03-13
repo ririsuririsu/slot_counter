@@ -186,3 +186,55 @@
   line-height: 1.5;
   margin-top: var(--spacing-xs);
 }
+
+/* --- フェイク前兆発生率テーブル --- */
+
+.rateTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.rateTable th,
+.rateTable td {
+  padding: 5px 4px;
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+.rateTable th {
+  color: var(--color-text-tertiary);
+  font-weight: 600;
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.rateTable td {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.rateTable td:first-child {
+  text-align: left;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.ratelow {
+  color: var(--color-text-tertiary) !important;
+}
+
+.rateMid {
+  color: var(--apple-yellow) !important;
+  font-weight: 600;
+}
+
+.rateHigh {
+  color: var(--apple-green) !important;
+  font-weight: 700;
+}
+
+.rateCeiling {
+  color: var(--apple-red) !important;
+  font-weight: 700;
+}

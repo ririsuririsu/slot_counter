@@ -126,11 +126,11 @@
 }
 
 .editBtn {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-  padding: 2px 4px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  padding: 6px 8px;
   border-radius: var(--radius-sm);
-  opacity: 0.5;
+  opacity: 0.7;
   transition: all var(--transition-fast);
 }
 
@@ -140,11 +140,11 @@
 }
 
 .deleteBtn {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-  padding: 2px 4px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  padding: 6px 8px;
   border-radius: var(--radius-sm);
-  opacity: 0.5;
+  opacity: 0.7;
   transition: all var(--transition-fast);
 }
 

@@ -228,6 +228,47 @@ export const FAKE_ZENCHO_ZONES: FakeZenchoZone[] = [
   { min: 705, max: 768, confirmedModes: null, note: 'モード不問' },
 ];
 
+// --- ゾーン毎のフェイク前兆発生率 ---
+// 各モードでの発生率ラベル: '—'=なし, '10%以下', '50%', '濃厚'=発生濃厚, '天井'
+
+export type ZenchoRateLabel = '—' | '10%以下' | '50%' | '濃厚' | '天井';
+
+export interface FakeZenchoRateEntry {
+  min: number;
+  max: number;
+  modeA: ZenchoRateLabel;
+  modeB: ZenchoRateLabel;
+  modeC: ZenchoRateLabel;
+  tengoku: ZenchoRateLabel;
+}
+
+export const FAKE_ZENCHO_RATES: FakeZenchoRateEntry[] = [
+  { min: 1, max: 64, modeA: '—', modeB: '10%以下', modeC: '10%以下', tengoku: '10%以下' },
+  { min: 65, max: 128, modeA: '50%', modeB: '50%', modeC: '50%', tengoku: '天井' },
+  { min: 129, max: 192, modeA: '—', modeB: '10%以下', modeC: '10%以下', tengoku: '—' },
+  { min: 193, max: 256, modeA: '濃厚', modeB: '濃厚', modeC: '濃厚', tengoku: '—' },
+  { min: 257, max: 320, modeA: '—', modeB: '10%以下', modeC: '10%以下', tengoku: '—' },
+  { min: 321, max: 384, modeA: '10%以下', modeB: '50%', modeC: '50%', tengoku: '—' },
+  { min: 385, max: 448, modeA: '—', modeB: '10%以下', modeC: '10%以下', tengoku: '—' },
+  { min: 449, max: 512, modeA: '—', modeB: '—', modeC: '10%以下', tengoku: '—' },
+  { min: 513, max: 576, modeA: '濃厚', modeB: '濃厚', modeC: '天井', tengoku: '—' },
+  { min: 577, max: 640, modeA: '10%以下', modeB: '10%以下', modeC: '—', tengoku: '—' },
+  { min: 641, max: 704, modeA: '10%以下', modeB: '10%以下', modeC: '—', tengoku: '—' },
+  { min: 705, max: 768, modeA: '10%以下', modeB: '50%', modeC: '—', tengoku: '—' },
+  { min: 769, max: 832, modeA: '10%以下', modeB: '10%以下', modeC: '—', tengoku: '—' },
+  { min: 833, max: 896, modeA: '濃厚', modeB: '天井', modeC: '—', tengoku: '—' },
+  { min: 897, max: 960, modeA: '10%以下', modeB: '—', modeC: '—', tengoku: '—' },
+  { min: 961, max: 1024, modeA: '10%以下', modeB: '—', modeC: '—', tengoku: '—' },
+  { min: 1025, max: 1088, modeA: '10%以下', modeB: '—', modeC: '—', tengoku: '—' },
+  { min: 1089, max: 1152, modeA: '10%以下', modeB: '—', modeC: '—', tengoku: '—' },
+  { min: 1153, max: 1216, modeA: '10%以下', modeB: '—', modeC: '—', tengoku: '—' },
+  { min: 1217, max: 1280, modeA: '濃厚', modeB: '—', modeC: '—', tengoku: '—' },
+  { min: 1281, max: 1344, modeA: '50%', modeB: '—', modeC: '—', tengoku: '—' },
+  { min: 1345, max: 1408, modeA: '濃厚', modeB: '—', modeC: '—', tengoku: '—' },
+  { min: 1409, max: 1472, modeA: '濃厚', modeB: '—', modeC: '—', tengoku: '—' },
+  { min: 1473, max: 1536, modeA: '天井', modeB: '—', modeC: '—', tengoku: '—' },
+];
+
 // --- 天命の刻 ゾーン別モード示唆 ---
 
 export interface TenmeiZone {
