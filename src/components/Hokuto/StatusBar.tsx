@@ -68,15 +68,13 @@ export function StatusBar({
   const displayGames = totalGames + extraGames;
 
   const openGamesPopup = () => {
-    setAddGames('');
+    setAddGames(extraGames > 0 ? String(extraGames) : '');
     setPopup('games');
   };
 
   const confirmAddGames = () => {
     const val = parseInt(addGames) || 0;
-    if (val > 0) {
-      onUpdateExtraGames(extraGames + val);
-    }
+    onUpdateExtraGames(val);
     setPopup(null);
   };
 
@@ -133,10 +131,11 @@ export function StatusBar({
           <div className={styles.editCard} onClick={(e) => e.stopPropagation()}>
             <span className={styles.editTitle}>加算G数</span>
             <p className={styles.editHint}>
-              ログ合計: {totalGames}G{extraGames > 0 ? ` + 加算: ${extraGames}G` : ''}
+              ログ合計: {totalGames}G
+              {extraGames > 0 && <><br />現在の加算: {extraGames}G（合計: {totalGames + extraGames}G）</>}
             </p>
             <div className={styles.editField}>
-              <label>追加するG数</label>
+              <label>加算G数（上書き）</label>
               <input
                 type="number"
                 value={addGames}
