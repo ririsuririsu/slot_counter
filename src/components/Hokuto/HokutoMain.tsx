@@ -11,7 +11,6 @@ import { LogTimeline } from './LogTimeline';
 import { InlineLogEntry } from './InlineLogEntry';
 import { AnalysisModal } from './AnalysisModal';
 import { LogDetailModal } from './LogDetailModal';
-import { Modal } from '../common/Modal';
 import styles from './HokutoMain.module.css';
 
 export function HokutoMain() {
@@ -117,12 +116,16 @@ export function HokutoMain() {
         tengekiStats={tengekiStats}
       />
 
-      <Modal isOpen={showLogEntry} onClose={() => setShowLogEntry(false)} title="ログ追加">
-        <InlineLogEntry onAddLog={(log) => {
-          handleAddLog(log);
-          setShowLogEntry(false);
-        }} />
-      </Modal>
+      {showLogEntry && (
+        <div className={styles.logEntryOverlay} onClick={() => setShowLogEntry(false)}>
+          <div className={styles.logEntryModal} onClick={(e) => e.stopPropagation()}>
+            <InlineLogEntry onAddLog={(log) => {
+              handleAddLog(log);
+              setShowLogEntry(false);
+            }} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
