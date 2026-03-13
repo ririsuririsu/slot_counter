@@ -40,6 +40,15 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
   font-weight: 500;
+  margin-right: 2px;
+}
+
+.statCount {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  margin-right: 4px;
 }
 
 .statRate {
