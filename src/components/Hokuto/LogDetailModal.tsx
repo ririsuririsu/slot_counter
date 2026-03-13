@@ -11,7 +11,9 @@ import {
   LAMP_A_INTERPRETATIONS, LAMP_B_INTERPRETATIONS, LAMP_C_INTERPRETATIONS,
   TROPHY_SETTING_FLOOR,
   TENGEKI_RARE_YAKU, TENGEKI_HAZURE_RATES, HOKUTO_SETTINGS,
-  AT_HIT_RATES, TENHA_RATES, TENHA_TRIGGER_RATES, TENGEKI_TOTAL_RATES,
+  AT_HIT_RATES,
+  TENHA_RATE_LOW, TENHA_RATE_NORMAL, TENHA_RATE_HIGH, TENHA_RATE_DENSHO,
+  TENGEKI_TOTAL_RATES,
   type LampInterpretation,
 } from '../../data/hokutoDefinitions';
 import { estimateModesForAllATs, calculateTengekiExpectedRate } from '../../utils/hokutoEstimation';
@@ -94,12 +96,15 @@ function ZenchoDetail({ log }: { log: FakeZenchoLog }) {
 
 function TenhaDetail({ log }: { log: TenhaLog }) {
   const durationText = log.duration === 'infinite' ? '無限' : `${log.duration}G`;
+  const st = log.estimatedState;
 
-  function formatRate(rate: number): string {
-    if (rate >= 1) return '確定';
-    if (rate <= 0) return '-';
-    return `1/${(1 / rate).toFixed(1)}`;
-  }
+  // 契機がどの列グループに該当するか判定（低確・通常テーブル用）
+  const triggerCol = (() => {
+    if (log.trigger === 'jaku-cherry' || log.trigger === 'suika') return 'weakChSuika';
+    if (log.trigger === 'chance-me' || log.trigger === 'shobu-zoroi') return 'chanceMeShobu';
+    if (log.trigger === 'kyou-cherry') return 'kyouCh';
+    return null;
+  })();
 
   return (
     <>
@@ -110,39 +115,86 @@ function TenhaDetail({ log }: { log: TenhaLog }) {
         <SummaryItem label="継続" value={durationText} />
       </div>
 
-      <div className={styles.section}>
-        <h4 className={styles.sectionTitle}>当選契機別 天破当選率</h4>
+      {/* 低確 */}
+      <div className={`${styles.section} ${st === 'low' ? styles.sectionActive : ''}`}>
+        <h4 className={styles.sectionTitle}>低確滞在時</h4>
         <table className={styles.table}>
-          <thead><tr><th>契機</th><th>低確</th><th>通常</th><th>高確</th></tr></thead>
+          <thead>
+            <tr>
+              <th>設定</th>
+              <th className={st === 'low' && triggerCol === 'weakChSuika' ? styles.colHighlight : ''}>弱チェ/スイカ</th>
+              <th className={st === 'low' && triggerCol === 'chanceMeShobu' ? styles.colHighlight : ''}>チャン目/勝舞</th>
+              <th className={st === 'low' && triggerCol === 'kyouCh' ? styles.colHighlight : ''}>強チェリー</th>
+            </tr>
+          </thead>
           <tbody>
-            {TENHA_TRIGGER_RATES.map((entry) => {
-              const hit = log.trigger === entry.trigger;
-              return (
-                <tr key={entry.trigger} className={hit ? styles.rowHighlight : ''}>
-                  <td>{YAKU_LABELS[entry.trigger]}</td>
-                  <td>{formatRate(entry.low)}</td>
-                  <td>{formatRate(entry.normal)}</td>
-                  <td>{formatRate(entry.high)}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      <div className={styles.section}>
-        <h4 className={styles.sectionTitle}>天破出現率（設定別）</h4>
-        <table className={styles.table}>
-          <thead><tr><th>設定</th><th>出現率</th></tr></thead>
-          <tbody>
-            {HOKUTO_SETTINGS.map((s) => (
-              <tr key={s}>
-                <td>設定{s}</td>
-                <td>1/{(1 / TENHA_RATES[s]).toFixed(1)}</td>
+            {TENHA_RATE_LOW.map((r) => (
+              <tr key={r.setting}>
+                <td>設定{r.setting}</td>
+                <td className={st === 'low' && triggerCol === 'weakChSuika' ? styles.cellHighlight : ''}>{r.weakChSuika}%</td>
+                <td className={st === 'low' && triggerCol === 'chanceMeShobu' ? styles.cellHighlight : ''}>{r.chanceMeShobu}%</td>
+                <td className={st === 'low' && triggerCol === 'kyouCh' ? styles.cellHighlight : ''}>{r.kyouCh}%</td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* 通常 */}
+      <div className={`${styles.section} ${st === 'normal' ? styles.sectionActive : ''}`}>
+        <h4 className={styles.sectionTitle}>通常滞在時</h4>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>設定</th>
+              <th className={st === 'normal' && triggerCol === 'weakChSuika' ? styles.colHighlight : ''}>弱チェ/スイカ</th>
+              <th className={st === 'normal' && triggerCol === 'chanceMeShobu' ? styles.colHighlight : ''}>チャン目/勝舞</th>
+              <th className={st === 'normal' && triggerCol === 'kyouCh' ? styles.colHighlight : ''}>強チェリー</th>
+            </tr>
+          </thead>
+          <tbody>
+            {TENHA_RATE_NORMAL.map((r) => (
+              <tr key={r.setting}>
+                <td>設定{r.setting}</td>
+                <td className={st === 'normal' && triggerCol === 'weakChSuika' ? styles.cellHighlight : ''}>{r.weakChSuika}%</td>
+                <td className={st === 'normal' && triggerCol === 'chanceMeShobu' ? styles.cellHighlight : ''}>{r.chanceMeShobu}%</td>
+                <td className={st === 'normal' && triggerCol === 'kyouCh' ? styles.cellHighlight : ''}>{r.kyouCh}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* 高確 */}
+      <div className={`${styles.section} ${st === 'high' ? styles.sectionActive : ''}`}>
+        <h4 className={styles.sectionTitle}>高確滞在時（全設定共通）</h4>
+        <table className={styles.table}>
+          <thead><tr><th>スイカ</th><th>弱チェ/チャン目/勝舞</th><th>強チェリー</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>{TENHA_RATE_HIGH.suika}%</td>
+              <td>{TENHA_RATE_HIGH.weakChChanceMeShobu}%</td>
+              <td>{TENHA_RATE_HIGH.kyouCh}%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* 伝承 */}
+      <div className={`${styles.section} ${st === 'densho' ? styles.sectionActive : ''}`}>
+        <h4 className={styles.sectionTitle}>伝承モード滞在時（全設定共通）</h4>
+        <table className={styles.table}>
+          <thead><tr><th>成立役</th><th>当選率</th></tr></thead>
+          <tbody>
+            {TENHA_RATE_DENSHO.map((entry) => (
+              <tr key={entry.trigger}>
+                <td>{entry.trigger}</td>
+                <td>{entry.rate}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className={styles.note}>※確定チェリーは状態を問わずAT直撃と赤天破(無限天破)が1:1</p>
       </div>
 
       {log.duration === 'infinite' && (

@@ -29,23 +29,41 @@ export const TENHA_RATES: Record<number, number> = {
   6: 1 / 81.3,
 };
 
-// --- 天破の刻 当選契機別当選率（内部状態別） ---
-// 値は当選率（分母表記用）。0 = 非当選
+// --- 状態別の天破の刻当選率 ---
 
-export interface TenhaTriggerRateEntry {
-  trigger: string;
-  low: number;
-  normal: number;
-  high: number;
-}
+// 低確: 設定別 — 弱チェリー/スイカ, チャンス目/勝舞揃い, 強チェリー
+export const TENHA_RATE_LOW: { setting: number; weakChSuika: number; chanceMeShobu: number; kyouCh: number }[] = [
+  { setting: 1, weakChSuika: 0.8, chanceMeShobu: 2.0, kyouCh: 25.0 },
+  { setting: 2, weakChSuika: 0.8, chanceMeShobu: 2.7, kyouCh: 25.0 },
+  { setting: 3, weakChSuika: 1.6, chanceMeShobu: 3.1, kyouCh: 25.0 },
+  { setting: 4, weakChSuika: 2.3, chanceMeShobu: 3.9, kyouCh: 25.0 },
+  { setting: 5, weakChSuika: 3.5, chanceMeShobu: 4.7, kyouCh: 25.0 },
+  { setting: 6, weakChSuika: 4.7, chanceMeShobu: 6.3, kyouCh: 25.0 },
+];
 
-export const TENHA_TRIGGER_RATES: TenhaTriggerRateEntry[] = [
-  { trigger: 'jaku-cherry', low: 1 / 512.0, normal: 1 / 256.0, high: 1 / 128.0 },
-  { trigger: 'kyou-cherry', low: 1 / 128.0, normal: 1 / 64.0,  high: 1 / 32.0 },
-  { trigger: 'suika',       low: 1 / 256.0, normal: 1 / 128.0, high: 1 / 64.0 },
-  { trigger: 'chance-me',   low: 1 / 256.0, normal: 1 / 128.0, high: 1 / 64.0 },
-  { trigger: 'shobu-zoroi', low: 1,         normal: 1,         high: 1 },
-  { trigger: 'kakutei-cherry', low: 1,      normal: 1,         high: 1 },
+// 通常: 設定別 — 弱チェリー/スイカ, チャンス目/勝舞揃い, 強チェリー
+export const TENHA_RATE_NORMAL: { setting: number; weakChSuika: number; chanceMeShobu: number; kyouCh: number }[] = [
+  { setting: 1, weakChSuika: 0.8, chanceMeShobu: 10.2, kyouCh: 25.0 },
+  { setting: 2, weakChSuika: 0.8, chanceMeShobu: 10.5, kyouCh: 25.0 },
+  { setting: 3, weakChSuika: 1.6, chanceMeShobu: 10.9, kyouCh: 25.0 },
+  { setting: 4, weakChSuika: 2.3, chanceMeShobu: 12.5, kyouCh: 25.0 },
+  { setting: 5, weakChSuika: 3.5, chanceMeShobu: 15.6, kyouCh: 25.0 },
+  { setting: 6, weakChSuika: 4.7, chanceMeShobu: 18.8, kyouCh: 25.0 },
+];
+
+// 高確: 全設定共通 — スイカ, 弱チェリー/チャンス目/勝舞揃い, 強チェリー
+export const TENHA_RATE_HIGH = { suika: 31.3, weakChChanceMeShobu: 66.4, kyouCh: 100 };
+
+// 伝承モード: 全設定共通
+export const TENHA_RATE_DENSHO: { trigger: string; rate: number }[] = [
+  { trigger: 'ハズレ', rate: 5.5 },
+  { trigger: 'リプレイ', rate: 5.5 },
+  { trigger: '右下がりベル', rate: 15.6 },
+  { trigger: '弱チェリー', rate: 25.0 },
+  { trigger: 'スイカ', rate: 33.6 },
+  { trigger: 'チャンス目', rate: 75.0 },
+  { trigger: '勝舞揃い', rate: 75.0 },
+  { trigger: '強チェリー', rate: 100 },
 ];
 
 // --- 天撃チャレンジ ハズレ時成功率（0G目・3G目） ---
