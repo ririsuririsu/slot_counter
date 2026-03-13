@@ -55,6 +55,7 @@ export interface TenhaLog {
 export type TenhaDuration = 7 | 14 | 21 | 'infinite';
 
 export type TenhaTriggerYaku =
+  | 'unknown'
   | 'jaku-cherry'
   | 'kyou-cherry'
   | 'suika'
@@ -62,7 +63,7 @@ export type TenhaTriggerYaku =
   | 'shobu-zoroi'
   | 'kakutei-cherry';
 
-export type InternalState = 'low' | 'normal' | 'high' | 'densho';
+export type InternalState = 'unknown' | 'low' | 'normal' | 'high' | 'densho';
 
 // 3. 天撃チャレンジログ（独立）
 

@@ -11,7 +11,7 @@ import {
   LAMP_A_INTERPRETATIONS, LAMP_B_INTERPRETATIONS, LAMP_C_INTERPRETATIONS,
   TROPHY_SETTING_FLOOR,
   TENGEKI_RARE_YAKU, TENGEKI_HAZURE_RATES, HOKUTO_SETTINGS,
-  AT_HIT_RATES, TENHA_RATES, TENGEKI_TOTAL_RATES,
+  AT_HIT_RATES, TENHA_RATES, TENHA_TRIGGER_RATES, TENGEKI_TOTAL_RATES,
   type LampInterpretation,
 } from '../../data/hokutoDefinitions';
 import { estimateModesForAllATs, calculateTengekiExpectedRate } from '../../utils/hokutoEstimation';
@@ -94,6 +94,13 @@ function ZenchoDetail({ log }: { log: FakeZenchoLog }) {
 
 function TenhaDetail({ log }: { log: TenhaLog }) {
   const durationText = log.duration === 'infinite' ? '無限' : `${log.duration}G`;
+
+  function formatRate(rate: number): string {
+    if (rate >= 1) return '確定';
+    if (rate <= 0) return '-';
+    return `1/${(1 / rate).toFixed(1)}`;
+  }
+
   return (
     <>
       <div className={styles.summary}>
@@ -101,6 +108,26 @@ function TenhaDetail({ log }: { log: TenhaLog }) {
         <SummaryItem label="契機" value={YAKU_LABELS[log.trigger]} />
         <SummaryItem label="内部状態" value={INTERNAL_STATE_LABELS[log.estimatedState]} />
         <SummaryItem label="継続" value={durationText} />
+      </div>
+
+      <div className={styles.section}>
+        <h4 className={styles.sectionTitle}>当選契機別 天破当選率</h4>
+        <table className={styles.table}>
+          <thead><tr><th>契機</th><th>低確</th><th>通常</th><th>高確</th></tr></thead>
+          <tbody>
+            {TENHA_TRIGGER_RATES.map((entry) => {
+              const hit = log.trigger === entry.trigger;
+              return (
+                <tr key={entry.trigger} className={hit ? styles.rowHighlight : ''}>
+                  <td>{YAKU_LABELS[entry.trigger]}</td>
+                  <td>{formatRate(entry.low)}</td>
+                  <td>{formatRate(entry.normal)}</td>
+                  <td>{formatRate(entry.high)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
       <div className={styles.section}>

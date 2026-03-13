@@ -29,6 +29,25 @@ export const TENHA_RATES: Record<number, number> = {
   6: 1 / 81.3,
 };
 
+// --- 天破の刻 当選契機別当選率（内部状態別） ---
+// 値は当選率（分母表記用）。0 = 非当選
+
+export interface TenhaTriggerRateEntry {
+  trigger: string;
+  low: number;
+  normal: number;
+  high: number;
+}
+
+export const TENHA_TRIGGER_RATES: TenhaTriggerRateEntry[] = [
+  { trigger: 'jaku-cherry', low: 1 / 512.0, normal: 1 / 256.0, high: 1 / 128.0 },
+  { trigger: 'kyou-cherry', low: 1 / 128.0, normal: 1 / 64.0,  high: 1 / 32.0 },
+  { trigger: 'suika',       low: 1 / 256.0, normal: 1 / 128.0, high: 1 / 64.0 },
+  { trigger: 'chance-me',   low: 1 / 256.0, normal: 1 / 128.0, high: 1 / 64.0 },
+  { trigger: 'shobu-zoroi', low: 1,         normal: 1,         high: 1 },
+  { trigger: 'kakutei-cherry', low: 1,      normal: 1,         high: 1 },
+];
+
 // --- 天撃チャレンジ ハズレ時成功率（0G目・3G目） ---
 
 export const TENGEKI_HAZURE_RATES: Record<number, number> = {
@@ -348,6 +367,7 @@ export const LAMP_C_INTERPRETATIONS: LampInterpretation[] = [
 // --- 日本語ラベル ---
 
 export const YAKU_LABELS: Record<string, string> = {
+  'unknown': '不明',
   'hazure': 'ハズレ',
   'replay': 'リプレイ',
   'bell': 'ベル',
@@ -367,6 +387,7 @@ export const MODE_LABELS: Record<HokutoMode, string> = {
 };
 
 export const INTERNAL_STATE_LABELS: Record<string, string> = {
+  'unknown': '不明',
   'low': '低確',
   'normal': '通常',
   'high': '高確',

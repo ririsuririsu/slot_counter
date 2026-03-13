@@ -203,16 +203,16 @@ function ATWinForm({ onSubmit, onCancel, initial }: { onSubmit: (log: ATWinLog) 
 // --- 天破フォーム（天撃なし） ---
 function TenhaForm({ onSubmit, onCancel, initial }: { onSubmit: (log: TenhaLog) => void; onCancel: () => void; initial?: TenhaLog }) {
   const [gameCount, setGameCount] = useState(initial?.gameCount ?? 0);
-  const [trigger, setTrigger] = useState<TenhaTriggerYaku>(initial?.trigger ?? 'jaku-cherry');
-  const [estimatedState, setEstimatedState] = useState<InternalState>(initial?.estimatedState ?? 'low');
+  const [trigger, setTrigger] = useState<TenhaTriggerYaku>(initial?.trigger ?? 'unknown');
+  const [estimatedState, setEstimatedState] = useState<InternalState>(initial?.estimatedState ?? 'unknown');
   const [duration, setDuration] = useState<TenhaDuration>(initial?.duration ?? 7);
 
   const handleSubmit = () => {
     onSubmit({ type: 'tenha', id: '', timestamp: 0, gameCount, trigger, estimatedState, duration });
   };
 
-  const triggerOptions: TenhaTriggerYaku[] = ['jaku-cherry', 'kyou-cherry', 'suika', 'chance-me', 'shobu-zoroi', 'kakutei-cherry'];
-  const stateOptions: InternalState[] = ['low', 'normal', 'high', 'densho'];
+  const triggerOptions: TenhaTriggerYaku[] = ['unknown', 'jaku-cherry', 'kyou-cherry', 'suika', 'chance-me', 'shobu-zoroi', 'kakutei-cherry'];
+  const stateOptions: InternalState[] = ['unknown', 'low', 'normal', 'high', 'densho'];
   const durationOptions: { value: TenhaDuration; label: string }[] = [
     { value: 7, label: '7G' }, { value: 14, label: '14G' }, { value: 21, label: '21G' }, { value: 'infinite', label: '無限' },
   ];
