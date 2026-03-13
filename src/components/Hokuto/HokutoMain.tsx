@@ -70,6 +70,14 @@ export function HokutoMain() {
 
   return (
     <div className={styles.container}>
+      {showLogEntry && (
+        <div className={styles.headerLogEntry}>
+          <InlineLogEntry onAddLog={(log) => {
+            handleAddLog(log);
+            setShowLogEntry(false);
+          }} />
+        </div>
+      )}
       <StatusBar
         totalGames={effectiveGames}
         extraGames={extraGames}
@@ -116,16 +124,6 @@ export function HokutoMain() {
         tengekiStats={tengekiStats}
       />
 
-      {showLogEntry && (
-        <div className={styles.logEntryOverlay} onClick={() => setShowLogEntry(false)}>
-          <div className={styles.logEntryModal} onClick={(e) => e.stopPropagation()}>
-            <InlineLogEntry onAddLog={(log) => {
-              handleAddLog(log);
-              setShowLogEntry(false);
-            }} />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
