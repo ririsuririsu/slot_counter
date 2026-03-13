@@ -77,6 +77,7 @@ interface MachineStore {
 
   // Hokuto: Game state
   updateHokutoGameState: (games: number, abeshi: number) => void;
+  updateExtraGames: (extra: number) => void;
 
   // Hokuto: Reset
   resetHokutoMachine: () => void;
@@ -119,6 +120,7 @@ function createNewHokutoMachine(name: string): HokutoMachine {
     logs: [],
     totalGames: 0,
     totalAbeshi: 0,
+    extraGames: 0,
   };
 }
 
@@ -434,6 +436,16 @@ export const useMachineStore = create<MachineStore>()(
               totalAbeshi: abeshi,
               updatedAt: Date.now(),
             };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      updateExtraGames: (extra: number) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isHokutoMachine(m)) return m;
+            return { ...m, extraGames: extra, updatedAt: Date.now() };
           })
         );
         syncCurrentMachine(get);

@@ -80,6 +80,7 @@ export interface HokutoMachine extends BaseMachine {
   logs: HokutoLog[];
   totalGames: number;
   totalAbeshi: number;
+  extraGames: number;
 }
 
 // ========================================

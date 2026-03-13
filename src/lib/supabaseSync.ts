@@ -94,6 +94,7 @@ async function upsertHokutoState(machine: HokutoMachine) {
     machine_id: machine.id,
     total_games: machine.totalGames,
     total_abeshi: machine.totalAbeshi,
+    extra_games: machine.extraGames ?? 0,
     reset_status: machine.session.resetStatus,
     session_started_at: new Date(machine.session.startedAt).toISOString(),
     updated_at: new Date(machine.updatedAt).toISOString(),
@@ -236,5 +237,6 @@ async function loadHokutoMachine(row: any): Promise<HokutoMachine | null> {
     logs: (logRows || []).map((l) => l.log_data as HokutoLog),
     totalGames: stateRow?.total_games || 0,
     totalAbeshi: stateRow?.total_abeshi || 0,
+    extraGames: stateRow?.extra_games || 0,
   };
 }

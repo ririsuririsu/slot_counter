@@ -11,6 +11,14 @@
   display: flex;
   align-items: baseline;
   gap: 2px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.stat:active {
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .statValue {
@@ -168,4 +176,48 @@
   color: white;
   font-size: var(--font-size-sm);
   font-weight: 600;
+}
+
+.editCancel {
+  flex: 1;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.editHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  margin: 0;
+}
+
+/* Rate table (AT / 天破) */
+.rateTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.rateTable th {
+  text-align: left;
+  padding: 4px 8px;
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rateTable td {
+  padding: 6px 8px;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-variant-numeric: tabular-nums;
+}
+
+.rateHighlight td {
+  color: var(--apple-blue);
+  font-weight: 700;
+  background-color: rgba(10, 132, 255, 0.1);
 }

@@ -23,6 +23,7 @@ export function HokutoMain() {
   const updateHokutoLog = useMachineStore((state) => state.updateHokutoLog);
   const deleteHokutoLog = useMachineStore((state) => state.deleteHokutoLog);
   const updateHokutoGameState = useMachineStore((state) => state.updateHokutoGameState);
+  const updateExtraGames = useMachineStore((state) => state.updateExtraGames);
 
   if (!machine || !isHokutoMachine(machine)) return null;
 
@@ -43,8 +44,10 @@ export function HokutoMain() {
     }
   }
   const effectiveGames = sumATGames + currentCycleMax;
+  const extraGames = machine.extraGames ?? 0;
 
-  const settingAnalysis = calculateHokutoSettingProbabilities(logs, effectiveGames);
+  const displayGames = effectiveGames + extraGames;
+  const settingAnalysis = calculateHokutoSettingProbabilities(logs, displayGames);
   const tengekiStats = calculateTengekiStats(logs);
   const atCount = logs.filter((l) => l.type === 'at-win').length;
   const tenhaCount = logs.filter((l) => l.type === 'tenha').length;
@@ -62,12 +65,14 @@ export function HokutoMain() {
     <div className={styles.container}>
       <StatusBar
         totalGames={effectiveGames}
+        extraGames={extraGames}
         totalAbeshi={totalAbeshi}
         atCount={atCount}
         tenhaCount={tenhaCount}
         resetStatus={session.resetStatus}
         onChangeResetStatus={(s: ResetStatus) => setSessionResetStatus(s)}
         onUpdateGameState={updateHokutoGameState}
+        onUpdateExtraGames={updateExtraGames}
         onOpenAnalysis={() => setIsAnalysisOpen(true)}
       />
 
@@ -97,7 +102,7 @@ export function HokutoMain() {
         isOpen={isAnalysisOpen}
         onClose={() => setIsAnalysisOpen(false)}
         logs={logs}
-        totalGames={effectiveGames}
+        totalGames={displayGames}
         totalAbeshi={totalAbeshi}
         resetStatus={session.resetStatus}
         settingAnalysis={settingAnalysis}
