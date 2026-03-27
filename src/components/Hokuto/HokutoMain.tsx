@@ -144,6 +144,7 @@ export function HokutoMain() {
         onClose={() => setShowLogEntry(false)}
         title="ログ追加"
         alignTop
+        draggable
       >
         <InlineLogEntry onAddLog={(log) => {
           handleAddLog(log);

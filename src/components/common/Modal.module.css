@@ -16,7 +16,20 @@
 
 .overlayTop {
   align-items: flex-start;
-  padding-top: 8vh;
+  padding-top: 10vh;
+}
+
+.draggableModal {
+  position: absolute;
+}
+
+.dragHandle {
+  cursor: grab;
+  touch-action: none;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
 }
 
 .modal {
