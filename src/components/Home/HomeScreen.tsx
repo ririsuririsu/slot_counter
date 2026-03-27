@@ -49,6 +49,14 @@ function formatUpdatedAt(ts: number): string {
   return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
+function isToday(ts: number): boolean {
+  const date = new Date(ts);
+  const today = new Date();
+  return date.getFullYear() === today.getFullYear()
+    && date.getMonth() === today.getMonth()
+    && date.getDate() === today.getDate();
+}
+
 export function HomeScreen() {
   const [showAdd, setShowAdd] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -58,6 +66,7 @@ export function HomeScreen() {
   const [syncing, setSyncing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [pastCollapsed, setPastCollapsed] = useState(true);
   const machines = useMachineStore((state) => state.machines);
   const selectMachine = useMachineStore((state) => state.selectMachine);
   const addMachine = useMachineStore((state) => state.addMachine);
@@ -114,84 +123,87 @@ export function HomeScreen() {
     }
   };
 
+  const sorted = [...machines].sort((a, b) => b.updatedAt - a.updatedAt);
+  const todayMachines = sorted.filter((m) => isToday(m.updatedAt));
+  const pastMachines = sorted.filter((m) => !isToday(m.updatedAt));
+
+  const renderCard = (m: Machine) => {
+    const typeInfo = MACHINE_TYPES.find((t) => t.type === m.machineType);
+    const accentColor = TYPE_COLORS[m.machineType];
+    const isEditing = editingId === m.id;
+
+    if (isEditing) {
+      return (
+        <div key={m.id} className={styles.card} style={{ borderLeftColor: accentColor }}>
+          <div className={styles.cardInfo}>
+            <div className={styles.editRow}>
+              <input
+                className={styles.editInput}
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="台名"
+                autoFocus
+              />
+              <input
+                className={styles.editInputSmall}
+                value={editNumber}
+                onChange={(e) => setEditNumber(e.target.value)}
+                placeholder="#番号"
+              />
+            </div>
+            <div className={styles.editActions}>
+              <button className={styles.editSave} onClick={saveEdit}>保存</button>
+              <button className={styles.editCancel} onClick={() => setEditingId(null)}>取消</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        key={m.id}
+        className={styles.card}
+        style={{ borderLeftColor: accentColor }}
+        onClick={() => selectMachine(m.id)}
+      >
+        <div className={styles.cardInfo}>
+          <div className={styles.cardHeader}>
+            <span className={styles.cardName}>
+              {m.name}
+              {m.number && <span className={styles.cardNumber}>#{m.number}</span>}
+            </span>
+            <span className={styles.cardTypeBadge} style={{ color: accentColor }}>
+              {typeInfo?.label}
+            </span>
+          </div>
+          <span className={styles.cardSummary}>{getMachineSummary(m)}</span>
+          <span className={styles.cardTime}>{formatUpdatedAt(m.updatedAt)}</span>
+        </div>
+        <div className={styles.cardActions}>
+          <button
+            className={styles.cardEdit}
+            onClick={(e) => { e.stopPropagation(); startEdit(m); }}
+          >
+            &#9998;
+          </button>
+          <button
+            className={styles.cardDelete}
+            onClick={(e) => { e.stopPropagation(); setDeleteTarget(m.id); }}
+          >
+            ×
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className={styles.screen}>
       <h1 className={styles.title}>スロットカウンター</h1>
       <p className={styles.subtitle}>台を選択してください</p>
 
-      <div className={styles.list}>
-        {[...machines].sort((a, b) => b.updatedAt - a.updatedAt).map((m) => {
-          const typeInfo = MACHINE_TYPES.find((t) => t.type === m.machineType);
-          const accentColor = TYPE_COLORS[m.machineType];
-          const isEditing = editingId === m.id;
-
-          if (isEditing) {
-            return (
-              <div key={m.id} className={styles.card} style={{ borderLeftColor: accentColor }}>
-                <div className={styles.cardInfo}>
-                  <div className={styles.editRow}>
-                    <input
-                      className={styles.editInput}
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      placeholder="台名"
-                      autoFocus
-                    />
-                    <input
-                      className={styles.editInputSmall}
-                      value={editNumber}
-                      onChange={(e) => setEditNumber(e.target.value)}
-                      placeholder="#番号"
-                    />
-                  </div>
-                  <div className={styles.editActions}>
-                    <button className={styles.editSave} onClick={saveEdit}>保存</button>
-                    <button className={styles.editCancel} onClick={() => setEditingId(null)}>取消</button>
-                  </div>
-                </div>
-              </div>
-            );
-          }
-
-          return (
-            <div
-              key={m.id}
-              className={styles.card}
-              style={{ borderLeftColor: accentColor }}
-              onClick={() => selectMachine(m.id)}
-            >
-              <div className={styles.cardInfo}>
-                <div className={styles.cardHeader}>
-                  <span className={styles.cardName}>
-                    {m.name}
-                    {m.number && <span className={styles.cardNumber}>#{m.number}</span>}
-                  </span>
-                  <span className={styles.cardTypeBadge} style={{ color: accentColor }}>
-                    {typeInfo?.label}
-                  </span>
-                </div>
-                <span className={styles.cardSummary}>{getMachineSummary(m)}</span>
-                <span className={styles.cardTime}>{formatUpdatedAt(m.updatedAt)}</span>
-              </div>
-              <div className={styles.cardActions}>
-                <button
-                  className={styles.cardEdit}
-                  onClick={(e) => { e.stopPropagation(); startEdit(m); }}
-                >
-                  &#9998;
-                </button>
-                <button
-                  className={styles.cardDelete}
-                  onClick={(e) => { e.stopPropagation(); setDeleteTarget(m.id); }}
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
+      {/* 新規台追加（上部に配置） */}
       {!showAdd ? (
         <button className={styles.addBtn} onClick={() => setShowAdd(true)}>
           + 新規台追加
@@ -214,6 +226,35 @@ export function HomeScreen() {
           </button>
         </div>
       )}
+
+      {/* 今日の台 */}
+      {todayMachines.length > 0 && (
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>今日の台</h2>
+          <div className={styles.list}>
+            {todayMachines.map(renderCard)}
+          </div>
+        </div>
+      )}
+
+      {/* 過去の台（アコーディオン） */}
+      {pastMachines.length > 0 && (
+        <div className={styles.section}>
+          <button
+            className={styles.accordionToggle}
+            onClick={() => setPastCollapsed((prev) => !prev)}
+          >
+            <span>過去の台（{pastMachines.length}件）</span>
+            <span className={`${styles.chevron} ${pastCollapsed ? '' : styles.chevronOpen}`}>›</span>
+          </button>
+          {!pastCollapsed && (
+            <div className={styles.list}>
+              {pastMachines.map(renderCard)}
+            </div>
+          )}
+        </div>
+      )}
+
       {supabase && (
         <div className={styles.syncSection}>
           <div className={styles.syncButtons}>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useMachineStore, isHokutoMachine } from '../../stores/machineStore';
 import {
@@ -11,6 +11,7 @@ import { LogTimeline } from './LogTimeline';
 import { InlineLogEntry } from './InlineLogEntry';
 import { AnalysisModal } from './AnalysisModal';
 import { LogDetailModal } from './LogDetailModal';
+import { Modal } from '../common/Modal';
 import styles from './HokutoMain.module.css';
 
 export function HokutoMain() {
@@ -31,6 +32,42 @@ export function HokutoMain() {
   useEffect(() => {
     return () => setShowLogEntry(false);
   }, [setShowLogEntry]);
+
+  // 画面全体の長押しでモーダルを開く（document レベル）
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const handleDown = (e: PointerEvent) => {
+      // モーダルやインタラクティブ要素上では無視
+      const target = e.target as HTMLElement;
+      if (target.closest('button, a, input, select, textarea, [role="dialog"]')) return;
+      if (showLogEntry) return;
+
+      longPressTimerRef.current = setTimeout(() => {
+        setShowLogEntry(true);
+      }, 500);
+    };
+
+    const handleCancel = () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+    };
+
+    document.addEventListener('pointerdown', handleDown);
+    document.addEventListener('pointerup', handleCancel);
+    document.addEventListener('pointermove', handleCancel);
+    document.addEventListener('pointercancel', handleCancel);
+
+    return () => {
+      handleCancel();
+      document.removeEventListener('pointerdown', handleDown);
+      document.removeEventListener('pointerup', handleCancel);
+      document.removeEventListener('pointermove', handleCancel);
+      document.removeEventListener('pointercancel', handleCancel);
+    };
+  }, [showLogEntry, setShowLogEntry]);
 
   if (!machine || !isHokutoMachine(machine)) return null;
 
@@ -70,14 +107,6 @@ export function HokutoMain() {
 
   return (
     <div className={styles.container}>
-      {showLogEntry && (
-        <div className={styles.headerLogEntry}>
-          <InlineLogEntry onAddLog={(log) => {
-            handleAddLog(log);
-            setShowLogEntry(false);
-          }} />
-        </div>
-      )}
       <StatusBar
         totalGames={effectiveGames}
         extraGames={extraGames}
@@ -104,7 +133,23 @@ export function HokutoMain() {
         />
       </div>
 
-      {!editingLog && <InlineLogEntry onAddLog={handleAddLog} />}
+      {!editingLog && (
+        <button className={styles.fab} onClick={() => setShowLogEntry(true)}>
+          ＋ ログ追加
+        </button>
+      )}
+
+      <Modal
+        isOpen={showLogEntry}
+        onClose={() => setShowLogEntry(false)}
+        title="ログ追加"
+        alignTop
+      >
+        <InlineLogEntry onAddLog={(log) => {
+          handleAddLog(log);
+          setShowLogEntry(false);
+        }} />
+      </Modal>
 
       <LogDetailModal
         log={infoLog}
