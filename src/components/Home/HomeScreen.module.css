@@ -171,10 +171,54 @@
   color: var(--color-text-tertiary);
 }
 
+/* --- セクション & アコーディオン --- */
+
+.section {
+  width: 100%;
+  margin-top: var(--spacing-lg);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+  padding-left: var(--spacing-xs);
+}
+
+.accordionToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  margin-bottom: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
+}
+
+.accordionToggle:active {
+  color: var(--color-text);
+}
+
+.chevron {
+  font-size: var(--font-size-base);
+  transition: transform var(--transition-fast);
+  transform: rotate(0deg);
+}
+
+.chevronOpen {
+  transform: rotate(90deg);
+}
+
 /* --- 追加ボタン --- */
 
 .addBtn {
-  margin-top: var(--spacing-lg);
+  margin-top: var(--spacing-md);
   padding: var(--spacing-md) var(--spacing-xl);
   border-radius: var(--radius-lg);
   background-color: rgba(10, 132, 255, 0.15);
@@ -190,7 +234,7 @@
 }
 
 .addPanel {
-  margin-top: var(--spacing-lg);
+  margin-top: var(--spacing-md);
   width: 100%;
   display: flex;
   flex-direction: column;
