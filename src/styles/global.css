@@ -20,6 +20,9 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 #root {
@@ -42,9 +45,11 @@ button:disabled {
   opacity: 0.4;
 }
 
-input, select {
+input, select, textarea {
   font-family: inherit;
   font-size: inherit;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 /* Apple-style button base */
