@@ -498,8 +498,10 @@ export const useMachineStore = create<MachineStore>()(
     {
       name: 'slot-counter-storage',
       version: 2,
-      onRehydrateStorage: () => (state) => {
-        if (state) state.currentMachineId = null;
+      partialize: (state) => {
+        // currentMachineId を永続化しない → 常にTOP画面から開始
+        const { currentMachineId: _, ...rest } = state;
+        return rest;
       },
       migrate: (persisted: unknown, version: number) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
