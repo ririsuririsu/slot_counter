@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useMachineStore, isHokutoMachine } from '../../stores/machineStore';
 import {
@@ -33,41 +33,6 @@ export function HokutoMain() {
     return () => setShowLogEntry(false);
   }, [setShowLogEntry]);
 
-  // 画面全体の長押しでモーダルを開く（document レベル）
-  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    const handleDown = (e: PointerEvent) => {
-      // モーダルやインタラクティブ要素上では無視
-      const target = e.target as HTMLElement;
-      if (target.closest('button, a, input, select, textarea, [role="dialog"]')) return;
-      if (showLogEntry) return;
-
-      longPressTimerRef.current = setTimeout(() => {
-        setShowLogEntry(true);
-      }, 500);
-    };
-
-    const handleCancel = () => {
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
-        longPressTimerRef.current = null;
-      }
-    };
-
-    document.addEventListener('pointerdown', handleDown);
-    document.addEventListener('pointerup', handleCancel);
-    document.addEventListener('pointermove', handleCancel);
-    document.addEventListener('pointercancel', handleCancel);
-
-    return () => {
-      handleCancel();
-      document.removeEventListener('pointerdown', handleDown);
-      document.removeEventListener('pointerup', handleCancel);
-      document.removeEventListener('pointermove', handleCancel);
-      document.removeEventListener('pointercancel', handleCancel);
-    };
-  }, [showLogEntry, setShowLogEntry]);
 
   if (!machine || !isHokutoMachine(machine)) return null;
 
