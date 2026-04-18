@@ -37,12 +37,18 @@
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .subtitle {
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
   line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .refBtn {
@@ -63,9 +69,9 @@
 .addLogBtn {
   background-color: rgba(10, 132, 255, 0.2);
   color: var(--apple-blue);
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   flex-shrink: 0;
   transition: background-color var(--transition-fast);
@@ -78,9 +84,9 @@
 .resetButton {
   background-color: rgba(255, 69, 58, 0.2);
   color: var(--apple-red);
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   flex-shrink: 0;
   transition: background-color var(--transition-fast);
