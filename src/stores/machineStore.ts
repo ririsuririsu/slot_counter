@@ -45,6 +45,10 @@ interface MachineStore {
   currentMachineId: string | null;
   showLogEntry: boolean;
   setShowLogEntry: (show: boolean) => void;
+  showShutterModal: boolean;
+  setShowShutterModal: (show: boolean) => void;
+  showTenhaModal: boolean;
+  setShowTenhaModal: (show: boolean) => void;
 
   // Getters
   getCurrentMachine: () => Machine | null;
@@ -163,6 +167,10 @@ export const useMachineStore = create<MachineStore>()(
       currentMachineId: null,
       showLogEntry: false,
       setShowLogEntry: (show: boolean) => set({ showLogEntry: show }),
+      showShutterModal: false,
+      setShowShutterModal: (show: boolean) => set({ showShutterModal: show }),
+      showTenhaModal: false,
+      setShowTenhaModal: (show: boolean) => set({ showTenhaModal: show }),
 
       // --- Getters ---
 

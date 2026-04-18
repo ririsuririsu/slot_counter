@@ -11,9 +11,11 @@ const MACHINE_TYPE_LABELS: Record<MachineType, string> = {
 
 interface HeaderProps {
   onAddLog?: () => void;
+  onOpenShutter?: () => void;
+  onOpenTenha?: () => void;
 }
 
-export function Header({ onAddLog }: HeaderProps = {}) {
+export function Header({ onAddLog, onOpenShutter, onOpenTenha }: HeaderProps = {}) {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
 
   const currentMachine = useMachineStore((state) => state.getCurrentMachine());
@@ -55,6 +57,16 @@ export function Header({ onAddLog }: HeaderProps = {}) {
             <h1 className={styles.title}>{title}</h1>
             <span className={styles.subtitle}>{subtitle} · {timestamp}</span>
           </div>
+          {onOpenShutter && (
+            <button className={styles.refBtn} onClick={onOpenShutter}>
+              シャッター
+            </button>
+          )}
+          {onOpenTenha && (
+            <button className={styles.refBtn} onClick={onOpenTenha}>
+              天破
+            </button>
+          )}
           {onAddLog && (
             <button className={styles.addLogBtn} onClick={onAddLog}>
               ＋ログ

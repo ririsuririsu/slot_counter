@@ -37,8 +37,10 @@
   border-radius: var(--radius-xl);
   width: 90%;
   max-width: 360px;
-  max-height: 90vh;
-  overflow: auto;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .header {
@@ -74,4 +76,6 @@
 
 .content {
   padding: var(--spacing-md);
+  overflow-y: auto;
+  flex: 1;
 }

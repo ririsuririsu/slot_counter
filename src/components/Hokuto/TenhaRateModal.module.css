@@ -1,0 +1,110 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.mainTabs {
+  display: flex;
+  gap: var(--spacing-xs);
+  background-color: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.mainTab {
+  flex: 1;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+  transition: all var(--transition-fast);
+}
+
+.mainTabActive {
+  background-color: rgba(10, 132, 255, 0.15);
+  color: var(--apple-blue);
+  font-weight: 700;
+}
+
+.tabs {
+  display: flex;
+  gap: var(--spacing-xs);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  position: sticky;
+  top: 38px;
+  z-index: 1;
+}
+
+.tab {
+  flex: 1;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+  transition: all var(--transition-fast);
+}
+
+.tabActive {
+  background-color: rgba(10, 132, 255, 0.2);
+  color: var(--apple-blue);
+  font-weight: 600;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.table th {
+  text-align: left;
+  padding: 6px 8px;
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 6px 8px;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-variant-numeric: tabular-nums;
+}
+
+.settingCol {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.note {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  margin: 0;
+}
+
+.subLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.highCol {
+  color: var(--apple-orange);
+  font-weight: 600;
+}
+
+.transitionSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}

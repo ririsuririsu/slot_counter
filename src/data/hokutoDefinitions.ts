@@ -120,6 +120,57 @@ export const DENSHO_END_TRANSITION: Record<
   6: { low: 0.391, normal: 0.500, high: 0.109 },
 };
 
+// --- 低確滞在時の状態移行率（設定別） ---
+
+export interface StateTransitionRow {
+  setting: number;
+  toLow: number;
+  toNormal: number;
+  toHigh: number;
+}
+
+// 低確 → 弱チェリー時
+export const LOW_TRANSITION_JAKU_CHERRY: StateTransitionRow[] = [
+  { setting: 1, toLow: 0.531, toNormal: 0.461, toHigh: 0.008 },
+  { setting: 2, toLow: 0.531, toNormal: 0.461, toHigh: 0.008 },
+  { setting: 3, toLow: 0.520, toNormal: 0.469, toHigh: 0.012 },
+  { setting: 4, toLow: 0.484, toNormal: 0.500, toHigh: 0.016 },
+  { setting: 5, toLow: 0.375, toNormal: 0.594, toHigh: 0.031 },
+  { setting: 6, toLow: 0.328, toNormal: 0.625, toHigh: 0.047 },
+];
+
+// 低確 → スイカ時
+export const LOW_TRANSITION_SUIKA: StateTransitionRow[] = [
+  { setting: 1, toLow: 0.328, toNormal: 0.656, toHigh: 0.016 },
+  { setting: 2, toLow: 0.328, toNormal: 0.656, toHigh: 0.016 },
+  { setting: 3, toLow: 0.324, toNormal: 0.656, toHigh: 0.020 },
+  { setting: 4, toLow: 0.266, toNormal: 0.703, toHigh: 0.031 },
+  { setting: 5, toLow: 0.172, toNormal: 0.766, toHigh: 0.063 },
+  { setting: 6, toLow: 0.109, toNormal: 0.813, toHigh: 0.078 },
+];
+
+// 低確 → チャンス目・勝舞揃い時
+export const LOW_TRANSITION_CHANCE_SHOBU: StateTransitionRow[] = [
+  { setting: 1, toLow: 0.281, toNormal: 0.500, toHigh: 0.219 },
+  { setting: 2, toLow: 0.277, toNormal: 0.500, toHigh: 0.223 },
+  { setting: 3, toLow: 0.273, toNormal: 0.500, toHigh: 0.227 },
+  { setting: 4, toLow: 0.250, toNormal: 0.500, toHigh: 0.250 },
+  { setting: 5, toLow: 0.188, toNormal: 0.500, toHigh: 0.313 },
+  { setting: 6, toLow: 0.125, toNormal: 0.500, toHigh: 0.375 },
+];
+
+// 低確 → 強チェリー時（全設定共通）
+export const LOW_TRANSITION_KYOU_CHERRY = { toLow: 0, toNormal: 0.750, toHigh: 0.250 };
+
+// --- 通常滞在時の高確移行率（全設定共通） ---
+
+export const NORMAL_TO_HIGH_RATES: { trigger: string; rate: number }[] = [
+  { trigger: '弱チェリー', rate: 46.9 },
+  { trigger: 'スイカ', rate: 66.4 },
+  { trigger: 'チャンス目・勝舞揃い', rate: 71.9 },
+  { trigger: '強チェリー', rate: 100 },
+];
+
 // --- モード移行率（設定変更時） ---
 
 export const MODE_TRANSITION_RESET: Record<

@@ -23,6 +23,8 @@ function MonkeyTurnView() {
 function App() {
   const currentMachine = useMachineStore((state) => state.getCurrentMachine());
   const setShowLogEntry = useMachineStore((state) => state.setShowLogEntry);
+  const setShowShutterModal = useMachineStore((state) => state.setShowShutterModal);
+  const setShowTenhaModal = useMachineStore((state) => state.setShowTenhaModal);
 
   useEffect(() => {
     initializeStore();
@@ -37,7 +39,11 @@ function App() {
 
   return (
     <>
-      <Header onAddLog={isHokuto ? () => setShowLogEntry(true) : undefined} />
+      <Header
+        onAddLog={isHokuto ? () => setShowLogEntry(true) : undefined}
+        onOpenShutter={isHokuto ? () => setShowShutterModal(true) : undefined}
+        onOpenTenha={isHokuto ? () => setShowTenhaModal(true) : undefined}
+      />
       <main className={`container ${isHokuto ? styles.mainHokuto : styles.main}`}>
         {isHokuto ? <HokutoMain /> : <MonkeyTurnView />}
       </main>

@@ -11,6 +11,8 @@ import { LogTimeline } from './LogTimeline';
 import { InlineLogEntry } from './InlineLogEntry';
 import { AnalysisModal } from './AnalysisModal';
 import { LogDetailModal } from './LogDetailModal';
+import { ShutterModal } from './ShutterModal';
+import { TenhaRateModal } from './TenhaRateModal';
 import { Modal } from '../common/Modal';
 import styles from './HokutoMain.module.css';
 
@@ -27,6 +29,10 @@ export function HokutoMain() {
   const updateExtraGames = useMachineStore((state) => state.updateExtraGames);
   const showLogEntry = useMachineStore((state) => state.showLogEntry);
   const setShowLogEntry = useMachineStore((state) => state.setShowLogEntry);
+  const showShutterModal = useMachineStore((state) => state.showShutterModal);
+  const setShowShutterModal = useMachineStore((state) => state.setShowShutterModal);
+  const showTenhaModal = useMachineStore((state) => state.showTenhaModal);
+  const setShowTenhaModal = useMachineStore((state) => state.setShowTenhaModal);
 
   // ヘッダーのログ追加ボタンで開いたモーダルを閉じるときにリセット
   useEffect(() => {
@@ -122,6 +128,18 @@ export function HokutoMain() {
         logs={logs}
         resetStatus={session.resetStatus}
         onClose={() => setInfoLog(null)}
+      />
+
+      <ShutterModal
+        isOpen={showShutterModal}
+        onClose={() => setShowShutterModal(false)}
+        alignTop
+      />
+
+      <TenhaRateModal
+        isOpen={showTenhaModal}
+        onClose={() => setShowTenhaModal(false)}
+        alignTop
       />
 
       <AnalysisModal

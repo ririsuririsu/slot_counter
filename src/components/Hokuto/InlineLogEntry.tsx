@@ -341,7 +341,7 @@ const ZENCHO_OPTIONS: { value: ZenchoCategory; label: string }[] = [
 
 function FakeZenchoForm({ onSubmit, onCancel, initial }: { onSubmit: (log: FakeZenchoLog) => void; onCancel: () => void; initial?: FakeZenchoLog }) {
   const [abeshiCount, setAbeshiCount] = useState(initial?.abeshiCount ?? 0);
-  const [category, setCategory] = useState<ZenchoCategory>(initial?.zenchoCategory ?? 'other');
+  const [category, setCategory] = useState<ZenchoCategory>(initial?.zenchoCategory ?? 'shutter');
 
   const handleSubmit = () => {
     onSubmit({ type: 'fake-zencho', id: '', timestamp: 0, abeshiCount, zenchoCategory: category, estimatedMode: null });
@@ -459,13 +459,6 @@ function EffectHintForm({ onSubmit, onCancel, initial }: { onSubmit: (log: Effec
   return (
     <div className={styles.formArea}>
       <div className={styles.row}>
-        <span className={styles.label}>トロフィー</span>
-        <select className={styles.select} value={trophy} title="トロフィー" onChange={(e) => setTrophy(e.target.value as TrophyColor | '')}>
-          <option value="">なし</option>
-          {trophyOptions.map((t) => (<option key={t} value={t}>{TROPHY_LABELS[t]}</option>))}
-        </select>
-      </div>
-      <div className={styles.row}>
         <span className={styles.label}>ランプ</span>
         <div className={styles.toggleGroup}>
           {(['A', 'B', 'C'] as LampPosition[]).map((pos) => (
@@ -485,6 +478,13 @@ function EffectHintForm({ onSubmit, onCancel, initial }: { onSubmit: (log: Effec
           </select>
         </div>
       )}
+      <div className={styles.row}>
+        <span className={styles.label}>トロフィー</span>
+        <select className={styles.select} value={trophy} title="トロフィー" onChange={(e) => setTrophy(e.target.value as TrophyColor | '')}>
+          <option value="">なし</option>
+          {trophyOptions.map((t) => (<option key={t} value={t}>{TROPHY_LABELS[t]}</option>))}
+        </select>
+      </div>
       <div className={styles.submitRow}>
         <button className={styles.cancelBtn} onClick={onCancel}>閉じる</button>
         <button className={styles.submitBtn} onClick={handleSubmit}>{initial ? '保存' : '追加'}</button>
