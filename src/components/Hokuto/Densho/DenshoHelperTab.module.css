@@ -1,0 +1,831 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  /* FAB が画面下に被る分 + safe-area の余白を確保 */
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+
+/* ========================================
+   サマリーヘッダー(sticky)
+   ======================================== */
+
+.summaryCard {
+  /* App ヘッダー(80px sticky)直下に貼り付ける */
+  position: sticky;
+  top: 80px;
+  z-index: 9;
+  background-color: rgba(28, 28, 30, 0.92);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  /* スクロール時に内容が透けないよう不透明背景 */
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.phaseBadge {
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.phase_idle {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+}
+
+.phase_in-densho {
+  background-color: rgba(255, 159, 10, 0.18);
+  color: var(--apple-orange);
+}
+
+.phase_after-densho {
+  background-color: rgba(10, 132, 255, 0.18);
+  color: var(--apple-blue);
+}
+
+.phase_observing {
+  background-color: rgba(94, 92, 230, 0.18);
+  color: var(--apple-purple);
+}
+
+.phase_in-at {
+  background-color: rgba(255, 214, 10, 0.2);
+  color: var(--apple-yellow);
+}
+
+.phaseDetail {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.summaryLabel {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.summaryValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--apple-orange);
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryLabelSub {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin-left: var(--spacing-xs);
+}
+
+.summaryValueSub {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--apple-red);
+  font-variant-numeric: tabular-nums;
+  margin-right: auto;
+}
+
+.summarySpacer {
+  flex: 1;
+}
+
+.openSettingBtn {
+  padding: 4px 10px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  background-color: rgba(10, 132, 255, 0.15);
+  color: var(--apple-blue);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(10, 132, 255, 0.3);
+}
+
+/* ========================================
+   ログタイムライン
+   ======================================== */
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.emptyTimeline {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  text-align: center;
+  gap: var(--spacing-xs);
+}
+
+.emptyHint {
+  font-size: var(--font-size-xs);
+  margin: 0;
+}
+
+/* ========================================
+   開始ピッカー
+   ======================================== */
+
+.startPicker {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+}
+
+.startTitle {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.startHint {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.startGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  width: 100%;
+  max-width: 320px;
+}
+
+.startBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background-color: var(--apple-gray-6);
+  color: var(--text-primary);
+  transition: transform var(--transition-fast);
+}
+
+.startBtn:active {
+  transform: scale(0.98);
+}
+
+.startBtnLabel {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+}
+
+.startBtnSub {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.startBtnDist {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.startReset {
+  border-color: rgba(94, 92, 230, 0.4);
+}
+
+.startReset .startBtnLabel {
+  color: var(--apple-purple);
+}
+
+.startAtEnd {
+  border-color: rgba(10, 132, 255, 0.4);
+}
+
+.startAtEnd .startBtnLabel {
+  color: var(--apple-blue);
+}
+
+.startTenhaEnd {
+  border-color: rgba(255, 159, 10, 0.4);
+}
+
+.startTenhaEnd .startBtnLabel {
+  color: var(--apple-orange);
+}
+
+.logEntry {
+  background-color: var(--apple-gray-6);
+  padding: 6px 8px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  min-height: 32px;
+}
+
+.logGame {
+  width: 40px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.logEventLabel {
+  width: 92px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+.eventYaku    { color: var(--apple-blue); }
+.eventStrong  { color: var(--apple-pink); }
+.eventBell    { color: var(--apple-yellow); }
+.eventTenha   { color: var(--apple-orange); }
+.eventHigh    { color: var(--apple-green); }
+.eventStart   { color: var(--apple-purple); }
+.eventAt      { color: var(--apple-yellow); }
+.eventCheck   { color: var(--text-secondary); }
+
+.logDenProb {
+  width: 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.logDelete {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: var(--text-tertiary);
+  border-radius: 50%;
+  font-size: var(--font-size-md);
+  flex-shrink: 0;
+}
+
+.logDelete:active {
+  background-color: rgba(255, 69, 58, 0.2);
+  color: var(--apple-red);
+}
+
+/* ========================================
+   ログ内の積層バー(1行コンパクト)
+   ======================================== */
+
+.miniViz {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.stateRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stateRowLabel {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  width: 12px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.barColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.barLabels {
+  flex: 1;
+  display: flex;
+  height: 11px;
+  font-variant-numeric: tabular-nums;
+  font-size: 9px;
+  line-height: 1;
+  overflow: hidden;
+}
+
+.barLabel {
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 伝承レベル ラベル色 */
+.lblShort  { color: var(--apple-red); }
+.lblMiddle { color: var(--apple-orange); }
+.lblLong   { color: var(--apple-green); }
+
+/* 伝承滞在 ラベル色 */
+.lblDensho { color: var(--apple-orange); }
+
+/* 天破 / AT ラベル色 */
+.lblTenha  { color: var(--apple-red); }
+.lblAt     { color: var(--apple-yellow); }
+
+/* 内部状態 ラベル色 */
+.lblLow    { color: var(--text-secondary); }
+.lblNormal { color: var(--apple-blue); }
+.lblHigh   { color: var(--apple-green); }
+
+.stackedBar {
+  width: 100%;
+  height: 10px;
+  display: flex;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.stackedBar > div {
+  height: 100%;
+  flex-shrink: 0;
+}
+
+/* 伝承レベル(短/中/長)のセグメント */
+.segShort  { background-color: var(--apple-red); }
+.segMiddle { background-color: var(--apple-orange); }
+.segLong   { background-color: var(--apple-green); }
+
+/* 伝承滞在のセグメント */
+.segDensho { background-color: var(--apple-orange); }
+
+/* 天破 / AT のセグメント */
+.segTenha  { background-color: var(--apple-red); }
+.segAt     { background-color: var(--apple-yellow); }
+
+/* 内部状態(低/通/高)のセグメント */
+.segLow    { background-color: rgba(255, 255, 255, 0.18); }
+.segNormal { background-color: var(--apple-blue); }
+.segHigh   { background-color: var(--apple-green); }
+
+.logIdleSpacer {
+  flex: 1;
+}
+
+/* ========================================
+   FAB
+   ======================================== */
+
+/* 画面下に固定する FAB 群 */
+.fabRow {
+  position: fixed;
+  bottom: max(var(--spacing-md), env(safe-area-inset-bottom));
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 0 var(--spacing-md);
+  pointer-events: none;
+  z-index: 100;
+}
+
+.undoBtn {
+  pointer-events: auto;
+  flex: 0 0 auto;
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-full);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.undoBtn:disabled {
+  opacity: 0.4;
+}
+
+.fab {
+  pointer-events: auto;
+  flex: 0 0 auto;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  background-color: var(--apple-blue);
+  color: white;
+  border-radius: var(--radius-full);
+  box-shadow: 0 4px 16px rgba(10, 132, 255, 0.4);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.fab:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
+}
+
+/* ========================================
+   入力フォーム(モーダル内)
+   ======================================== */
+
+.inputForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.gInputRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  background-color: var(--apple-gray-6);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+}
+
+.gInput {
+  font-size: 24px;
+  font-weight: 700;
+  width: 120px;
+  text-align: center;
+  background-color: transparent;
+  color: var(--text-primary);
+  border: none;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+.gUnit {
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
+}
+
+.gQuickRow {
+  display: flex;
+  gap: 6px;
+}
+
+.quickBtn {
+  flex: 1;
+  padding: 6px 0;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  background-color: rgba(10, 132, 255, 0.15);
+  color: var(--apple-blue);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(10, 132, 255, 0.3);
+  font-variant-numeric: tabular-nums;
+}
+
+.quickBtn:active {
+  background-color: rgba(10, 132, 255, 0.3);
+}
+
+.quickMinus {
+  background-color: rgba(255, 69, 58, 0.12);
+  color: var(--apple-red);
+  border-color: rgba(255, 69, 58, 0.3);
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.formLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.yakuGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.yakuBtn {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-weight: 500;
+  background-color: var(--apple-blue);
+  color: white;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  min-height: 36px;
+}
+
+.yakuBtn:active {
+  transform: scale(0.97);
+}
+
+.bellBtn {
+  background-color: var(--apple-yellow);
+  color: black;
+}
+
+.checkBtn {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.checkBtn:active {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+.cycleRow {
+  display: flex;
+  gap: 6px;
+}
+
+.tenhaBtn {
+  width: 100%;
+  padding: var(--spacing-sm);
+  font-weight: 600;
+  background-color: var(--apple-orange);
+  color: white;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.tenhaDurationGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.tenhaDurationBtn {
+  padding: var(--spacing-xs) 0;
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  background-color: var(--apple-orange);
+  color: white;
+  border-radius: var(--radius-md);
+  font-variant-numeric: tabular-nums;
+  min-height: 36px;
+}
+
+.tenhaDurationBtn:active {
+  transform: scale(0.97);
+}
+
+.tenhaDurationInf {
+  background-color: var(--apple-pink);
+  font-size: var(--font-size-sm);
+}
+
+.tenhaEndBtn {
+  flex: 1;
+  padding: var(--spacing-sm);
+  font-weight: 600;
+  background-color: rgba(255, 159, 10, 0.3);
+  color: var(--apple-orange);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--apple-orange);
+}
+
+.startResetBtn {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-weight: 600;
+  background-color: rgba(94, 92, 230, 0.18);
+  color: var(--apple-purple);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  border: 1px solid rgba(94, 92, 230, 0.5);
+  min-height: 36px;
+}
+
+.startAtEndBtn {
+  flex: 1;
+  padding: var(--spacing-sm);
+  font-weight: 600;
+  background-color: rgba(10, 132, 255, 0.18);
+  color: var(--apple-blue);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  border: 1px solid rgba(10, 132, 255, 0.5);
+}
+
+.highConfirmBtn {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-weight: 600;
+  background-color: var(--apple-green);
+  color: white;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  min-height: 36px;
+}
+
+.atHitBtn {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-weight: 700;
+  background-color: var(--apple-yellow);
+  color: black;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  min-height: 36px;
+}
+
+.formFooter {
+  padding-top: var(--spacing-xs);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.resetAllBtn {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  background-color: transparent;
+  color: var(--apple-red);
+  border: 1px solid rgba(255, 69, 58, 0.4);
+  border-radius: var(--radius-md);
+}
+
+/* ========================================
+   設定推定パネル(モーダル内)
+   ======================================== */
+
+.settingPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.confidenceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.confidenceBadge {
+  padding: 4px 12px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  background-color: rgba(10, 132, 255, 0.15);
+  color: var(--apple-blue);
+  border-radius: var(--radius-full);
+}
+
+.sampleCount {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.settingSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.settingSectionTitle {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stateTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs);
+}
+
+.stateTable th {
+  text-align: center;
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding: 4px;
+  font-size: var(--font-size-xs);
+}
+
+.stateTable td {
+  padding: 4px;
+  vertical-align: middle;
+}
+
+.stateLabel {
+  color: var(--text-secondary);
+  width: 40px;
+  font-weight: 500;
+}
+
+.miniBarRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.miniBarTrack {
+  flex: 1;
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.miniBarFillS1 {
+  height: 100%;
+  background-color: var(--apple-blue);
+  transition: width var(--transition-fast);
+}
+
+.miniBarFillS6 {
+  height: 100%;
+  background-color: var(--apple-purple);
+  transition: width var(--transition-fast);
+}
+
+.miniBarValue {
+  width: 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.settingChart {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settingRow {
+  display: grid;
+  grid-template-columns: 48px 1fr 44px;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+}
+
+.settingLabel {
+  color: var(--text-secondary);
+}
+
+.settingValue {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.settingBarTrack {
+  height: 10px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.settingBarFill {
+  height: 100%;
+  background-color: var(--apple-green);
+  transition: width var(--transition-fast);
+  border-radius: var(--radius-full);
+}
+
+.hint {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.endTransitionRef {
+  color: var(--text-tertiary);
+  font-size: 10px;
+}

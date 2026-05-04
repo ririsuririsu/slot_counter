@@ -12,6 +12,34 @@
   overflow-y: auto;
 }
 
+/* ========================================
+   サブタブ
+   ======================================== */
+
+.tabBar {
+  display: flex;
+  gap: 0;
+  background-color: var(--apple-gray-6);
+  border-radius: var(--radius-md);
+  padding: 2px;
+}
+
+.tabBtn {
+  flex: 1;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  background-color: transparent;
+  border-radius: calc(var(--radius-md) - 2px);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.tabActive {
+  background-color: var(--apple-blue);
+  color: white;
+}
+
 /* フローティングログ追加ボタン */
 .fab {
   position: fixed;

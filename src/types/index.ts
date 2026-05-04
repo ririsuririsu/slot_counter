@@ -1,7 +1,9 @@
 import type { HokutoSession, HokutoLog } from './hokuto';
+import type { DenshoHelperState } from './densho';
 
 // Re-export all hokuto types
 export * from './hokuto';
+export * from './densho';
 
 // ========================================
 // 共通
@@ -81,6 +83,11 @@ export interface HokutoMachine extends BaseMachine {
   totalGames: number;
   totalAbeshi: number;
   extraGames: number;
+  /**
+   * 伝承推測補助ツール(並列タブ)の状態。既存の logs とは独立。
+   * 詳細仕様は docs/densho-helper-spec.md を参照。
+   */
+  denshoHelper: DenshoHelperState;
 }
 
 // ========================================

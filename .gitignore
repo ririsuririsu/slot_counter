@@ -26,5 +26,8 @@ dist-ssr
 # Playwright MCP screenshots
 .playwright-mcp/
 
+# 開発時の検証スクリーンショット(リポジトリルート直下のみ)
+/*.png
+
 .vercel
 .env*.local

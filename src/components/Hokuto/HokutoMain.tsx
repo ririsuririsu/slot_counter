@@ -13,13 +13,17 @@ import { AnalysisModal } from './AnalysisModal';
 import { LogDetailModal } from './LogDetailModal';
 import { ShutterModal } from './ShutterModal';
 import { TenhaRateModal } from './TenhaRateModal';
+import { DenshoHelperTab } from './Densho/DenshoHelperTab';
 import { Modal } from '../common/Modal';
 import styles from './HokutoMain.module.css';
+
+type HokutoSubTab = 'log' | 'densho';
 
 export function HokutoMain() {
   const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
   const [editingLog, setEditingLog] = useState<HokutoLog | null>(null);
   const [infoLog, setInfoLog] = useState<HokutoLog | null>(null);
+  const [subTab, setSubTab] = useState<HokutoSubTab>('log');
   const machine = useMachineStore((state) => state.getCurrentMachine());
   const setSessionResetStatus = useMachineStore((state) => state.setSessionResetStatus);
   const addHokutoLog = useMachineStore((state) => state.addHokutoLog);
@@ -91,23 +95,51 @@ export function HokutoMain() {
         onOpenAnalysis={() => setIsAnalysisOpen(true)}
       />
 
-      <div className={styles.timelineArea}>
-        <LogTimeline
-          logs={logs}
-          resetStatus={session.resetStatus}
-          onDeleteLog={deleteHokutoLog}
-          editingLog={editingLog}
-          onEditLog={setEditingLog}
-          onUpdateLog={handleUpdateLog}
-          onCancelEdit={() => setEditingLog(null)}
-          onInfoLog={setInfoLog}
-        />
+      <div className={styles.tabBar}>
+        <button
+          type="button"
+          className={`${styles.tabBtn} ${subTab === 'log' ? styles.tabActive : ''}`}
+          onClick={() => setSubTab('log')}
+        >
+          詳細ログ
+        </button>
+        <button
+          type="button"
+          className={`${styles.tabBtn} ${subTab === 'densho' ? styles.tabActive : ''}`}
+          onClick={() => setSubTab('densho')}
+        >
+          伝承推測補助
+        </button>
       </div>
 
-      {!editingLog && (
-        <button className={styles.fab} onClick={() => setShowLogEntry(true)}>
-          ＋ ログ追加
-        </button>
+      {subTab === 'log' && (
+        <>
+          <div className={styles.timelineArea}>
+            <LogTimeline
+              logs={logs}
+              resetStatus={session.resetStatus}
+              onDeleteLog={deleteHokutoLog}
+              editingLog={editingLog}
+              onEditLog={setEditingLog}
+              onUpdateLog={handleUpdateLog}
+              onCancelEdit={() => setEditingLog(null)}
+              onInfoLog={setInfoLog}
+            />
+          </div>
+
+          {!editingLog && (
+            <button type="button" className={styles.fab} onClick={() => setShowLogEntry(true)}>
+              ＋ ログ追加
+            </button>
+          )}
+        </>
+      )}
+
+      {subTab === 'densho' && (
+        <DenshoHelperTab
+          currentGame={displayGames}
+          onSetCurrentGame={(g: number) => updateExtraGames(Math.max(0, g - effectiveGames))}
+        />
       )}
 
       <Modal

@@ -13,10 +13,27 @@ interface ModalProps {
   draggable?: boolean;
 }
 
+/** モバイル(狭幅)ではドラッグを無効化して中央表示にする */
+const MOBILE_BREAKPOINT = 600;
+function isMobileViewport(): boolean {
+  return typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT;
+}
+
 function loadSavedPosition(): { x: number; y: number } | null {
   try {
     const saved = localStorage.getItem(MODAL_POSITION_KEY);
-    if (saved) return JSON.parse(saved);
+    if (!saved) return null;
+    const pos = JSON.parse(saved);
+    if (typeof pos?.x !== 'number' || typeof pos?.y !== 'number') return null;
+    // 保存位置が現在のビューポート外にはみ出している場合は無効化(別端末で保存された等)
+    // モーダルの一部(最低 80px)が見える範囲内に収まる位置のみ採用
+    const minVisible = 80;
+    const maxX = window.innerWidth - minVisible;
+    const maxY = window.innerHeight - minVisible;
+    if (pos.x < -minVisible || pos.x > maxX || pos.y < 0 || pos.y > maxY) {
+      return null;
+    }
+    return pos;
   } catch { /* ignore */ }
   return null;
 }
@@ -33,10 +50,10 @@ export function Modal({ isOpen, onClose, title, children, alignTop, draggable }:
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [initialized, setInitialized] = useState(false);
 
-  // 開くたびに保存位置を復元
+  // 開くたびに保存位置を復元(モバイルでは無視して中央表示)
   useEffect(() => {
     if (isOpen && draggable) {
-      const saved = loadSavedPosition();
+      const saved = isMobileViewport() ? null : loadSavedPosition();
       setPosition(saved);
       setInitialized(true);
     }
@@ -109,7 +126,8 @@ export function Modal({ isOpen, onClose, title, children, alignTop, draggable }:
 
   if (!isOpen) return null;
 
-  const isDraggable = draggable && initialized;
+  // モバイルではドラッグ無効
+  const isDraggable = draggable && initialized && !isMobileViewport();
   const modalStyle = isDraggable && position
     ? { left: position.x, top: position.y }
     : undefined;

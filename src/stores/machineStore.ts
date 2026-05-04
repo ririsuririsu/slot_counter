@@ -10,9 +10,17 @@ import type {
   SettingAnalysis,
   HokutoLog,
   ResetStatus,
+  DenshoEvent,
 } from '../types';
 import { createInitialCounters, fiveCardIds } from '../data/koyakuDefinitions';
 import { calculateSettingProbabilities } from '../utils/binomialDistribution';
+import {
+  createInitialDenshoHelperState,
+  applyEvent as applyDenshoEvent,
+  undoLastEvent as undoLastDenshoEventFn,
+  deleteEventAt as deleteDenshoEventAtFn,
+  rebuildHelperFromEvents,
+} from '../utils/denshoEstimation';
 import {
   upsertMachine,
   deleteMachineRemote,
@@ -88,6 +96,12 @@ interface MachineStore {
   // Hokuto: Reset
   resetHokutoMachine: () => void;
 
+  // Hokuto: Densho Helper
+  addDenshoEvent: (event: DenshoEvent) => void;
+  undoLastDenshoEvent: () => void;
+  resetDenshoHelper: () => void;
+  deleteDenshoEventAt: (index: number) => void;
+
   // Supabase同期
   syncToSupabase: () => Promise<void>;
   loadFromSupabase: () => Promise<boolean>;
@@ -127,6 +141,7 @@ function createNewHokutoMachine(name: string): HokutoMachine {
     totalGames: 0,
     totalAbeshi: 0,
     extraGames: 0,
+    denshoHelper: createInitialDenshoHelperState(),
   };
 }
 
@@ -486,6 +501,59 @@ export const useMachineStore = create<MachineStore>()(
           if (machine) upsertMachine(machine).catch(() => {});
         }).catch(() => {});
       },
+
+      // --- Hokuto: Densho Helper ---
+
+      addDenshoEvent: (event: DenshoEvent) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isHokutoMachine(m)) return m;
+            // 古いロジックで書き込まれた state が localStorage に残っている可能性があるため、
+            // events から再構築した fresh state を起点に新イベントを適用する(drift 防止)。
+            const fresh = rebuildHelperFromEvents(m.denshoHelper.events);
+            const next = applyDenshoEvent(fresh, event);
+            return { ...m, denshoHelper: next, updatedAt: Date.now() };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      undoLastDenshoEvent: () => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isHokutoMachine(m)) return m;
+            const next = undoLastDenshoEventFn(m.denshoHelper);
+            return { ...m, denshoHelper: next, updatedAt: Date.now() };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      resetDenshoHelper: () => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isHokutoMachine(m)) return m;
+            return {
+              ...m,
+              denshoHelper: createInitialDenshoHelperState(),
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      deleteDenshoEventAt: (index: number) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isHokutoMachine(m)) return m;
+            const next = deleteDenshoEventAtFn(m.denshoHelper, index);
+            return { ...m, denshoHelper: next, updatedAt: Date.now() };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
       // --- Supabase同期 ---
 
       syncToSupabase: async () => {
@@ -505,7 +573,7 @@ export const useMachineStore = create<MachineStore>()(
     }),
     {
       name: 'slot-counter-storage',
-      version: 2,
+      version: 4,
       partialize: (state) => {
         // currentMachineId を永続化しない → 常にTOP画面から開始
         const { currentMachineId: _, ...rest } = state;
@@ -520,6 +588,27 @@ export const useMachineStore = create<MachineStore>()(
             ...m,
             machineType: m.machineType || 'monkey-turn-v',
           }));
+        }
+        if (version < 3 && state.machines) {
+          // Hokuto 台に denshoHelper を初期化
+          state.machines = state.machines.map((m: Record<string, unknown>) => {
+            if (m.machineType === 'hokuto-tensei2' && !m.denshoHelper) {
+              return { ...m, denshoHelper: createInitialDenshoHelperState() };
+            }
+            return m;
+          });
+        }
+        if (version < 4 && state.machines) {
+          // denshoHelper に pendingMisses を追加(16G 遅延 miss 用)
+          state.machines = state.machines.map((m: Record<string, unknown>) => {
+            if (m.machineType === 'hokuto-tensei2' && m.denshoHelper) {
+              const dh = m.denshoHelper as Record<string, unknown>;
+              if (!dh.pendingMisses) {
+                return { ...m, denshoHelper: { ...dh, pendingMisses: [] } };
+              }
+            }
+            return m;
+          });
         }
         return state;
       },

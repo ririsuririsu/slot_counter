@@ -6,6 +6,7 @@ import type {
   HistoryEntry,
   HokutoLog,
 } from '../types';
+import { createInitialDenshoHelperState } from '../utils/denshoEstimation';
 
 // ========================================
 // 型ガード
@@ -238,5 +239,6 @@ async function loadHokutoMachine(row: any): Promise<HokutoMachine | null> {
     totalGames: stateRow?.total_games || 0,
     totalAbeshi: stateRow?.total_abeshi || 0,
     extraGames: stateRow?.extra_games || 0,
+    denshoHelper: createInitialDenshoHelperState(),
   };
 }
