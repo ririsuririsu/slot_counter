@@ -88,6 +88,10 @@ export interface HokutoMachine extends BaseMachine {
    * 詳細仕様は docs/densho-helper-spec.md を参照。
    */
   denshoHelper: DenshoHelperState;
+  /**
+   * 伝承推測補助タブ専用の現在G。詳細ログタブの totalGames/extraGames とは独立に管理。
+   */
+  denshoCurrentGame: number;
 }
 
 // ========================================

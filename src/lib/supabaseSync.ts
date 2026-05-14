@@ -240,5 +240,6 @@ async function loadHokutoMachine(row: any): Promise<HokutoMachine | null> {
     totalAbeshi: stateRow?.total_abeshi || 0,
     extraGames: stateRow?.extra_games || 0,
     denshoHelper: createInitialDenshoHelperState(),
+    denshoCurrentGame: 0,
   };
 }

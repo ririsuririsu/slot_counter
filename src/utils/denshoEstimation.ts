@@ -480,12 +480,21 @@ function decayStateOneStep(prior: InternalStateDist): InternalStateDist {
   };
 }
 
+/**
+ * 経過G分の繰り返し処理の上限(CPU 予算保護)。
+ * 数学的には 200G 程度で state 分布も denProb も steady-state に収束するため、
+ * これ以上の繰り返しは結果を変えずに CPU を消費するだけ。
+ * 不正な大 gap (例: 古いデータの mis-migration や G の人為的誤入力) からも保護する。
+ */
+const GAP_ITERATION_CAP = 500;
+
 function applyStateDecayForGap(
   state: DenshoHelperState,
   toGame: number,
 ): DenshoHelperState {
   if (state.phase !== 'observing' && state.phase !== 'after-densho') return state;
-  const gap = Math.max(0, toGame - state.lastEventGame - 1);
+  const rawGap = Math.max(0, toGame - state.lastEventGame - 1);
+  const gap = Math.min(rawGap, GAP_ITERATION_CAP);
   if (gap <= 0) return state;
   let s1 = state.stateUnderS1;
   let s6 = state.stateUnderS6;
@@ -501,7 +510,8 @@ function applyFallTriggersForGap(
   state: DenshoHelperState,
   toGame: number,
 ): DenshoHelperState {
-  const gap = Math.max(0, toGame - state.lastEventGame - 1);
+  const rawGap = Math.max(0, toGame - state.lastEventGame - 1);
+  const gap = Math.min(rawGap, GAP_ITERATION_CAP);
   if (gap <= 0) return state;
   // 推定ハズレ・リプレイ回数
   const k = Math.round(gap * HAZURE_REPLAY_RATIO_APPROX);

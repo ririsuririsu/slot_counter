@@ -31,6 +31,7 @@ export function HokutoMain() {
   const deleteHokutoLog = useMachineStore((state) => state.deleteHokutoLog);
   const updateHokutoGameState = useMachineStore((state) => state.updateHokutoGameState);
   const updateExtraGames = useMachineStore((state) => state.updateExtraGames);
+  const updateDenshoCurrentGame = useMachineStore((state) => state.updateDenshoCurrentGame);
   const showLogEntry = useMachineStore((state) => state.showLogEntry);
   const setShowLogEntry = useMachineStore((state) => state.setShowLogEntry);
   const showShutterModal = useMachineStore((state) => state.showShutterModal);
@@ -137,8 +138,8 @@ export function HokutoMain() {
 
       {subTab === 'densho' && (
         <DenshoHelperTab
-          currentGame={displayGames}
-          onSetCurrentGame={(g: number) => updateExtraGames(Math.max(0, g - effectiveGames))}
+          currentGame={machine.denshoCurrentGame ?? 0}
+          onSetCurrentGame={updateDenshoCurrentGame}
         />
       )}
 

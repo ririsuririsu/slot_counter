@@ -92,6 +92,7 @@ interface MachineStore {
   // Hokuto: Game state
   updateHokutoGameState: (games: number, abeshi: number) => void;
   updateExtraGames: (extra: number) => void;
+  updateDenshoCurrentGame: (game: number) => void;
 
   // Hokuto: Reset
   resetHokutoMachine: () => void;
@@ -142,6 +143,7 @@ function createNewHokutoMachine(name: string): HokutoMachine {
     totalAbeshi: 0,
     extraGames: 0,
     denshoHelper: createInitialDenshoHelperState(),
+    denshoCurrentGame: 0,
   };
 }
 
@@ -478,6 +480,16 @@ export const useMachineStore = create<MachineStore>()(
         syncCurrentMachine(get);
       },
 
+      updateDenshoCurrentGame: (game: number) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isHokutoMachine(m)) return m;
+            return { ...m, denshoCurrentGame: Math.max(0, game), updatedAt: Date.now() };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
       // --- Hokuto: Reset ---
 
       resetHokutoMachine: () => {
@@ -573,7 +585,7 @@ export const useMachineStore = create<MachineStore>()(
     }),
     {
       name: 'slot-counter-storage',
-      version: 4,
+      version: 5,
       partialize: (state) => {
         // currentMachineId を永続化しない → 常にTOP画面から開始
         const { currentMachineId: _, ...rest } = state;
@@ -606,6 +618,15 @@ export const useMachineStore = create<MachineStore>()(
               if (!dh.pendingMisses) {
                 return { ...m, denshoHelper: { ...dh, pendingMisses: [] } };
               }
+            }
+            return m;
+          });
+        }
+        if (version < 5 && state.machines) {
+          // 伝承推測補助タブ専用の denshoCurrentGame を追加(2タブ G 管理独立化)
+          state.machines = state.machines.map((m: Record<string, unknown>) => {
+            if (m.machineType === 'hokuto-tensei2' && m.denshoCurrentGame === undefined) {
+              return { ...m, denshoCurrentGame: 0 };
             }
             return m;
           });
