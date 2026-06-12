@@ -3,10 +3,12 @@ import type {
   Machine,
   MonkeyTurnMachine,
   HokutoMachine,
+  KabaneriMachine,
   HistoryEntry,
   HokutoLog,
 } from '../types';
 import { createInitialDenshoHelperState } from '../utils/denshoEstimation';
+import { createInitialKabaneriCounters } from '../data/kabaneriDefinitions';
 
 // ========================================
 // 型ガード
@@ -18,6 +20,10 @@ function isMonkeyTurn(m: Machine): m is MonkeyTurnMachine {
 
 function isHokuto(m: Machine): m is HokutoMachine {
   return m.machineType === 'hokuto-tensei2';
+}
+
+function isKabaneri(m: Machine): m is KabaneriMachine {
+  return m.machineType === 'kabaneri';
 }
 
 // ========================================
@@ -40,6 +46,8 @@ export async function upsertMachine(machine: Machine) {
     await upsertMonkeyTurnState(machine);
   } else if (isHokuto(machine)) {
     await upsertHokutoState(machine);
+  } else if (isKabaneri(machine)) {
+    await upsertKabaneriState(machine);
   }
 }
 
@@ -54,6 +62,20 @@ export async function deleteMachineRemote(machineId: string) {
 // ========================================
 
 async function upsertMonkeyTurnState(machine: MonkeyTurnMachine) {
+  if (!supabase) return;
+  await supabase.from('machine_counters').upsert({
+    machine_id: machine.id,
+    total_games: machine.totalGames,
+    counters: machine.counters,
+    updated_at: new Date(machine.updatedAt).toISOString(),
+  });
+}
+
+// ========================================
+// Kabaneri: Counters（machine_counters テーブルを共用）
+// ========================================
+
+async function upsertKabaneriState(machine: KabaneriMachine) {
   if (!supabase) return;
   await supabase.from('machine_counters').upsert({
     machine_id: machine.id,
@@ -166,6 +188,9 @@ export async function loadAllMachines(): Promise<Machine[] | null> {
     } else if (row.machine_type === 'hokuto-tensei2') {
       const machine = await loadHokutoMachine(row);
       if (machine) machines.push(machine);
+    } else if (row.machine_type === 'kabaneri') {
+      const machine = await loadKabaneriMachine(row);
+      if (machine) machines.push(machine);
     }
   }
 
@@ -205,6 +230,28 @@ async function loadMonkeyTurnMachine(row: any): Promise<MonkeyTurnMachine | null
       probability: h.probability,
       settingAnalysis: h.setting_analysis,
     })),
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function loadKabaneriMachine(row: any): Promise<KabaneriMachine | null> {
+  if (!supabase) return null;
+
+  const { data: counterRow } = await supabase
+    .from('machine_counters')
+    .select('*')
+    .eq('machine_id', row.id)
+    .single();
+
+  return {
+    id: row.id,
+    machineType: 'kabaneri',
+    name: row.name,
+    number: row.number || '',
+    createdAt: new Date(row.created_at).getTime(),
+    updatedAt: new Date(row.updated_at).getTime(),
+    counters: counterRow?.counters || createInitialKabaneriCounters(),
+    totalGames: counterRow?.total_games || 0,
   };
 }
 

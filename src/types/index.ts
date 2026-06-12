@@ -1,15 +1,17 @@
 import type { HokutoSession, HokutoLog } from './hokuto';
 import type { DenshoHelperState } from './densho';
+import type { KabaneriCounterState } from './kabaneri';
 
 // Re-export all hokuto types
 export * from './hokuto';
 export * from './densho';
+export * from './kabaneri';
 
 // ========================================
 // 共通
 // ========================================
 
-export type MachineType = 'monkey-turn-v' | 'hokuto-tensei2';
+export type MachineType = 'monkey-turn-v' | 'hokuto-tensei2' | 'kabaneri';
 
 interface BaseMachine {
   id: string;
@@ -95,10 +97,20 @@ export interface HokutoMachine extends BaseMachine {
 }
 
 // ========================================
+// スマスロ 甲鉄城のカバネリ 海門決戦
+// ========================================
+
+export interface KabaneriMachine extends BaseMachine {
+  machineType: 'kabaneri';
+  counters: KabaneriCounterState;
+  totalGames: number;
+}
+
+// ========================================
 // 判別共用体
 // ========================================
 
-export type Machine = MonkeyTurnMachine | HokutoMachine;
+export type Machine = MonkeyTurnMachine | HokutoMachine | KabaneriMachine;
 
 // 設定確率データ
 export interface SettingProbability {

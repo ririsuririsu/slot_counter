@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMachineStore, isMonkeyTurnMachine, isHokutoMachine } from '../../stores/machineStore';
+import { useMachineStore, isMonkeyTurnMachine, isHokutoMachine, isKabaneriMachine } from '../../stores/machineStore';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import type { MachineType } from '../../types';
 import styles from './Header.module.css';
@@ -7,6 +7,7 @@ import styles from './Header.module.css';
 const MACHINE_TYPE_LABELS: Record<MachineType, string> = {
   'monkey-turn-v': 'モンキーターンV',
   'hokuto-tensei2': '北斗の拳 転生の章2',
+  'kabaneri': 'カバネリ海門決戦',
 };
 
 interface HeaderProps {
@@ -22,6 +23,7 @@ export function Header({ onAddLog, onOpenShutter, onOpenTenha }: HeaderProps = {
   const selectMachine = useMachineStore((state) => state.selectMachine);
   const resetCurrentMachine = useMachineStore((state) => state.resetCurrentMachine);
   const resetHokutoMachine = useMachineStore((state) => state.resetHokutoMachine);
+  const resetKabaneriMachine = useMachineStore((state) => state.resetKabaneriMachine);
 
   const handleBack = () => {
     selectMachine('');
@@ -30,6 +32,8 @@ export function Header({ onAddLog, onOpenShutter, onOpenTenha }: HeaderProps = {
   const handleReset = () => {
     if (currentMachine && isHokutoMachine(currentMachine)) {
       resetHokutoMachine();
+    } else if (currentMachine && isKabaneriMachine(currentMachine)) {
+      resetKabaneriMachine();
     } else {
       resetCurrentMachine();
     }
@@ -42,7 +46,7 @@ export function Header({ onAddLog, onOpenShutter, onOpenTenha }: HeaderProps = {
     : '';
 
   const resetMessage =
-    currentMachine && isMonkeyTurnMachine(currentMachine)
+    currentMachine && (isMonkeyTurnMachine(currentMachine) || isKabaneriMachine(currentMachine))
       ? '全てのカウンターと履歴をリセットしますか？この操作は取り消せません。'
       : '全てのログとセッション情報をリセットしますか？この操作は取り消せません。';
 

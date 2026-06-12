@@ -5,7 +5,8 @@ import { ProbabilityDisplay } from './components/Statistics/ProbabilityDisplay';
 import { SettingAnalysis } from './components/Statistics/SettingAnalysis';
 import { CounterList } from './components/Counter/CounterList';
 import { HokutoMain } from './components/Hokuto/HokutoMain';
-import { useMachineStore, isHokutoMachine } from './stores/machineStore';
+import { KabaneriMain } from './components/Kabaneri/KabaneriMain';
+import { useMachineStore, isHokutoMachine, isKabaneriMachine } from './stores/machineStore';
 import { initializeStore } from './stores/machineStore';
 import './styles/global.css';
 import styles from './App.module.css';
@@ -36,6 +37,7 @@ function App() {
   }
 
   const isHokuto = isHokutoMachine(currentMachine);
+  const isKabaneri = isKabaneriMachine(currentMachine);
 
   return (
     <>
@@ -45,7 +47,7 @@ function App() {
         onOpenTenha={isHokuto ? () => setShowTenhaModal(true) : undefined}
       />
       <main className={`container ${isHokuto ? styles.mainHokuto : styles.main}`}>
-        {isHokuto ? <HokutoMain /> : <MonkeyTurnView />}
+        {isHokuto ? <HokutoMain /> : isKabaneri ? <KabaneriMain /> : <MonkeyTurnView />}
       </main>
     </>
   );

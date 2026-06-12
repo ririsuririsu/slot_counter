@@ -39,7 +39,7 @@ function logBinomialCoefficient(n: number, k: number): number {
  * P(X = k) = nCk * p^k * (1-p)^(n-k)
  * log P(X = k) = log(nCk) + k*log(p) + (n-k)*log(1-p)
  */
-function logBinomialPMF(k: number, n: number, p: number): number {
+export function logBinomialPMF(k: number, n: number, p: number): number {
   if (p <= 0) return k === 0 ? 0 : -Infinity;
   if (p >= 1) return k === n ? 0 : -Infinity;
 

@@ -5,6 +5,8 @@ import type {
   Machine,
   MonkeyTurnMachine,
   HokutoMachine,
+  KabaneriMachine,
+  KabaneriChanceType,
   MachineType,
   HistoryEntry,
   SettingAnalysis,
@@ -13,6 +15,10 @@ import type {
   DenshoEvent,
 } from '../types';
 import { createInitialCounters, fiveCardIds } from '../data/koyakuDefinitions';
+import {
+  createInitialKabaneriCounters,
+  chanceDefinitions,
+} from '../data/kabaneriDefinitions';
 import { calculateSettingProbabilities } from '../utils/binomialDistribution';
 import {
   createInitialDenshoHelperState,
@@ -42,6 +48,10 @@ export function isMonkeyTurnMachine(m: Machine): m is MonkeyTurnMachine {
 
 export function isHokutoMachine(m: Machine): m is HokutoMachine {
   return m.machineType === 'hokuto-tensei2';
+}
+
+export function isKabaneriMachine(m: Machine): m is KabaneriMachine {
+  return m.machineType === 'kabaneri';
 }
 
 // ========================================
@@ -103,6 +113,15 @@ interface MachineStore {
   resetDenshoHelper: () => void;
   deleteDenshoEventAt: (index: number) => void;
 
+  // Kabaneri: Counter Actions
+  incrementKabaneriCounter: (counterId: string) => void;
+  decrementKabaneriCounter: (counterId: string) => void;
+  incrementKabaneriFlash: (chanceId: KabaneriChanceType) => void;
+  decrementKabaneriFlash: (chanceId: KabaneriChanceType) => void;
+
+  // Kabaneri: Reset
+  resetKabaneriMachine: () => void;
+
   // Supabase同期
   syncToSupabase: () => Promise<void>;
   loadFromSupabase: () => Promise<boolean>;
@@ -144,6 +163,19 @@ function createNewHokutoMachine(name: string): HokutoMachine {
     extraGames: 0,
     denshoHelper: createInitialDenshoHelperState(),
     denshoCurrentGame: 0,
+  };
+}
+
+function createNewKabaneriMachine(name: string): KabaneriMachine {
+  return {
+    id: uuidv4(),
+    machineType: 'kabaneri',
+    name,
+    number: '',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    counters: createInitialKabaneriCounters(),
+    totalGames: 0,
   };
 }
 
@@ -213,7 +245,9 @@ export const useMachineStore = create<MachineStore>()(
         const newMachine =
           type === 'hokuto-tensei2'
             ? createNewHokutoMachine(`台${machines.length + 1}`)
-            : createNewMonkeyTurnMachine(`台${machines.length + 1}`);
+            : type === 'kabaneri'
+              ? createNewKabaneriMachine(`台${machines.length + 1}`)
+              : createNewMonkeyTurnMachine(`台${machines.length + 1}`);
         set({
           machines: [...machines, newMachine],
           currentMachineId: newMachine.id,
@@ -302,7 +336,7 @@ export const useMachineStore = create<MachineStore>()(
       updateTotalGames: (games: number) => {
         set((state) =>
           updateCurrentMachine(state, (m) => {
-            if (!isMonkeyTurnMachine(m)) return m;
+            if (!isMonkeyTurnMachine(m) && !isKabaneriMachine(m)) return m;
             return { ...m, totalGames: games, updatedAt: Date.now() };
           })
         );
@@ -564,6 +598,113 @@ export const useMachineStore = create<MachineStore>()(
           })
         );
         syncCurrentMachine(get);
+      },
+
+      // --- Kabaneri: Counter Actions ---
+
+      incrementKabaneriCounter: (counterId: string) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isKabaneriMachine(m)) return m;
+            return {
+              ...m,
+              counters: {
+                ...m.counters,
+                [counterId]: (m.counters[counterId] || 0) + 1,
+              },
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      decrementKabaneriCounter: (counterId: string) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isKabaneriMachine(m)) return m;
+            const current = m.counters[counterId] || 0;
+            if (current <= 0) return m;
+            // チャンス目の成立数は発光数を下回らないようにする
+            const def = chanceDefinitions.find((d) => d.countKey === counterId);
+            const floor = def ? m.counters[def.flashKey] || 0 : 0;
+            if (current <= floor) return m;
+            return {
+              ...m,
+              counters: {
+                ...m.counters,
+                [counterId]: current - 1,
+              },
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      // 発光カウント: 発光したチャンス目は成立も同時に+1する
+      incrementKabaneriFlash: (chanceId: KabaneriChanceType) => {
+        const def = chanceDefinitions.find((d) => d.id === chanceId);
+        if (!def) return;
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isKabaneriMachine(m)) return m;
+            return {
+              ...m,
+              counters: {
+                ...m.counters,
+                [def.countKey]: (m.counters[def.countKey] || 0) + 1,
+                [def.flashKey]: (m.counters[def.flashKey] || 0) + 1,
+              },
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      decrementKabaneriFlash: (chanceId: KabaneriChanceType) => {
+        const def = chanceDefinitions.find((d) => d.id === chanceId);
+        if (!def) return;
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isKabaneriMachine(m)) return m;
+            const flashCount = m.counters[def.flashKey] || 0;
+            if (flashCount <= 0) return m;
+            return {
+              ...m,
+              counters: {
+                ...m.counters,
+                [def.countKey]: Math.max(0, (m.counters[def.countKey] || 0) - 1),
+                [def.flashKey]: flashCount - 1,
+              },
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      // --- Kabaneri: Reset ---
+
+      resetKabaneriMachine: () => {
+        const machineId = get().currentMachineId;
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isKabaneriMachine(m)) return m;
+            return {
+              ...m,
+              counters: createInitialKabaneriCounters(),
+              totalGames: 0,
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+        if (machineId) deleteMachineRemote(machineId).then(() => {
+          const machine = get().getCurrentMachine();
+          if (machine) upsertMachine(machine).catch(() => {});
+        }).catch(() => {});
       },
 
       // --- Supabase同期 ---

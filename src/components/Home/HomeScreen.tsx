@@ -2,18 +2,21 @@ import { useState } from 'react';
 import { useMachineStore } from '../../stores/machineStore';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { supabase } from '../../lib/supabase';
-import type { Machine, MachineType, MonkeyTurnMachine, HokutoMachine } from '../../types';
+import type { Machine, MachineType, MonkeyTurnMachine, HokutoMachine, KabaneriMachine } from '../../types';
 import { fiveCardIds } from '../../data/koyakuDefinitions';
+import { chanceDefinitions, GEDAN_BELL_KEY } from '../../data/kabaneriDefinitions';
 import styles from './HomeScreen.module.css';
 
 const MACHINE_TYPES: { type: MachineType; label: string; sub: string }[] = [
   { type: 'monkey-turn-v', label: 'モンキーターンV', sub: '小役カウンター' },
   { type: 'hokuto-tensei2', label: '北斗の拳 転生の章2', sub: 'ログ＆設定推測' },
+  { type: 'kabaneri', label: 'カバネリ海門決戦', sub: 'チャンス目発光＆下段ベル' },
 ];
 
 const TYPE_COLORS: Record<MachineType, string> = {
   'monkey-turn-v': 'var(--apple-blue)',
   'hokuto-tensei2': 'var(--apple-red)',
+  'kabaneri': 'var(--apple-green)',
 };
 
 function getMachineSummary(m: Machine): string {
@@ -24,6 +27,20 @@ function getMachineSummary(m: Machine): string {
       return `${mt.totalGames}G / 5枚役 1/${(mt.totalGames / total5).toFixed(1)}`;
     }
     if (mt.totalGames > 0) return `${mt.totalGames}G`;
+    return 'データなし';
+  }
+  if (m.machineType === 'kabaneri') {
+    const kb = m as KabaneriMachine;
+    const chanceTotal = chanceDefinitions.reduce(
+      (sum, def) => sum + (kb.counters[def.countKey] ?? 0),
+      0
+    );
+    const bellCount = kb.counters[GEDAN_BELL_KEY] ?? 0;
+    if (kb.totalGames > 0 && bellCount > 0) {
+      return `${kb.totalGames}G / 下段ベル 1/${(kb.totalGames / bellCount).toFixed(1)}`;
+    }
+    if (chanceTotal > 0) return `チャンス目 ${chanceTotal}回`;
+    if (kb.totalGames > 0) return `${kb.totalGames}G`;
     return 'データなし';
   }
   const hk = m as HokutoMachine;
