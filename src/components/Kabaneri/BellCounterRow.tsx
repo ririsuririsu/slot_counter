@@ -17,7 +17,7 @@ export const BellCounterRow = memo(function BellCounterRow() {
   return (
     <div className={styles.bellRow}>
       <div className={styles.bellInfo}>
-        <span className={styles.name}>下段ベル</span>
+        <span className={`${styles.name} ${styles.bellName}`}>下段ベル</span>
         <span className={`${styles.rate} ${denominator !== null ? styles.rateActive : ''}`}>
           {denominator !== null ? `1/${denominator.toFixed(1)}` : '確率 -'}
         </span>

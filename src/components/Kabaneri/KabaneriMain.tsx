@@ -48,8 +48,6 @@ export function KabaneriMain() {
         </div>
       </div>
 
-      <KabaneriSettingAnalysis />
-
       <div className="section-header">チャンス目（発光カウント）</div>
       <p className={styles.hint}>
         発光時は「+発光」のみでOK（成立も自動で+1）。
@@ -61,6 +59,9 @@ export function KabaneriMain() {
 
       <div className="section-header">下段ベル</div>
       <BellCounterRow />
+
+      <div className="section-header">設定推測</div>
+      <KabaneriSettingAnalysis />
 
       <GameInputModal
         isOpen={isGameModalOpen}

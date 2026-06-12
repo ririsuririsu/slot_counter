@@ -10,7 +10,8 @@ export interface KabaneriChanceDefinition {
   id: KabaneriChanceType;
   name: string;
   shortName: string;
-  backgroundColor: string;
+  /** 項目名の文字色 */
+  nameColor: string;
   /** counters の成立カウントキー */
   countKey: string;
   /** counters の発光カウントキー */
@@ -24,7 +25,7 @@ export const chanceDefinitions: KabaneriChanceDefinition[] = [
     id: 'mumei',
     name: '無名チャンス目',
     shortName: '無名',
-    backgroundColor: 'var(--color-5card)',
+    nameColor: 'var(--apple-red)',
     countKey: 'mumei',
     flashKey: 'mumeiFlash',
     denominator: 38.9,
@@ -33,7 +34,7 @@ export const chanceDefinitions: KabaneriChanceDefinition[] = [
     id: 'ikoma',
     name: '生駒チャンス目',
     shortName: '生駒',
-    backgroundColor: 'var(--color-gekiso)',
+    nameColor: 'var(--apple-green)',
     countKey: 'ikoma',
     flashKey: 'ikomaFlash',
     denominator: 44.5,
@@ -42,7 +43,7 @@ export const chanceDefinitions: KabaneriChanceDefinition[] = [
     id: 'kabane',
     name: 'カバネチャンス目',
     shortName: 'カバネ',
-    backgroundColor: 'var(--color-special)',
+    nameColor: 'var(--apple-blue)',
     countKey: 'kabane',
     flashKey: 'kabaneFlash',
     denominator: 77.7,

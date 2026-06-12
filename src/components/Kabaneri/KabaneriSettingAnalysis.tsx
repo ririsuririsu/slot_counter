@@ -75,8 +75,6 @@ export function KabaneriSettingAnalysis() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.title}>設定推測（ベイズ推定）</div>
-
       <div className={styles.sectionLabel}>総合</div>
       <SettingGrid analysis={combined} />
 

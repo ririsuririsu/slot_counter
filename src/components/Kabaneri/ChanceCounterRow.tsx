@@ -22,12 +22,11 @@ export const ChanceCounterRow = memo(function ChanceCounterRow({
   const rate = count > 0 ? (flash / count) * 100 : null;
 
   return (
-    <div
-      className={styles.row}
-      style={{ backgroundColor: definition.backgroundColor }}
-    >
+    <div className={styles.row}>
       <div className={styles.header}>
-        <span className={styles.name}>{definition.name}</span>
+        <span className={styles.name} style={{ color: definition.nameColor }}>
+          {definition.name}
+        </span>
         <span className={`${styles.rate} ${rate !== null ? styles.rateActive : ''}`}>
           発光率 {rate !== null ? `${rate.toFixed(1)}%` : '-'}
         </span>
