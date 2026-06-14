@@ -16,6 +16,8 @@ interface KabaneriButtonProps {
   mode: 'add' | 'sub';
   /** 表示物の回転角(deg) */
   orient: number;
+  /** バイブ有効 */
+  haptic?: boolean;
   onCount: (dir: 1 | -1) => void;
 }
 
@@ -28,6 +30,7 @@ export function KabaneriButton({
   labelRadius = 34,
   mode,
   orient,
+  haptic = true,
   onCount,
 }: KabaneriButtonProps) {
   const wrapRef = useRef<HTMLButtonElement>(null);
@@ -61,8 +64,8 @@ export function KabaneriButton({
     }
 
     onCount(dir);
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(mode === 'sub' ? [10, 30, 10] : 15);
+    if (haptic && typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(10); // 最小の「プルッ」
     }
   };
 

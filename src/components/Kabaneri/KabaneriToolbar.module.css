@@ -61,3 +61,27 @@
   cursor: pointer;
 }
 .rotateBtn:active { background: rgba(255, 255, 255, .18); }
+
+/* バイブ オン/オフ */
+.iconBtn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .18);
+  background: rgba(255, 255, 255, .07);
+  color: #fff;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s ease, opacity .15s ease, box-shadow .15s ease;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: pointer;
+}
+.iconBtn:active { background: rgba(255, 255, 255, .18); }
+.hapticActive {
+  background: var(--apple-blue);
+  box-shadow: 0 0 14px rgba(10, 132, 255, .5);
+}
+.hapticOff { opacity: .4; }

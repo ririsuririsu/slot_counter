@@ -16,6 +16,7 @@ export function KabaneriMain() {
   const [isGameModalOpen, setIsGameModalOpen] = useState(false);
   const [mode, setMode] = useState<CountMode>('add');
   const [orient, setOrient] = useState(0);
+  const [haptic, setHaptic] = useState(true);
 
   const machine = useMachineStore((state) => state.getCurrentMachine());
   const incrementCounter = useMachineStore((state) => state.incrementKabaneriCounter);
@@ -65,8 +66,10 @@ export function KabaneriMain() {
         <KabaneriToolbar
           mode={mode}
           orient={orient}
+          haptic={haptic}
           onModeChange={setMode}
           onRotate={handleRotate}
+          onHapticToggle={() => setHaptic((h) => !h)}
         />
       </div>
 
@@ -90,6 +93,7 @@ export function KabaneriMain() {
                 softColor={def.nameColorSoft}
                 mode={mode}
                 orient={orient}
+                haptic={haptic}
                 onCount={(dir) =>
                   dir > 0 ? incrementFlash(def.id) : decrementFlash(def.id)
                 }
@@ -102,6 +106,7 @@ export function KabaneriMain() {
                 softColor={def.nameColorSoft}
                 mode={mode}
                 orient={orient}
+                haptic={haptic}
                 onCount={(dir) =>
                   dir > 0
                     ? incrementCounter(def.countKey)
@@ -128,6 +133,7 @@ export function KabaneriMain() {
           softColor={BELL_COLOR_SOFT}
           mode={mode}
           orient={orient}
+          haptic={haptic}
           onCount={(dir) =>
             dir > 0
               ? incrementCounter(GEDAN_BELL_KEY)

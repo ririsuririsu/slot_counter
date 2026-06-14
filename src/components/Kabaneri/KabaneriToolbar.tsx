@@ -6,11 +6,20 @@ export type CountMode = 'add' | 'sub';
 interface KabaneriToolbarProps {
   mode: CountMode;
   orient: number;
+  haptic: boolean;
   onModeChange: (mode: CountMode) => void;
   onRotate: () => void;
+  onHapticToggle: () => void;
 }
 
-export function KabaneriToolbar({ mode, orient, onModeChange, onRotate }: KabaneriToolbarProps) {
+export function KabaneriToolbar({
+  mode,
+  orient,
+  haptic,
+  onModeChange,
+  onRotate,
+  onHapticToggle,
+}: KabaneriToolbarProps) {
   return (
     <div className={styles.toolbar}>
       <div className={styles.modeToggle}>
@@ -41,6 +50,15 @@ export function KabaneriToolbar({ mode, orient, onModeChange, onRotate }: Kabane
         aria-label="表示を90度回転"
       >
         ⟳
+      </button>
+      <button
+        type="button"
+        className={`${styles.iconBtn} ${haptic ? styles.hapticActive : styles.hapticOff}`}
+        onClick={onHapticToggle}
+        aria-label="バイブのオン/オフ"
+        aria-pressed={haptic}
+      >
+        📳
       </button>
     </div>
   );
