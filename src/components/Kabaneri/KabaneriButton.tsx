@@ -33,14 +33,19 @@ export function KabaneriButton({
   const wrapRef = useRef<HTMLButtonElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
   const rotRef = useRef(0);
+  // タップ判定: 押下位置と「まだタップとして有効か」を保持
+  const startRef = useRef<{ x: number; y: number } | null>(null);
+  const armedRef = useRef(false);
 
   const rawId = useId();
   const pathId = `arc-${rawId.replace(/[:]/g, '')}`;
   const r = labelRadius;
   const arcPath = `M ${50 - r} 50 A ${r} ${r} 0 0 1 ${50 + r} 50`;
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
-    e.preventDefault();
+  // 指の移動がこの距離(px)を超えたらスクロール扱いでカウントしない
+  const MOVE_THRESHOLD = 10;
+
+  const fireCount = () => {
     const dir: 1 | -1 = mode === 'sub' ? -1 : 1;
 
     // 大外枠の回転を蓄積（加算=時計回り / 減算=反時計回り）
@@ -61,6 +66,31 @@ export function KabaneriButton({
     }
   };
 
+  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    startRef.current = { x: e.clientX, y: e.clientY };
+    armedRef.current = true;
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!armedRef.current || !startRef.current) return;
+    const dx = e.clientX - startRef.current.x;
+    const dy = e.clientY - startRef.current.y;
+    if (Math.hypot(dx, dy) > MOVE_THRESHOLD) {
+      // スクロールと判断 → このジェスチャではカウントしない
+      armedRef.current = false;
+    }
+  };
+
+  const handlePointerUp = () => {
+    if (!armedRef.current) return;
+    armedRef.current = false;
+    fireCount();
+  };
+
+  const handlePointerCancel = () => {
+    armedRef.current = false;
+  };
+
   const handleAnimationEnd = () => {
     wrapRef.current?.classList.remove(styles.pressed);
   };
@@ -78,6 +108,9 @@ export function KabaneriButton({
       className={styles.wrap}
       style={wrapStyle}
       onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
       onAnimationEnd={handleAnimationEnd}
       aria-label={label}
     >
