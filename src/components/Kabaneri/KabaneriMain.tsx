@@ -36,9 +36,13 @@ export function KabaneriMain() {
 
   const handleRotate = () => setOrient((o) => (o + 90) % 360);
 
-  // チャンス目トータル確率（全チャンス目の成立合算 vs 総ゲーム数）
+  // チャンス目の合算発光率（全チャンス目の発光合算 / 成立合算）
   const totalSeiritsu = chanceDefinitions.reduce(
     (sum, d) => sum + (counters[d.countKey] ?? 0),
+    0
+  );
+  const totalHakkou = chanceDefinitions.reduce(
+    (sum, d) => sum + (counters[d.flashKey] ?? 0),
     0
   );
 
@@ -69,7 +73,7 @@ export function KabaneriMain() {
       <div className={`section-header ${styles.sectionHead}`}>
         <span>チャンス目</span>
         <span className={styles.totalProb}>
-          確率 {fmtInverse(totalSeiritsu)}
+          発光率 {fmtRate(totalHakkou, totalSeiritsu)}
         </span>
       </div>
       <div className={styles.chanceGrid}>
@@ -93,7 +97,7 @@ export function KabaneriMain() {
               <KabaneriButton
                 label={`${def.shortName} 成立`}
                 count={seiritsu}
-                sub={fmtInverse(seiritsu)}
+                sub=""
                 color={def.nameColor}
                 softColor={def.nameColorSoft}
                 mode={mode}
@@ -109,7 +113,12 @@ export function KabaneriMain() {
         })}
       </div>
 
-      <div className="section-header">下段ベル</div>
+      <div className={`section-header ${styles.sectionHead}`}>
+        <span>下段ベル</span>
+        <span className={styles.totalProb}>
+          確率 {fmtInverse(counters[GEDAN_BELL_KEY] ?? 0)}
+        </span>
+      </div>
       <div className={styles.bellWrap}>
         <KabaneriButton
           label="下段ベル"
