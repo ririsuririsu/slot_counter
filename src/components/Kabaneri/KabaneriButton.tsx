@@ -1,5 +1,6 @@
 import { useId, useRef } from 'react';
 import type { CSSProperties } from 'react';
+import { playHaptic } from '../../utils/haptic';
 import styles from './KabaneriButton.module.css';
 
 const ROT_STEP = 675; // 1タップあたりの大外枠回転量(deg)
@@ -64,9 +65,7 @@ export function KabaneriButton({
     }
 
     onCount(dir);
-    if (haptic && typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(10); // 最小の「プルッ」
-    }
+    if (haptic) playHaptic(); // 最小の「プルッ」（iOSは裏技フォールバック）
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
