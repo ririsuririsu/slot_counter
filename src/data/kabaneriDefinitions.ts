@@ -10,8 +10,10 @@ export interface KabaneriChanceDefinition {
   id: KabaneriChanceType;
   name: string;
   shortName: string;
-  /** 項目名の文字色 */
+  /** 項目名の文字色（ネオン） */
   nameColor: string;
+  /** ラベル/グローのソフト色 */
+  nameColorSoft: string;
   /** counters の成立カウントキー */
   countKey: string;
   /** counters の発光カウントキー */
@@ -25,7 +27,8 @@ export const chanceDefinitions: KabaneriChanceDefinition[] = [
     id: 'mumei',
     name: '無名チャンス目',
     shortName: '無名',
-    nameColor: 'var(--apple-red)',
+    nameColor: '#ff453a',
+    nameColorSoft: '#ff8a82',
     countKey: 'mumei',
     flashKey: 'mumeiFlash',
     denominator: 38.9,
@@ -34,7 +37,8 @@ export const chanceDefinitions: KabaneriChanceDefinition[] = [
     id: 'ikoma',
     name: '生駒チャンス目',
     shortName: '生駒',
-    nameColor: 'var(--apple-green)',
+    nameColor: '#30d158',
+    nameColorSoft: '#86efac',
     countKey: 'ikoma',
     flashKey: 'ikomaFlash',
     denominator: 44.5,
@@ -43,15 +47,18 @@ export const chanceDefinitions: KabaneriChanceDefinition[] = [
     id: 'kabane',
     name: 'カバネチャンス目',
     shortName: 'カバネ',
-    nameColor: 'var(--apple-blue)',
+    nameColor: '#0a84ff',
+    nameColorSoft: '#7ab8ff',
     countKey: 'kabane',
     flashKey: 'kabaneFlash',
     denominator: 77.7,
   },
 ];
 
-// 下段ベルのカウンターキー
+// 下段ベルのカウンターキー・色
 export const GEDAN_BELL_KEY = 'gedanBell';
+export const BELL_COLOR = '#ffd60a';
+export const BELL_COLOR_SOFT = '#ffe87a';
 
 // 下段ベル確率（解析値、通常時・AT中問わず）
 export const bellProbabilities: { setting: number; denominator: number }[] = [
