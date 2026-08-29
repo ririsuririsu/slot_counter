@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMachineStore } from '../../stores/machineStore';
+import { useMachineStore, getMachineTotalGames } from '../../stores/machineStore';
 import { calculateProbabilityDenominator } from '../../utils/binomialDistribution';
 import { GameInputModal } from '../GameInput/GameInputModal';
 import { HistoryModal } from '../History/HistoryModal';
@@ -12,7 +12,7 @@ export function ProbabilityDisplay() {
   const fiveCardTotal = useMachineStore((state) => state.getFiveCardTotal());
   const addHistoryEntry = useMachineStore((state) => state.addHistoryEntry);
 
-  const totalGames = machine?.totalGames ?? 0;
+  const totalGames = getMachineTotalGames(machine);
   const denominator = calculateProbabilityDenominator(fiveCardTotal, totalGames);
 
   const formatProbability = () => {

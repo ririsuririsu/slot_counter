@@ -8,6 +8,7 @@ const MACHINE_TYPE_LABELS: Record<MachineType, string> = {
   'monkey-turn-v': 'モンキーターンV',
   'hokuto-tensei2': '北斗の拳 転生の章2',
   'kabaneri': 'カバネリ海門決戦',
+  'monhan-rise': 'モンハンライズ',
 };
 
 interface HeaderProps {

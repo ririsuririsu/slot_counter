@@ -6,7 +6,13 @@ import { SettingAnalysis } from './components/Statistics/SettingAnalysis';
 import { CounterList } from './components/Counter/CounterList';
 import { HokutoMain } from './components/Hokuto/HokutoMain';
 import { KabaneriMain } from './components/Kabaneri/KabaneriMain';
-import { useMachineStore, isHokutoMachine, isKabaneriMachine } from './stores/machineStore';
+import { MonhanRiseMain } from './components/MonhanRise/MonhanRiseMain';
+import {
+  useMachineStore,
+  isHokutoMachine,
+  isKabaneriMachine,
+  isMonhanRiseMachine,
+} from './stores/machineStore';
 import { initializeStore } from './stores/machineStore';
 import './styles/global.css';
 import styles from './App.module.css';
@@ -38,6 +44,14 @@ function App() {
 
   const isHokuto = isHokutoMachine(currentMachine);
   const isKabaneri = isKabaneriMachine(currentMachine);
+  const isMonhanRise = isMonhanRiseMachine(currentMachine);
+
+  const renderMachineView = () => {
+    if (isHokuto) return <HokutoMain />;
+    if (isKabaneri) return <KabaneriMain />;
+    if (isMonhanRise) return <MonhanRiseMain />;
+    return <MonkeyTurnView />;
+  };
 
   return (
     <>
@@ -47,7 +61,7 @@ function App() {
         onOpenTenha={isHokuto ? () => setShowTenhaModal(true) : undefined}
       />
       <main className={`container ${isHokuto ? styles.mainHokuto : styles.main}`}>
-        {isHokuto ? <HokutoMain /> : isKabaneri ? <KabaneriMain /> : <MonkeyTurnView />}
+        {renderMachineView()}
       </main>
     </>
   );

@@ -1,0 +1,178 @@
+.scroller {
+  overflow-x: auto;
+  margin-bottom: var(--spacing-sm);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+
+.grid {
+  border-collapse: separate;
+  border-spacing: 2px;
+  width: max-content;
+  min-width: 100%;
+}
+
+.corner,
+.colHead {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-sm);
+}
+
+.corner {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 56px;
+  padding: var(--spacing-xs);
+}
+
+.colHead {
+  min-width: 60px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  white-space: nowrap;
+}
+
+.rowHeadCell {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  width: 56px;
+  padding: 0;
+}
+
+/* AT欄はタップでリセット回/通常回を切り替える */
+.rowHead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 100%;
+  min-height: 32px;
+  padding: 2px;
+  background: var(--color-surface-elevated);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rowNum {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.rowKind {
+  font-size: 9px;
+  line-height: 1;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.rowHeadReset {
+  background: rgba(255, 69, 58, 0.22);
+  border-color: var(--color-danger);
+}
+
+.rowHeadReset .rowKind {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+.cell,
+.cellEmpty {
+  height: 32px;
+  padding: 0;
+  text-align: center;
+}
+
+.cellEmpty {
+  background: rgba(120, 120, 128, 0.12);
+  border-radius: var(--radius-sm);
+}
+
+.cellBtn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.cellBtnEmpty {
+  background: rgba(120, 120, 128, 0.22);
+}
+
+.cellSelected {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.6);
+}
+
+.plus {
+  display: block;
+  padding: 4px 2px;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+  line-height: 1.2;
+}
+
+/* 手前のクエストが未入力で、並びが繋がっていない値 */
+.chipBroken {
+  outline: 2px solid var(--apple-orange);
+  outline-offset: -2px;
+}
+
+.warnMark {
+  margin-right: 1px;
+  color: var(--apple-orange);
+  font-weight: 800;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.9);
+}
+
+.chip {
+  display: block;
+  padding: 4px 2px;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  white-space: nowrap;
+}
+
+.activeRow .rowHead:not(.rowHeadReset) {
+  background: var(--apple-orange);
+  color: #1c1c1e;
+}
+
+.activeRow .rowHead:not(.rowHeadReset) .rowKind {
+  color: rgba(28, 28, 30, 0.7);
+}
+
+.activeRow .cellEmpty {
+  background: rgba(255, 159, 10, 0.14);
+}
+
+/* 先出しの次行。ここに入力すると現在行がクエスト当選で締まる */
+.pendingRow .rowHead:not(.rowHeadReset) {
+  background: transparent;
+  border: 1px dashed var(--color-border);
+  color: var(--color-text-tertiary);
+}
+
+.pendingRow .cellBtnEmpty {
+  background: transparent;
+  border-color: rgba(120, 120, 128, 0.35);
+  border-style: dashed;
+}
