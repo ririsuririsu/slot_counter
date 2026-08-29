@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useMachineStore } from '../../stores/machineStore';
+import { useMachineStore, getMachineTotalGames } from '../../stores/machineStore';
 import { calculateSettingProbabilities } from '../../utils/binomialDistribution';
 import styles from './SettingAnalysis.module.css';
 
@@ -7,7 +7,7 @@ export function SettingAnalysis() {
   const machine = useMachineStore((state) => state.getCurrentMachine());
   const fiveCardTotal = useMachineStore((state) => state.getFiveCardTotal());
 
-  const totalGames = machine?.totalGames ?? 0;
+  const totalGames = getMachineTotalGames(machine);
 
   const analysis = useMemo(() => {
     return calculateSettingProbabilities(fiveCardTotal, totalGames);

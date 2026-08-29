@@ -1,6 +1,6 @@
 import { Modal } from '../common/Modal';
 import { DrumPicker } from './DrumPicker';
-import { useMachineStore } from '../../stores/machineStore';
+import { useMachineStore, getMachineTotalGames } from '../../stores/machineStore';
 
 interface GameInputModalProps {
   isOpen: boolean;
@@ -19,7 +19,7 @@ export function GameInputModal({ isOpen, onClose }: GameInputModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="ゲーム数入力">
       <DrumPicker
-        initialValue={machine?.totalGames ?? 0}
+        initialValue={getMachineTotalGames(machine)}
         onConfirm={handleConfirm}
         onCancel={onClose}
       />

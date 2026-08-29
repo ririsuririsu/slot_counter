@@ -2,21 +2,24 @@ import { useState } from 'react';
 import { useMachineStore } from '../../stores/machineStore';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { supabase } from '../../lib/supabase';
-import type { Machine, MachineType, MonkeyTurnMachine, HokutoMachine, KabaneriMachine } from '../../types';
+import type { Machine, MachineType, MonkeyTurnMachine, HokutoMachine, KabaneriMachine, MonhanRiseMachine } from '../../types';
 import { fiveCardIds } from '../../data/koyakuDefinitions';
 import { chanceDefinitions, GEDAN_BELL_KEY } from '../../data/kabaneriDefinitions';
+import { WEAK_RARE_KEY } from '../../data/monhanRiseDefinitions';
 import styles from './HomeScreen.module.css';
 
 const MACHINE_TYPES: { type: MachineType; label: string; sub: string }[] = [
   { type: 'monkey-turn-v', label: 'モンキーターンV', sub: '小役カウンター' },
   { type: 'hokuto-tensei2', label: '北斗の拳 転生の章2', sub: 'ログ＆設定推測' },
   { type: 'kabaneri', label: 'カバネリ海門決戦', sub: 'チャンス目発光＆下段ベル' },
+  { type: 'monhan-rise', label: 'モンハンライズ', sub: 'だるま落とし＆4軸設定推測' },
 ];
 
 const TYPE_COLORS: Record<MachineType, string> = {
   'monkey-turn-v': 'var(--apple-blue)',
   'hokuto-tensei2': 'var(--apple-red)',
   'kabaneri': 'var(--apple-green)',
+  'monhan-rise': 'var(--apple-orange)',
 };
 
 function getMachineSummary(m: Machine): string {
@@ -41,6 +44,15 @@ function getMachineSummary(m: Machine): string {
     }
     if (chanceTotal > 0) return `チャンス目 ${chanceTotal}回`;
     if (kb.totalGames > 0) return `${kb.totalGames}G`;
+    return 'データなし';
+  }
+  if (m.machineType === 'monhan-rise') {
+    const mr = m as MonhanRiseMachine;
+    const daruma = mr.events.filter((e) => e.type === 'daruma-hit').length;
+    const at = mr.events.filter((e) => e.type === 'at-hit').length;
+    if (daruma > 0 || at > 0) return `だるま ${daruma}回 / AT ${at}回`;
+    const weakRare = mr.counters[WEAK_RARE_KEY] ?? 0;
+    if (weakRare > 0) return `弱レア役 ${weakRare}回`;
     return 'データなし';
   }
   const hk = m as HokutoMachine;

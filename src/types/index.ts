@@ -1,17 +1,23 @@
 import type { HokutoSession, HokutoLog } from './hokuto';
 import type { DenshoHelperState } from './densho';
 import type { KabaneriCounterState } from './kabaneri';
+import type { MonhanRiseCounterState, MonhanRiseEvent } from './monhanRise';
 
 // Re-export all hokuto types
 export * from './hokuto';
 export * from './densho';
 export * from './kabaneri';
+export * from './monhanRise';
 
 // ========================================
 // 共通
 // ========================================
 
-export type MachineType = 'monkey-turn-v' | 'hokuto-tensei2' | 'kabaneri';
+export type MachineType =
+  | 'monkey-turn-v'
+  | 'hokuto-tensei2'
+  | 'kabaneri'
+  | 'monhan-rise';
 
 interface BaseMachine {
   id: string;
@@ -107,10 +113,30 @@ export interface KabaneriMachine extends BaseMachine {
 }
 
 // ========================================
+// スマスロ モンスターハンターライズ
+// ========================================
+
+export interface MonhanRiseMachine extends BaseMachine {
+  machineType: 'monhan-rise';
+  /** 軸1: 'weakRare'(通常時の弱レア役) / 'rizeZone'(ライズゾーン当選) */
+  counters: MonhanRiseCounterState;
+  /**
+   * 軸2〜4 の観測イベント列。順序が意味を持つ(軸3/軸4 は隠れマルコフ)ため、
+   * 'reset' イベントで有利区間ごとに系列を区切る。
+   * 詳細仕様は docs/monhan-rise-spec.md を参照。
+   */
+  events: MonhanRiseEvent[];
+}
+
+// ========================================
 // 判別共用体
 // ========================================
 
-export type Machine = MonkeyTurnMachine | HokutoMachine | KabaneriMachine;
+export type Machine =
+  | MonkeyTurnMachine
+  | HokutoMachine
+  | KabaneriMachine
+  | MonhanRiseMachine;
 
 // 設定確率データ
 export interface SettingProbability {

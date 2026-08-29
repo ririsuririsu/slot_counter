@@ -7,6 +7,9 @@ import type {
   HokutoMachine,
   KabaneriMachine,
   KabaneriChanceType,
+  MonhanRiseMachine,
+  MonhanRiseEvent,
+  MonhanRiseEventInput,
   MachineType,
   HistoryEntry,
   SettingAnalysis,
@@ -19,6 +22,11 @@ import {
   createInitialKabaneriCounters,
   chanceDefinitions,
 } from '../data/kabaneriDefinitions';
+import {
+  createInitialMonhanRiseCounters,
+  WEAK_RARE_KEY,
+  RIZE_ZONE_KEY,
+} from '../data/monhanRiseDefinitions';
 import { calculateSettingProbabilities } from '../utils/binomialDistribution';
 import {
   createInitialDenshoHelperState,
@@ -52,6 +60,19 @@ export function isHokutoMachine(m: Machine): m is HokutoMachine {
 
 export function isKabaneriMachine(m: Machine): m is KabaneriMachine {
   return m.machineType === 'kabaneri';
+}
+
+export function isMonhanRiseMachine(m: Machine): m is MonhanRiseMachine {
+  return m.machineType === 'monhan-rise';
+}
+
+/**
+ * ゲーム数を持つ機種のゲーム数を返す。
+ * モンハンライズは4軸のいずれもゲーム数を使わないため totalGames を持たない。
+ */
+export function getMachineTotalGames(m: Machine | null): number {
+  if (!m) return 0;
+  return isMonkeyTurnMachine(m) || isKabaneriMachine(m) ? m.totalGames : 0;
 }
 
 // ========================================
@@ -122,6 +143,22 @@ interface MachineStore {
   // Kabaneri: Reset
   resetKabaneriMachine: () => void;
 
+  // MonhanRise: 軸1 カウンター
+  incrementMonhanRiseWeakRare: () => void;
+  decrementMonhanRiseWeakRare: () => void;
+  incrementMonhanRiseRize: () => void;
+  decrementMonhanRiseRize: () => void;
+
+  // MonhanRise: 軸2〜4 イベント
+  addMonhanRiseEvent: (input: MonhanRiseEventInput) => void;
+  insertMonhanRiseEventAt: (index: number, input: MonhanRiseEventInput) => void;
+  updateMonhanRiseEventAt: (index: number, input: MonhanRiseEventInput) => void;
+  undoLastMonhanRiseEvent: () => void;
+  deleteMonhanRiseEventAt: (index: number) => void;
+
+  // MonhanRise: Reset
+  resetMonhanRiseMachine: () => void;
+
   // Supabase同期
   syncToSupabase: () => Promise<void>;
   loadFromSupabase: () => Promise<boolean>;
@@ -178,6 +215,26 @@ function createNewKabaneriMachine(name: string): KabaneriMachine {
     totalGames: 0,
   };
 }
+
+function createNewMonhanRiseMachine(name: string): MonhanRiseMachine {
+  return {
+    id: uuidv4(),
+    machineType: 'monhan-rise',
+    name,
+    number: '',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    counters: createInitialMonhanRiseCounters(),
+    events: [],
+  };
+}
+
+const MACHINE_FACTORIES: Record<MachineType, (name: string) => Machine> = {
+  'monkey-turn-v': createNewMonkeyTurnMachine,
+  'hokuto-tensei2': createNewHokutoMachine,
+  kabaneri: createNewKabaneriMachine,
+  'monhan-rise': createNewMonhanRiseMachine,
+};
 
 // ========================================
 // ヘルパー: 現在の台を更新
@@ -242,12 +299,8 @@ export const useMachineStore = create<MachineStore>()(
 
       addMachine: (type: MachineType = 'monkey-turn-v') => {
         const { machines } = get();
-        const newMachine =
-          type === 'hokuto-tensei2'
-            ? createNewHokutoMachine(`台${machines.length + 1}`)
-            : type === 'kabaneri'
-              ? createNewKabaneriMachine(`台${machines.length + 1}`)
-              : createNewMonkeyTurnMachine(`台${machines.length + 1}`);
+        const name = `台${machines.length + 1}`;
+        const newMachine = MACHINE_FACTORIES[type](name);
         set({
           machines: [...machines, newMachine],
           currentMachineId: newMachine.id,
@@ -707,6 +760,191 @@ export const useMachineStore = create<MachineStore>()(
         }).catch(() => {});
       },
 
+      // --- MonhanRise: 軸1 カウンター ---
+      // weakRare が分母、rizeZone が分子。ただし2つのボタンは完全に独立しており、
+      // 当選時は「弱レア役」と「ライズゾーン」の両方を押す運用。
+
+      incrementMonhanRiseWeakRare: () => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isMonhanRiseMachine(m)) return m;
+            return {
+              ...m,
+              counters: {
+                ...m.counters,
+                [WEAK_RARE_KEY]: (m.counters[WEAK_RARE_KEY] || 0) + 1,
+              },
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      decrementMonhanRiseWeakRare: () => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isMonhanRiseMachine(m)) return m;
+            const current = m.counters[WEAK_RARE_KEY] || 0;
+            if (current <= 0) return m;
+            return {
+              ...m,
+              counters: { ...m.counters, [WEAK_RARE_KEY]: current - 1 },
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      incrementMonhanRiseRize: () => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isMonhanRiseMachine(m)) return m;
+            return {
+              ...m,
+              counters: {
+                ...m.counters,
+                [RIZE_ZONE_KEY]: (m.counters[RIZE_ZONE_KEY] || 0) + 1,
+              },
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      decrementMonhanRiseRize: () => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isMonhanRiseMachine(m)) return m;
+            const rize = m.counters[RIZE_ZONE_KEY] || 0;
+            if (rize <= 0) return m;
+            return {
+              ...m,
+              counters: { ...m.counters, [RIZE_ZONE_KEY]: rize - 1 },
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      // --- MonhanRise: 軸2〜4 イベント ---
+      // 順序が推定に影響する(軸3/軸4 は隠れマルコフ)ため、末尾追加と添字削除のみを許す。
+
+      addMonhanRiseEvent: (input: MonhanRiseEventInput) => {
+        const event = {
+          ...input,
+          id: uuidv4(),
+          timestamp: Date.now(),
+        } as MonhanRiseEvent;
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isMonhanRiseMachine(m)) return m;
+            return {
+              ...m,
+              events: [...m.events, event],
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      // グリッドの空きセルをタップして途中に差し込む
+      insertMonhanRiseEventAt: (index: number, input: MonhanRiseEventInput) => {
+        const event = {
+          ...input,
+          id: uuidv4(),
+          timestamp: Date.now(),
+        } as MonhanRiseEvent;
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isMonhanRiseMachine(m)) return m;
+            const at = Math.max(0, Math.min(index, m.events.length));
+            return {
+              ...m,
+              events: [
+                ...m.events.slice(0, at),
+                event,
+                ...m.events.slice(at),
+              ],
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      // グリッドの入力済みセルをタップして値を訂正する（id と時刻は元のまま）
+      updateMonhanRiseEventAt: (index: number, input: MonhanRiseEventInput) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isMonhanRiseMachine(m)) return m;
+            const current = m.events[index];
+            if (!current) return m;
+            const next = {
+              ...input,
+              id: current.id,
+              timestamp: current.timestamp,
+            } as MonhanRiseEvent;
+            return {
+              ...m,
+              events: m.events.map((e, i) => (i === index ? next : e)),
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      undoLastMonhanRiseEvent: () => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isMonhanRiseMachine(m) || m.events.length === 0) return m;
+            return {
+              ...m,
+              events: m.events.slice(0, -1),
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      deleteMonhanRiseEventAt: (index: number) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isMonhanRiseMachine(m)) return m;
+            if (index < 0 || index >= m.events.length) return m;
+            return {
+              ...m,
+              events: m.events.filter((_, i) => i !== index),
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      // --- MonhanRise: Reset ---
+
+      resetMonhanRiseMachine: () => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isMonhanRiseMachine(m)) return m;
+            return {
+              ...m,
+              counters: createInitialMonhanRiseCounters(),
+              events: [],
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
       // --- Supabase同期 ---
 
       syncToSupabase: async () => {
@@ -726,7 +964,7 @@ export const useMachineStore = create<MachineStore>()(
     }),
     {
       name: 'slot-counter-storage',
-      version: 5,
+      version: 9,
       partialize: (state) => {
         // currentMachineId を永続化しない → 常にTOP画面から開始
         const { currentMachineId: _, ...rest } = state;
@@ -770,6 +1008,67 @@ export const useMachineStore = create<MachineStore>()(
               return { ...m, denshoCurrentGame: 0 };
             }
             return m;
+          });
+        }
+        if (version < 6 && state.machines) {
+          // モンハンライズ追加。既存台は影響を受けないが、
+          // 万一 events / counters を欠く monhan-rise 台があれば補完する。
+          state.machines = state.machines.map((m: Record<string, unknown>) => {
+            if (m.machineType !== 'monhan-rise') return m;
+            return {
+              ...m,
+              counters: m.counters ?? createInitialMonhanRiseCounters(),
+              events: m.events ?? [],
+            };
+          });
+        }
+        if (version < 8 && state.machines) {
+          // at-hit の questCount を廃止し、当選契機(route)へ移行。
+          // クエスト回数は quest イベントの件数から導出するようになったため、
+          // 旧データは「クエストで当選」とみなして route を補う。
+          //
+          // v7 で同じ変換を入れたが、開発中に route 補完の無い v7 でリハイドレートが
+          // 走った端末は version=7 のまま questCount が残り、二度と変換されなくなった。
+          // v8 で必ず1回は流れるようにやり直す。冪等なので重複実行しても害はない。
+          state.machines = state.machines.map((m: Record<string, unknown>) => {
+            if (m.machineType !== 'monhan-rise' || !Array.isArray(m.events)) {
+              return m;
+            }
+            const events = (m.events as Record<string, unknown>[]).map((e) => {
+              if (e.type !== 'at-hit') return e;
+              if (e.route === 'quest' || e.route === 'cz' || e.route === 'direct') {
+                return e;
+              }
+              // questCount は捨て、必要なフィールドだけを詰め直す
+              return {
+                type: e.type,
+                id: e.id,
+                timestamp: e.timestamp,
+                route: 'quest',
+              };
+            });
+            return { ...m, events };
+          });
+        }
+        if (version < 9 && state.machines) {
+          // リセットを「朝一 / 有利区間切断」の2種類から、
+          // ATサイクルごとの二値（リセット回 / 通常回）へ変更。
+          // 旧 'reset' イベントは、その行の開始種別を示す 'cycle-start' に読み替える。
+          state.machines = state.machines.map((m: Record<string, unknown>) => {
+            if (m.machineType !== 'monhan-rise' || !Array.isArray(m.events)) {
+              return m;
+            }
+            const events = (m.events as Record<string, unknown>[]).map((e) =>
+              e.type === 'reset'
+                ? {
+                    type: 'cycle-start',
+                    id: e.id,
+                    timestamp: e.timestamp,
+                    reset: e.kind === 'morning',
+                  }
+                : e
+            );
+            return { ...m, events };
           });
         }
         return state;

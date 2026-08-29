@@ -1,0 +1,67 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--spacing-xl);
+}
+
+.sectionLabel {
+  margin: var(--spacing-md) 0 var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.settingsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+
+.settingItem {
+  display: grid;
+  grid-template-columns: 48px 56px 1fr;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.settingLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.settingValue {
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--color-text-secondary);
+}
+
+.highProbability {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.bar {
+  display: block;
+  height: 6px;
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width var(--transition-normal);
+}
+
+.note {
+  margin: var(--spacing-md) 0 0;
+  font-size: var(--font-size-xs);
+  line-height: 1.6;
+  color: var(--color-text-tertiary);
+}

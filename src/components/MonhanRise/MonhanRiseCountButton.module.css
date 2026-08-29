@@ -1,0 +1,196 @@
+/* ============ カウンター用ボタン ============ */
+
+.btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  /* リングと「+1」をボタンの外に描くのでクリップしない */
+  overflow: visible;
+}
+
+.large {
+  min-height: 88px;
+}
+
+.small {
+  flex: 1 1 17%;
+  min-width: 60px;
+  min-height: 64px;
+  border-radius: var(--radius-md);
+}
+
+.filled {
+  background: var(--accent);
+  border-color: transparent;
+  color: #1c1c1e;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.count {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.large .count {
+  font-size: var(--font-size-title);
+}
+
+.small .count {
+  font-size: var(--font-size-xl);
+}
+
+.label {
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.large .label {
+  font-size: var(--font-size-sm);
+}
+
+.small .label {
+  font-size: var(--font-size-xs);
+}
+
+/* ============ 押下フィードバック ============ */
+/* 指でボタン面が隠れるため、外周リングと上に抜ける「+1」で反応を見せる */
+
+.ring {
+  position: absolute;
+  inset: -8px;
+  border: 3px solid var(--accent);
+  border-radius: calc(var(--radius-lg) + 8px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.small .ring {
+  inset: -6px;
+  border-width: 2px;
+  border-radius: calc(var(--radius-md) + 6px);
+}
+
+/*
+ * 指はボタン面の上に乗るため、「+1」は最初からボタンの外（上端より上）に置く。
+ * ボタンに重なっている間に光って消えると、押した指で隠れて見えない。
+ */
+.float {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  color: var(--accent);
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-shadow:
+    0 0 10px rgba(0, 0, 0, 0.9),
+    0 2px 6px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, 0);
+}
+
+.pressed .ring {
+  animation: ringPulse 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pressed .float {
+  animation: floatUp 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pressed .body {
+  animation: pop 200ms ease;
+}
+
+.pressed {
+  animation: glow 460ms ease-out;
+}
+
+@keyframes ringPulse {
+  0% {
+    opacity: 0.95;
+    transform: scale(0.94);
+  }
+  60% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+}
+
+/*
+ * ボタンから完全に離れた位置で最も明るくなるようにする。
+ * 立ち上がり(0→15%)で不透明にし、65%まで不透明のまま上昇、そこから消える。
+ */
+@keyframes floatUp {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 12px) scale(0.7);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1.15);
+  }
+  65% {
+    opacity: 1;
+    transform: translate(-50%, -16px) scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -32px) scale(1);
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.14);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  30% {
+    box-shadow: 0 0 24px 2px var(--accent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pressed,
+  .pressed .ring,
+  .pressed .float,
+  .pressed .body {
+    animation-duration: 1ms;
+  }
+}
