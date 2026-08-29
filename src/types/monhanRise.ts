@@ -34,9 +34,6 @@ export type RequiredPoint = 100 | 200 | 300 | 400 | 500 | 600;
 /** クエストテーブル（観測不可・推定対象） */
 export type QuestTable = 'A' | 'B' | 'heavenPrep' | 'heaven';
 
-/** AT当選時のクエスト回数（1〜7、7はAT間クエスト天井） */
-export type QuestHitCount = 1 | 2 | 3 | 4 | 5 | 6 | 7;
-
 /**
  * AT当選の契機。
  * 'quest'  … そのサイクル最後のクエストで当選（クエストテーブルが当たった）

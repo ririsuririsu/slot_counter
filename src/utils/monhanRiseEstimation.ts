@@ -60,7 +60,7 @@ const MIN_LIKELIHOOD = 1e-12;
 // ========================================
 
 /** 全設定均等（データなし時の事前分布） */
-export function createEqualAnalysis(): MonhanRiseSettingAnalysis {
+function createEqualAnalysis(): MonhanRiseSettingAnalysis {
   const equal = 100 / SETTING_COUNT;
   return {
     setting1: equal,
@@ -141,20 +141,20 @@ function stationaryDistribution<S extends string>(
  *   その行の cycle-start イベント ?? (1行目かどうか)
  * で決まる。既定では1回目だけがリセット回。
  */
-export interface MonhanRiseSegment {
+interface MonhanRiseSegment {
   isReset: boolean;
   events: MonhanRiseEvent[];
 }
 
 /** 行がリセット回かどうか（既定は1行目のみ） */
-export function resolveIsReset(
+function resolveIsReset(
   rowIndex: number,
   override: boolean | null
 ): boolean {
   return override ?? rowIndex === 1;
 }
 
-export function splitSegments(events: MonhanRiseEvent[]): MonhanRiseSegment[] {
+function splitSegments(events: MonhanRiseEvent[]): MonhanRiseSegment[] {
   const segments: MonhanRiseSegment[] = [];
   let rowIndex = 1;
   let override: boolean | null = null;
@@ -205,13 +205,6 @@ function rizeLogLikelihoods(weakRare: number, rizeZone: number): number[] {
  * @param weakRare 通常時の弱レア役 成立数（高確/超高確中も含めて全カウント）
  * @param rizeZone うちライズゾーンに当選した数
  */
-export function calculateRizeAnalysis(
-  weakRare: number,
-  rizeZone: number
-): MonhanRiseSettingAnalysis {
-  return fromLogLikelihoods(rizeLogLikelihoods(weakRare, rizeZone));
-}
-
 // ========================================
 // 4. 軸2: だるま落とし 規定リプレイ回数（多項分布 + 右側打ち切り）
 // ========================================
@@ -248,12 +241,6 @@ function darumaLogLikelihoods(segments: MonhanRiseSegment[]): number[] {
   }
 
   return logLikelihoods;
-}
-
-export function calculateDarumaAnalysis(
-  events: MonhanRiseEvent[]
-): MonhanRiseSettingAnalysis {
-  return fromLogLikelihoods(darumaLogLikelihoods(splitSegments(events)));
 }
 
 // ========================================
@@ -396,12 +383,6 @@ function pointModeLogLikelihoods(segments: MonhanRiseSegment[]): number[] {
   );
 }
 
-export function calculatePointModeAnalysis(
-  events: MonhanRiseEvent[]
-): MonhanRiseSettingAnalysis {
-  return fromLogLikelihoods(pointModeLogLikelihoods(splitSegments(events)));
-}
-
 // ========================================
 // 7. 軸4: クエストテーブル（HMM）
 // ========================================
@@ -519,12 +500,6 @@ function questTableLogLikelihoods(segments: MonhanRiseSegment[]): number[] {
       );
     }, 0)
   );
-}
-
-export function calculateQuestTableAnalysis(
-  events: MonhanRiseEvent[]
-): MonhanRiseSettingAnalysis {
-  return fromLogLikelihoods(questTableLogLikelihoods(splitSegments(events)));
 }
 
 // ========================================
@@ -1082,15 +1057,6 @@ export function getTopSetting(
   if (max - min < 0.01) return null;
 
   return values.find((v) => v.probability === max) ?? null;
-}
-
-/** 確率の分母を計算（1/X.X 表示用） */
-export function calculateDenominator(
-  count: number,
-  total: number
-): number | null {
-  if (count <= 0 || total <= 0) return null;
-  return total / count;
 }
 
 /** 弱レア役からのライズゾーン当選率(%) */

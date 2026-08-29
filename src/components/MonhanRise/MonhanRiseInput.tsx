@@ -25,6 +25,7 @@ import {
   calculateRizeRate,
   combineAnalyses,
   getTopSetting,
+  toSettingWeights,
 } from '../../utils/monhanRiseEstimation';
 import { MonhanRiseQuestGrid } from './MonhanRiseQuestGrid';
 import type { QuestCellPosition } from './MonhanRiseQuestGrid';
@@ -94,6 +95,8 @@ export function MonhanRiseInput({ machine }: MonhanRiseInputProps) {
     () => calculateAllAnalyses(weakRare, rizeZone, machine.events),
     [weakRare, rizeZone, machine.events]
   );
+  // モード遷移側でも同じ設定事後を使う（4軸の計算を二度走らせない）
+  const settingWeights = useMemo(() => toSettingWeights(analyses.combined), [analyses]);
   // クエスト履歴グリッドは軸3(ポイントモード)と軸4(クエストテーブル)の両方を兼ねる
   const questAnalysis = useMemo(
     () => combineAnalyses([analyses.pointMode, analyses.questTable]),
@@ -445,8 +448,7 @@ export function MonhanRiseInput({ machine }: MonhanRiseInputProps) {
 
       <MonhanRiseModePath
         events={machine.events}
-        weakRare={weakRare}
-        rizeZone={rizeZone}
+        settingWeights={settingWeights}
       />
 
       {/* --- 軸2: アイルーだるま落とし --- */}

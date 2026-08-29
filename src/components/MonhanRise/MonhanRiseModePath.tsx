@@ -12,20 +12,21 @@ import {
   QUEST_TABLE_SHORT,
 } from '../../data/monhanRiseDefinitions';
 import {
-  calculateAllAnalyses,
   calculatePointModeTransition,
   calculateCumulativeQuestHit,
   calculateQuestHitExpectancy,
   calculateQuestTableTransition,
-  toSettingWeights,
 } from '../../utils/monhanRiseEstimation';
 import type { ModeTransitionResult } from '../../utils/monhanRiseEstimation';
 import styles from './MonhanRiseModePath.module.css';
 
 interface MonhanRiseModePathProps {
   events: MonhanRiseEvent[];
-  weakRare: number;
-  rizeZone: number;
+  /**
+   * 4軸統合の設定事後（重みベクトル）。
+   * 4軸の計算はHMMを2本回すので、呼び出し側で求めた結果を受け取って二度手間を避ける。
+   */
+  settingWeights: number[];
 }
 
 /** 現在のモードを出す設定（両端だけ出せば幅は掴める） */
@@ -169,14 +170,8 @@ function TransitionBlock<S extends string>({
  */
 export function MonhanRiseModePath({
   events,
-  weakRare,
-  rizeZone,
+  settingWeights,
 }: MonhanRiseModePathProps) {
-  const settingWeights = useMemo(
-    () => toSettingWeights(calculateAllAnalyses(weakRare, rizeZone, events).combined),
-    [events, weakRare, rizeZone]
-  );
-
   const pointResult = useMemo(
     () => calculatePointModeTransition(events, settingWeights, SHOWN_SETTINGS),
     [events, settingWeights]

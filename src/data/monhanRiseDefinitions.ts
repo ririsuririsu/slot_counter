@@ -1,6 +1,5 @@
 import type {
   AtWinRoute,
-  DarumaReachedCount,
   DarumaReplayCount,
   MonhanRiseCounterState,
   PointMode,
@@ -15,35 +14,6 @@ import type {
 // 全テーブルの添字は「設定1〜6」に対応する 0〜5。
 // ========================================
 
-/** 設定の並び（表示・ループ用） */
-export const SETTINGS = [1, 2, 3, 4, 5, 6] as const;
-
-// ========================================
-// 小役確率（全設定共通・設定差なし）
-// ========================================
-
-export interface KoyakuInfo {
-  name: string;
-  denominator: number;
-}
-
-export const koyakuTable: KoyakuInfo[] = [
-  { name: 'ハズレ3枚役', denominator: 6.5 },
-  { name: 'リプレイ', denominator: 7.3 },
-  { name: '3枚ベル', denominator: 8.1 },
-  { name: '弱チャンス目', denominator: 99.9 },
-  { name: 'スイカ', denominator: 105.3 },
-  { name: '弱チェリー', denominator: 114.9 },
-  { name: '強チェリー', denominator: 532.8 },
-  { name: '強チャンス目', denominator: 585.1 },
-];
-
-/** 弱レア役合算（弱チャンス目 + スイカ + 弱チェリー）= 1/35.45 */
-export const WEAK_RARE_RATE = 1 / 99.9 + 1 / 105.3 + 1 / 114.9;
-
-/** 強レア役合算（強チェリー + 強チャンス目）= 1/278.86 */
-export const STRONG_RARE_RATE = 1 / 532.8 + 1 / 585.1;
-
 // ========================================
 // 軸1: ライズゾーン
 // ========================================
@@ -55,7 +25,7 @@ export const RIZE_ZONE_KEY = 'rizeZone';
 /**
  * 通常時の弱レア役1回あたりのライズゾーン当選率（内部状態を周辺化した値）。
  *
- * 実質出現率 = WEAK_RARE_RATE × p + STRONG_RARE_RATE × 1.0 から逆算している。
+ * 実質出現率 = 弱レア役(1/35.45) × p + 強レア役(1/278.86) × 1.0 から逆算している。
  * 内部状態(通常/高確/超高確)は観測できないため本実装では推定しない。
  * 通常時の弱レア役は状態を問わず全てカウントすることが前提。
  */
@@ -63,18 +33,12 @@ export const RIZE_RATE_FROM_WEAK_RARE = [
   0.342, 0.344, 0.359, 0.367, 0.387, 0.393,
 ];
 
-/** ライズゾーン実質出現率の分母（参考表示用） */
-export const RIZE_ZONE_DENOMINATOR = [75.6, 75.2, 72.9, 71.8, 68.9, 68.2];
-
 // ========================================
 // 軸2: アイルーだるま落とし 規定リプレイ回数
 // ========================================
 
 /** 規定リプレイ回数の候補 */
 export const DARUMA_COUNTS: DarumaReplayCount[] = [40, 80, 120, 160, 200];
-
-/** 打ち切り時に選べる「到達済みの区切り」 */
-export const DARUMA_REACHED_OPTIONS: DarumaReachedCount[] = [0, 40, 80, 120, 160];
 
 /**
  * 規定リプレイ回数の振り分け [設定index][DARUMA_COUNTS index]
@@ -257,8 +221,11 @@ export const QUEST_TABLE_COLOR: Record<QuestTable, string> = {
 export const QUEST_CEILING = 7;
 
 /**
- * クエスト回数別のAT当選率。添字0 = 1回目 … 添字6 = 7回目。
+ * クエスト回数別の本前兆率（＝AT当選率）。添字0 = 1回目 … 添字6 = 7回目。
+ *
+ * 規定pt到達時に テーブル×クエスト回数 で本前兆かガセ前兆かを抽選し、本前兆＝AT当選。
  * 7回目が全テーブル100%なのはAT間クエスト回数天井のため。
+ * 天国の2回目以降は「その回数自体が存在しない」ため、到達確率が0になるよう全て1にしてある。
  */
 export const QUEST_HIT_RATE: Record<QuestTable, number[]> = {
   //           1回目   2回目   3回目   4回目   5回目   6回目  7回目
@@ -340,16 +307,6 @@ export const MORNING_HEAVEN_SPLIT: Record<'heavenPrep' | 'heaven', number> = {
   heavenPrep: 0.5,
   heaven: 0.5,
 };
-
-// ========================================
-// 参考: AT確率・出玉率
-// ========================================
-
-export const AT_DENOMINATOR = [309.5, 301.4, 290.8, 256.4, 237.1, 230.8];
-export const PAYOUT_RATE = [97.9, 98.8, 100.3, 105.4, 110.1, 114.3];
-
-/** ゲーム数天井 */
-export const GAME_CEILING = 999;
 
 // ========================================
 // ファクトリ
