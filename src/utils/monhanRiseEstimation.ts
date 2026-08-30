@@ -20,7 +20,6 @@ import type {
   MonhanRiseSettingAnalysis,
   PointMode,
   QuestTable,
-  RequiredPoint,
 } from '../types/monhanRise';
 import {
   DARUMA_COUNTS,
@@ -981,26 +980,41 @@ export function buildQuestGrid(
       cycleStartEventIndex,
       rowStartIndex,
     });
+    // クエストが1回も無い行（CZ・直撃で即当選）は欠落ではないので判定に使わない
+    if (cells.length > 0) {
+      previousRowHadAnyValue = cells.some((c) => c.point !== null);
+    }
     cells = [];
     override = null;
     cycleStartEventIndex = -1;
     rowStartIndex = appendIndex + 1;
   };
 
-  // 直前のクエストの規定pt。undefined は「並びの先頭」（＝繋がりを問わない）
-  let prevPoint: RequiredPoint | null | undefined = undefined;
+  /**
+   * 直前の「クエストがあった行」に値が1つでもあったか。null は比較対象なし。
+   * クエストが0回の行（CZ・直撃で即当選）は履歴の欠落ではないので更新しない。
+   */
+  let previousRowHadAnyValue: boolean | null = null;
 
   events.forEach((event, eventIndex) => {
     if (event.type === 'quest') {
       // 行の1件目に入る前にリセット回かどうかが確定する（cycle-start は行頭に置かれる）
-      if (cells.length === 0 && resolveIsReset(rows.length + 1, override)) {
-        prevPoint = undefined;
+      const isRowHead = cells.length === 0;
+      const isResetRow = isRowHead && resolveIsReset(rows.length + 1, override);
+
+      let precededByGap: boolean;
+      if (isRowHead) {
+        // 行をまたぐ場合は「直前の行がまるごと空だったか」で判断する。
+        // 行の末尾が1つ空いているだけなら、その行には値が残っているので警告しない。
+        // リセット回は並びが仕切り直しになるため常に false。
+        precededByGap = !isResetRow && previousRowHadAnyValue === false;
+      } else {
+        // 行の中は、すぐ手前のセルが空かどうか
+        precededByGap = cells[cells.length - 1].point === null;
       }
-      cells = [
-        ...cells,
-        { point: event.point, eventIndex, precededByGap: prevPoint === null },
-      ];
-      prevPoint = event.point;
+
+      if (isResetRow) previousRowHadAnyValue = null;
+      cells = [...cells, { point: event.point, eventIndex, precededByGap }];
     } else if (event.type === 'at-hit') {
       // 行末への追記は at-hit の直前に挿し込む
       pushRow(toAtWinRoute(event.route), eventIndex, eventIndex);
