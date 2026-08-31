@@ -271,6 +271,8 @@ export function MonhanRiseInput({ machine }: MonhanRiseInputProps) {
    * 既定に戻ったらイベントごと捨てて余計な記録を残さない。
    */
   const toggleReset = (row: MonhanRiseQuestRow) => {
+    // 先出し行はまだイベントが無く、cycle-start を置くと手前の行に効いてしまう
+    if (row.index === pendingRowIndex) return;
     playHaptic();
     const next = !row.isReset;
     const isDefault = next === (row.index === 1);

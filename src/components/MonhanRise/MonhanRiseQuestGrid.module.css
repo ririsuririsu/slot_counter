@@ -176,3 +176,8 @@
   border-color: rgba(120, 120, 128, 0.35);
   border-style: dashed;
 }
+
+.rowHead:disabled {
+  cursor: default;
+  opacity: 0.5;
+}

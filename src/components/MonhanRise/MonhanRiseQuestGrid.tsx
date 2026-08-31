@@ -73,9 +73,15 @@ export function MonhanRiseQuestGrid({
                 }
               >
                 <th className={styles.rowHeadCell} scope="row">
+                  {/*
+                    先出し行はまだイベントを1つも持たないため、
+                    cycle-start の置き場所が無く、切り替えると手前の行に効いてしまう。
+                    最初のセルを入力して行が確定してから切り替えられるようにする。
+                  */}
                   <button
                     type="button"
                     className={`${styles.rowHead} ${row.isReset ? styles.rowHeadReset : ''}`}
+                    disabled={row.index === pendingRowIndex}
                     onClick={() => onToggleReset(row)}
                     aria-pressed={row.isReset}
                     aria-label={`${row.index}回目 ${row.isReset ? 'リセット回' : '通常回'}（切り替え）`}
