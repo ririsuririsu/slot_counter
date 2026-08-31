@@ -210,6 +210,8 @@ function rizeLogLikelihoods(weakRare: number, rizeZone: number): number[] {
 
 function darumaLogLikelihoods(segments: MonhanRiseSegment[]): number[] {
   const logLikelihoods = new Array(SETTING_COUNT).fill(0);
+  // 出典表の丸め誤差を吸収した分布。イベントごとに作り直す必要はない
+  const distributions = DARUMA_REPLAY_DIST.map(normalize);
 
   for (const segment of segments) {
     const darumaEvents = segment.events.filter(
@@ -220,12 +222,16 @@ function darumaLogLikelihoods(segments: MonhanRiseSegment[]): number[] {
       // 朝一は内部リプレイ回数がランダム加算されるため1件目は規定回数がズレている
       if (segment.isReset && index === 0) return;
 
+      // 記録されていない規定回数（壊れたデータ）は丸ごと無視する
+      if (event.type === 'daruma-hit' && DARUMA_COUNTS.indexOf(event.count) < 0) {
+        return;
+      }
+
       for (let s = 0; s < SETTING_COUNT; s++) {
-        const dist = normalize(DARUMA_REPLAY_DIST[s]);
+        const dist = distributions[s];
 
         if (event.type === 'daruma-hit') {
           const i = DARUMA_COUNTS.indexOf(event.count);
-          if (i < 0) return;
           logLikelihoods[s] += Math.log(Math.max(dist[i], MIN_LIKELIHOOD));
         } else {
           // 打ち切り: 到達済みの区切りを超える規定回数だった確率
@@ -279,16 +285,18 @@ function forwardLogLikelihood<S extends string, E>(
         scored[s] = alpha[s] * spec.emission(s, event);
       });
       const total = states.reduce((sum, s) => sum + scored[s], 0);
-      if (total <= 0) {
-        // どの状態からも説明できない観測。尤度を潰さず下限で打ち止める
+      if (total > 0) {
+        logLikelihood += Math.log(total);
+        states.forEach((s) => {
+          scored[s] /= total;
+        });
+        alpha = scored;
+      } else {
+        // どの状態からも説明できない観測（壊れたデータ）。尤度は下限で打ち止め、
+        // 状態分布は据え置く。ここで打ち切らずに遷移は必ず進めること。
+        // 進めないと以降の観測が1つ手前の状態と突き合わされて系列がずれる。
         logLikelihood += Math.log(MIN_LIKELIHOOD);
-        return;
       }
-      logLikelihood += Math.log(total);
-      states.forEach((s) => {
-        scored[s] /= total;
-      });
-      alpha = scored;
     }
 
     // 観測のあと次の状態へ遷移する
@@ -459,10 +467,16 @@ function collectAtObservations(segment: MonhanRiseSegment): AtObservation[] {
     }
   }
 
-  // route:'quest' なのにクエストが1件も無い行は入力ミス。尤度を潰さないよう捨てる
-  return observations.filter(
-    (o) => !(o.route === 'quest' && o.questCount < 1)
-  );
+  return observations;
+}
+
+/**
+ * route:'quest' なのにクエストが1件も無い観測は入力ミス。
+ * 取り除くとATが1回起きた事実（＝テーブルの移行）まで消えて系列がずれるため、
+ * 観測としては残し、出力確率の評価だけ飛ばす。
+ */
+function isInvalidAtObservation(observation: AtObservation): boolean {
+  return observation.route === 'quest' && observation.questCount < 1;
 }
 
 function atObservationLikelihood(
@@ -485,6 +499,7 @@ function questTableSpec(settingIndex: number): HmmSpec<QuestTable, AtObservation
     emission: atObservationLikelihood,
     transition: (table) => QUEST_TABLE_TRANSITION[table][settingIndex],
     // 内部ptのランダム加算はクエスト「回数」には影響しないため朝一も除外しない
+    skipEmission: isInvalidAtObservation,
   };
 }
 
