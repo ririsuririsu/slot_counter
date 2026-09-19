@@ -1,13 +1,13 @@
 .topBar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-md);
+  gap: 6px;
   background-color: var(--color-surface);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-sm) var(--spacing-md);
-  margin-bottom: var(--spacing-md);
+  padding: 4px var(--spacing-sm);
+  margin-bottom: 8px;
   position: sticky;
   top: 0;
   z-index: 30;
@@ -24,24 +24,30 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+.gameInput { flex-direction: row; align-items: center; gap: 4px; min-height: 46px; }
+
 .gameLabel {
-  font-size: var(--font-size-sm);
+  max-width: 22px;
+  font-size: 10px;
+  line-height: 12px;
   color: var(--color-text-secondary);
 }
 
 .gameValue {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-xl);
+  gap: 4px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
 
 .editIcon {
-  font-size: var(--font-size-sm);
+  font-size: 12px;
 }
+
+@media (max-width: 359px) { .topBar { flex-wrap: wrap; } }
 
 .sectionHead {
   justify-content: space-between;

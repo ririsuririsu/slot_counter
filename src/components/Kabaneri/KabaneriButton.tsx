@@ -7,7 +7,11 @@ const ROT_STEP = 675; // 1タップあたりの大外枠回転量(deg)
 
 interface KabaneriButtonProps {
   label: string;
-  count: number;
+  ariaLabel?: string;
+  /** 横並びでは列幅に合わせる。通常の丸ボタンは従来の130px。 */
+  fit?: boolean;
+  selected?: boolean;
+  count: number | string;
   /** 数字の下に出す確率/発光率テキスト */
   sub: string;
   color: string;
@@ -24,6 +28,9 @@ interface KabaneriButtonProps {
 
 export function KabaneriButton({
   label,
+  ariaLabel,
+  fit = false,
+  selected,
   count,
   sub,
   color,
@@ -69,6 +76,7 @@ export function KabaneriButton({
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!e.isPrimary || e.button !== 0) return;
     startRef.current = { x: e.clientX, y: e.clientY };
     armedRef.current = true;
   };
@@ -107,14 +115,17 @@ export function KabaneriButton({
     <button
       ref={wrapRef}
       type="button"
-      className={styles.wrap}
+      className={`${styles.wrap} ${fit ? styles.fit : ''} ${selected ? styles.selected : ''}`}
       style={wrapStyle}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
+      onPointerLeave={handlePointerCancel}
+      onClick={(e) => { if (e.detail === 0) fireCount(); }}
       onAnimationEnd={handleAnimationEnd}
-      aria-label={label}
+      aria-label={ariaLabel ?? label}
+      aria-pressed={selected}
     >
       <div className={styles.ringOuter} ref={ringRef} />
       <div className={styles.ringInner} />

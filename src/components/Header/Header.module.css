@@ -18,6 +18,10 @@
   margin: 0 auto;
 }
 
+.kabaneriHeader { padding-top: 6px; padding-bottom: 6px; }
+.kabaneriHeader .backBtn, .kabaneriHeader .resetButton { min-height: 44px; }
+.kabaneriHeader .subtitle { display: block; }
+
 .backBtn {
   font-size: 24px;
   font-weight: 300;
