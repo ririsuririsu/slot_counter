@@ -7,6 +7,23 @@ const ts = require('typescript');
 const cache = new Map();
 const storage = new Map();
 const remoteCalls = [];
+const cloudRows = new Map();
+let cloudWriteError = null;
+const cloud = {
+  from: (table) => ({
+    upsert: async (row) => {
+      if (cloudWriteError && table === 'machine_counters') return { error: cloudWriteError };
+      const rows = cloudRows.get(table) ?? [];
+      const id = row.id ?? row.machine_id;
+      cloudRows.set(table, [...rows.filter((r) => (r.id ?? r.machine_id) !== id), structuredClone(row)]);
+      return { error: null };
+    },
+    select: () => ({
+      order: async () => ({ data: structuredClone(cloudRows.get(table) ?? []), error: null }),
+      eq: (key, id) => ({ single: async () => ({ data: structuredClone((cloudRows.get(table) ?? []).find((r) => r[key] === id) ?? null), error: null }) }),
+    }),
+  }),
+};
 global.localStorage = {
   getItem: (key) => storage.get(key) ?? null,
   setItem: (key, value) => storage.set(key, value),
@@ -27,6 +44,7 @@ function load(source) {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS },
   }).outputText;
   const localRequire = (specifier) => {
+    if (specifier === './supabase') return { supabase: cloud };
     if (specifier.includes('supabaseSync')) return sync;
     if (specifier === 'uuid') return { v4: require('node:crypto').randomUUID };
     if (specifier.startsWith('.')) {
@@ -44,6 +62,9 @@ const { useMachineStore: store } = load('src/stores/machineStore.ts');
 const bellOnly = { ...off, bell: true };
 const flashOnly = { ...off, mumeiIkoma: true };
 const bothFlashes = { ...off, mumeiIkoma: true, kabane: true };
+const { summarizeKabaneriCz, chancePoints, NORMAL_CONDITIONS, normalizeKabaneriCzEvents } = load('src/utils/kabaneriCz.ts');
+const realSync = load('src/lib/supabaseSync.ts');
+const chance = (role, overrides = {}) => ({ type: 'chance', role, conditions: { ...NORMAL_CONDITIONS }, flash: 'none', flashEligible: false, ...overrides });
 
 function referencePosterior(observations) {
   const logs = Array.from({ length: 6 }, (_, i) => observations.reduce(
@@ -64,6 +85,8 @@ beforeEach(() => {
   storage.clear();
   store.setState(store.getInitialState(), true);
   remoteCalls.length = 0;
+  cloudRows.clear();
+  cloudWriteError = null;
 });
 
 test('未選択の0回は総合に入らず、ベル未計測でも発光率だけを使える', () => {
@@ -172,7 +195,7 @@ test('version 9の旧発光率選択は両軸へ移行し、明示オフも保�
   await store.persist.rehydrate();
   assert.deepEqual(store.getState().kabaneriAnalysisTargets.on, { bell: true, mumeiIkoma: true, kabane: true });
   assert.deepEqual(store.getState().kabaneriAnalysisTargets.off, off);
-  assert.equal(JSON.parse(storage.get('slot-counter-storage')).version, 10);
+  assert.equal(JSON.parse(storage.get('slot-counter-storage')).version, 11);
 });
 
 test('新規記録は旧記録を保持し、画面移動に関係なく旧・新IDをクラウドに送る', async () => {
@@ -193,12 +216,140 @@ test('新規記録は旧記録を保持し、画面移動に関係なく旧・�
   assert.equal(next.name, previous.name);
   assert.equal(next.number, previous.number);
   assert.equal(next.totalGames, 0);
+  assert.deepEqual(next.czEvents, []);
   assert.ok(Object.values(next.counters).every((value) => value === 0));
   assert.deepEqual(store.getState().machines.find((m) => m.id === oldId), previous);
   assert.deepEqual(store.getState().kabaneriAnalysisTargets[next.id], bellOnly);
   assert.deepEqual(remoteCalls.map((call) => call.operation), ['upsertMachine', 'upsertMachine']);
   assert.deepEqual(remoteCalls.map((call) => call.args[0].id), [oldId, next.id]);
   assert.deepEqual(remoteCalls[0].args[0], previous);
+});
+
+test('複合の片側高確を別換算し、対象外役を発光率へ混ぜない', () => {
+  store.getState().addMachine('kabaneri');
+  store.getState().startKabaneriCzTracking(true);
+  store.getState().incrementKabaneriCounter('mumei');
+  store.getState().incrementKabaneriFlash('ikoma');
+  store.getState().recordKabaneriChance(chance('mumeiIkoma', { conditions: { ...NORMAL_CONDITIONS, mumei: 'high' }, flashEligible: true }));
+  store.getState().recordKabaneriChance(chance('mumei', { conditions: { ...NORMAL_CONDITIONS, mumei: 'high' }, flashEligible: true }));
+  store.getState().recordKabaneriChance(chance('kabane', { conditions: { ...NORMAL_CONDITIONS, kabane: 'high' } }));
+  const machine = store.getState().getCurrentMachine();
+  const { current } = summarizeKabaneriCz(machine.czEvents);
+  assert.equal(current.mumei.points, 46);
+  assert.equal(current.ikoma.points, 30);
+  assert.equal(machine.counters.mumei, 1);
+  assert.equal(machine.counters.ikoma, 1);
+  assert.equal(machine.counters.ikomaFlash, 1);
+  assert.equal(machine.counters.kabane, 0);
+});
+
+test('CZを当選契機の直後に挿入し、前兆中の分と別キャラの蓄積を残す', () => {
+  store.getState().addMachine('kabaneri');
+  store.getState().startKabaneriCzTracking(true);
+  store.getState().incrementKabaneriFlash('mumei');
+  const trigger = store.getState().getCurrentMachine().czEvents.at(-1).id;
+  store.getState().incrementKabaneriCounter('mumei');
+  store.getState().incrementKabaneriFlash('ikoma');
+  store.getState().recordKabaneriCz('mumei', trigger, true);
+  const result = summarizeKabaneriCz(store.getState().getCurrentMachine().czEvents);
+  assert.equal(result.history[0].points, 15);
+  assert.equal(result.history[0].doran, true);
+  assert.equal(result.history[0].complete, true);
+  assert.equal(result.current.mumei.points, 1);
+  assert.equal(result.current.ikoma.points, 15);
+  const before = store.getState().getCurrentMachine().czEvents;
+  store.getState().recordKabaneriCz('mumei', trigger, false);
+  assert.equal(store.getState().getCurrentMachine().czEvents, before);
+  store.getState().recordKabaneriCz('ikoma', null, false);
+  assert.equal(summarizeKabaneriCz(store.getState().getCurrentMachine().czEvents).history[1].points, 15);
+});
+
+test('複合の同一契機を両キャラのCZに使っても双方の前兆分が残る', () => {
+  store.getState().addMachine('kabaneri');
+  store.getState().recordKabaneriChance(chance('mumeiIkoma'));
+  const trigger = store.getState().getCurrentMachine().czEvents.at(-1).id;
+  store.getState().incrementKabaneriCounter('mumei');
+  store.getState().incrementKabaneriCounter('ikoma');
+  store.getState().recordKabaneriCz('mumei', trigger, true);
+  store.getState().recordKabaneriCz('ikoma', trigger, false);
+  const result = summarizeKabaneriCz(store.getState().getCurrentMachine().czEvents);
+  assert.deepEqual(result.history.map((r) => r.points), [15, 15]);
+  assert.equal(result.current.mumei.points, 1);
+  assert.equal(result.current.ikoma.points, 1);
+});
+
+test('超高確・オールスター・発光不明は架空ptを加えず不明を保持する', () => {
+  assert.equal(chancePoints(chance('all'), 'mumei'), null);
+  assert.equal(chancePoints(chance('mumei', { conditions: { ...NORMAL_CONDITIONS, mumei: 'super' } }), 'mumei'), null);
+  store.getState().addMachine('kabaneri');
+  store.getState().recordKabaneriChance(chance('mumei', { flash: 'unknown' }));
+  store.getState().recordKabaneriChance(chance('all'));
+  store.getState().incrementKabaneriFlash('mumei');
+  store.getState().recordKabaneriCz('mumei', null, false);
+  const result = summarizeKabaneriCz(store.getState().getCurrentMachine().czEvents);
+  assert.equal(result.history[0].points, 15);
+  assert.equal(result.history[0].unknownCount, 2);
+  assert.equal(result.history[0].complete, false);
+  assert.equal(result.current.ikoma.unknownCount, 1);
+});
+
+test('減算操作・履歴削除がCZ集計を再計算し、旧カウント分は捏造しない', () => {
+  store.getState().addMachine('kabaneri');
+  store.getState().incrementKabaneriFlash('mumei');
+  store.getState().recordKabaneriCz('mumei', null, false);
+  store.getState().decrementKabaneriFlash('mumei');
+  const machine = store.getState().getCurrentMachine();
+  assert.equal(machine.counters.mumei, 0);
+  assert.equal(machine.counters.mumeiFlash, 0);
+  assert.equal(summarizeKabaneriCz(machine.czEvents).history[0].points, 0);
+  store.getState().deleteKabaneriCzEvent(machine.czEvents[0].id);
+  assert.deepEqual(store.getState().getCurrentMachine().czEvents, []);
+  store.setState({ machines: [{ ...machine, czEvents: [], counters: { mumei: 2, mumeiFlash: 1 } }] });
+  store.getState().decrementKabaneriCounter('mumei');
+  store.getState().decrementKabaneriCounter('mumei');
+  assert.equal(store.getState().getCurrentMachine().counters.mumei, 1);
+  assert.deepEqual(store.getState().getCurrentMachine().czEvents, []);
+});
+
+test('version 10の履歴なし台は旧カウントを保ち、追加記録だけ永続化する', async () => {
+  store.getState().addMachine('kabaneri');
+  const old = { ...store.getState().getCurrentMachine(), counters: { mumei: 100, mumeiFlash: 10 } };
+  delete old.czEvents;
+  store.setState(store.getInitialState(), true);
+  storage.set('slot-counter-storage', JSON.stringify({ version: 10, state: { machines: [old] } }));
+  await store.persist.rehydrate();
+  store.getState().selectMachine(old.id);
+  assert.deepEqual(store.getState().getCurrentMachine().czEvents, []);
+  assert.deepEqual(store.getState().getCurrentMachine().counters, old.counters);
+  store.getState().incrementKabaneriFlash('mumei');
+  const saved = storage.get('slot-counter-storage');
+  store.setState(store.getInitialState(), true);
+  storage.set('slot-counter-storage', saved);
+  await store.persist.rehydrate();
+  assert.equal(summarizeKabaneriCz(store.getState().machines[0].czEvents).current.mumei.points, 15);
+});
+
+test('実クラウド同期コードが旧カウントと順序付きCZ履歴を往復できる', async () => {
+  store.getState().addMachine('kabaneri');
+  store.getState().incrementKabaneriFlash('ikoma');
+  store.getState().recordKabaneriCz('ikoma', null, false);
+  const machine = structuredClone(store.getState().getCurrentMachine());
+  await realSync.upsertMachine(machine);
+  const restored = (await realSync.loadAllMachines())[0];
+  assert.deepEqual(restored.czEvents, machine.czEvents);
+  assert.deepEqual(restored.counters, machine.counters);
+  assert.deepEqual(summarizeKabaneriCz(restored.czEvents), summarizeKabaneriCz(machine.czEvents));
+});
+
+test('クラウド保存失敗・旧DBスキーマで成功扱いや空履歴復元をしない', async () => {
+  store.getState().addMachine('kabaneri');
+  const machine = store.getState().getCurrentMachine();
+  cloudWriteError = { message: 'missing column', code: 'PGRST204' };
+  await assert.rejects(realSync.syncAllMachines([machine]), (error) => error.code === 'PGRST204');
+  cloudWriteError = null;
+  cloudRows.set('machine_counters', [{ machine_id: machine.id, counters: {} }]);
+  await assert.rejects(realSync.loadAllMachines(), /データベースの更新/);
+  assert.deepEqual(normalizeKabaneriCzEvents(undefined), []);
 });
 
 test('他機種からカバネリの新規記録アクションを呼んでも変更しない', () => {

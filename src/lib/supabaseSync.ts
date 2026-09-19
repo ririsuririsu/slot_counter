@@ -11,6 +11,7 @@ import type {
 } from '../types';
 import { createInitialDenshoHelperState } from '../utils/denshoEstimation';
 import { createInitialKabaneriCounters } from '../data/kabaneriDefinitions';
+import { normalizeKabaneriCzEvents } from '../utils/kabaneriCz';
 import { createInitialMonhanRiseCounters } from '../data/monhanRiseDefinitions';
 
 // ========================================
@@ -86,12 +87,14 @@ async function upsertMonkeyTurnState(machine: MonkeyTurnMachine) {
 
 async function upsertKabaneriState(machine: KabaneriMachine) {
   if (!supabase) return;
-  await supabase.from('machine_counters').upsert({
+  const { error } = await supabase.from('machine_counters').upsert({
     machine_id: machine.id,
     total_games: machine.totalGames,
     counters: machine.counters,
+    kabaneri_events: machine.czEvents ?? [],
     updated_at: new Date(machine.updatedAt).toISOString(),
   });
+  if (error) throw error;
 }
 
 // ========================================
@@ -264,11 +267,16 @@ async function loadMonkeyTurnMachine(row: any): Promise<MonkeyTurnMachine | null
 async function loadKabaneriMachine(row: any): Promise<KabaneriMachine | null> {
   if (!supabase) return null;
 
-  const { data: counterRow } = await supabase
+  const { data: counterRow, error } = await supabase
     .from('machine_counters')
     .select('*')
     .eq('machine_id', row.id)
     .single();
+
+  if (error && error.code !== 'PGRST116') throw error;
+  if (counterRow && !Object.hasOwn(counterRow, 'kabaneri_events')) {
+    throw new Error('CZ履歴のクラウド保存にはデータベースの更新が必要です。');
+  }
 
   return {
     id: row.id,
@@ -278,6 +286,7 @@ async function loadKabaneriMachine(row: any): Promise<KabaneriMachine | null> {
     createdAt: new Date(row.created_at).getTime(),
     updatedAt: new Date(row.updated_at).getTime(),
     counters: counterRow?.counters || createInitialKabaneriCounters(),
+    czEvents: normalizeKabaneriCzEvents(counterRow?.kabaneri_events),
     totalGames: counterRow?.total_games || 0,
   };
 }

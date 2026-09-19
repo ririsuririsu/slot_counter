@@ -4,6 +4,7 @@ import { GameInputModal } from '../GameInput/GameInputModal';
 import { KabaneriButton } from './KabaneriButton';
 import { KabaneriToolbar, type CountMode } from './KabaneriToolbar';
 import { KabaneriSettingAnalysis } from './KabaneriSettingAnalysis';
+import { KabaneriCzTracker } from './KabaneriCzTracker';
 import {
   chanceDefinitions,
   GEDAN_BELL_KEY,
@@ -65,8 +66,10 @@ export function KabaneriMain() {
         />
       </div>
 
+      <KabaneriCzTracker key={machine.id} machine={machine} haptic={haptic} mode={mode} />
+
       <div className={`section-header ${styles.sectionHead}`}>
-        <span>チャンス目</span>
+        <span>通常単独チャンス目</span>
         <span className={styles.flashSummary}>
           {kabaneriFlashAxes.map((axis) => {
             const { flashTotal, chanceTotal } = getKabaneriFlashObservation(counters, axis.id);

@@ -8,6 +8,9 @@ import type {
   KabaneriMachine,
   KabaneriChanceType,
   KabaneriAnalysisTargets,
+  KabaneriChanceInput,
+  KabaneriCzCharacter,
+  KabaneriCzEvent,
   MonhanRiseMachine,
   MonhanRiseEvent,
   MonhanRiseEventInput,
@@ -19,6 +22,7 @@ import type {
   DenshoEvent,
 } from '../types';
 import { createInitialCounters, fiveCardIds } from '../data/koyakuDefinitions';
+import { applyChanceCounterDelta, czTriggerCandidates, flashCounterDelta, normalizeKabaneriCzEvents, NORMAL_CONDITIONS } from '../utils/kabaneriCz';
 import {
   createInitialKabaneriCounters,
   chanceDefinitions,
@@ -144,6 +148,10 @@ interface MachineStore {
   decrementKabaneriCounter: (counterId: string) => void;
   incrementKabaneriFlash: (chanceId: KabaneriChanceType) => void;
   decrementKabaneriFlash: (chanceId: KabaneriChanceType) => void;
+  recordKabaneriChance: (input: KabaneriChanceInput) => void;
+  recordKabaneriCz: (character: KabaneriCzCharacter, triggerId: string | null, doran: boolean) => void;
+  startKabaneriCzTracking: (fromZero: boolean) => void;
+  deleteKabaneriCzEvent: (id: string) => void;
 
   // Kabaneri: Reset
   resetKabaneriMachine: () => void;
@@ -217,6 +225,7 @@ function createNewKabaneriMachine(name: string): KabaneriMachine {
     createdAt: Date.now(),
     updatedAt: Date.now(),
     counters: createInitialKabaneriCounters(),
+    czEvents: [],
     totalGames: 0,
   };
 }
@@ -678,6 +687,11 @@ export const useMachineStore = create<MachineStore>()(
       // --- Kabaneri: Counter Actions ---
 
       incrementKabaneriCounter: (counterId: string) => {
+        const chance = chanceDefinitions.find((d) => d.countKey === counterId);
+        if (chance) {
+          get().recordKabaneriChance({ type: 'chance', role: chance.id, conditions: { ...NORMAL_CONDITIONS }, flash: 'none', flashEligible: true });
+          return;
+        }
         set((state) =>
           updateCurrentMachine(state, (m) => {
             if (!isKabaneriMachine(m)) return m;
@@ -695,6 +709,12 @@ export const useMachineStore = create<MachineStore>()(
       },
 
       decrementKabaneriCounter: (counterId: string) => {
+        const currentMachine = get().getCurrentMachine();
+        if (currentMachine && isKabaneriMachine(currentMachine)) {
+          const event = [...(currentMachine.czEvents ?? [])].reverse().find((e) => e.type === 'chance' &&
+            e.role === counterId && e.flash === 'none' && flashCounterDelta(e)[counterId] === 1);
+          if (event) { get().deleteKabaneriCzEvent(event.id); return; }
+        }
         set((state) =>
           updateCurrentMachine(state, (m) => {
             if (!isKabaneriMachine(m)) return m;
@@ -719,28 +739,18 @@ export const useMachineStore = create<MachineStore>()(
 
       // 発光カウント: 発光したチャンス目は成立も同時に+1する
       incrementKabaneriFlash: (chanceId: KabaneriChanceType) => {
-        const def = chanceDefinitions.find((d) => d.id === chanceId);
-        if (!def) return;
-        set((state) =>
-          updateCurrentMachine(state, (m) => {
-            if (!isKabaneriMachine(m)) return m;
-            return {
-              ...m,
-              counters: {
-                ...m.counters,
-                [def.countKey]: (m.counters[def.countKey] || 0) + 1,
-                [def.flashKey]: (m.counters[def.flashKey] || 0) + 1,
-              },
-              updatedAt: Date.now(),
-            };
-          })
-        );
-        syncCurrentMachine(get);
+        get().recordKabaneriChance({ type: 'chance', role: chanceId, conditions: { ...NORMAL_CONDITIONS }, flash: 'yes', flashEligible: true });
       },
 
       decrementKabaneriFlash: (chanceId: KabaneriChanceType) => {
         const def = chanceDefinitions.find((d) => d.id === chanceId);
         if (!def) return;
+        const currentMachine = get().getCurrentMachine();
+        if (currentMachine && isKabaneriMachine(currentMachine)) {
+          const event = [...(currentMachine.czEvents ?? [])].reverse().find((e) => e.type === 'chance' &&
+            e.role === chanceId && e.flash === 'yes' && flashCounterDelta(e)[def.flashKey] === 1);
+          if (event) { get().deleteKabaneriCzEvent(event.id); return; }
+        }
         set((state) =>
           updateCurrentMachine(state, (m) => {
             if (!isKabaneriMachine(m)) return m;
@@ -757,6 +767,55 @@ export const useMachineStore = create<MachineStore>()(
             };
           })
         );
+        syncCurrentMachine(get);
+      },
+
+      recordKabaneriChance: (input) => {
+        const machine = get().getCurrentMachine();
+        if (!machine || !isKabaneriMachine(machine)) return;
+        const event: KabaneriCzEvent = { ...input, id: uuidv4(), timestamp: Date.now() };
+        if (!normalizeKabaneriCzEvents([event]).length) return;
+        set((state) => updateCurrentMachine(state, (m) => !isKabaneriMachine(m) ? m : ({
+          ...m, counters: applyChanceCounterDelta(m.counters, input, 1),
+          czEvents: [...(m.czEvents ?? []), event], updatedAt: event.timestamp,
+        })));
+        syncCurrentMachine(get);
+      },
+
+      recordKabaneriCz: (character, triggerId, doran) => {
+        const machine = get().getCurrentMachine();
+        if (!machine || !isKabaneriMachine(machine) || !['mumei', 'ikoma'].includes(character)) return;
+        const events = machine.czEvents ?? [];
+        if (triggerId !== null && !czTriggerCandidates(events, character).some((e) => e.id === triggerId)) return;
+        const index = triggerId === null ? events.length : events.findIndex((e) => e.id === triggerId) + 1;
+        const event: KabaneriCzEvent = { type: 'cz', character, doran, id: uuidv4(), timestamp: Date.now() };
+        const next = [...events];
+        next.splice(index, 0, event);
+        set((state) => updateCurrentMachine(state, (m) => !isKabaneriMachine(m) ? m : ({
+          ...m, czEvents: next, updatedAt: event.timestamp,
+        })));
+        syncCurrentMachine(get);
+      },
+
+      startKabaneriCzTracking: (fromZero) => {
+        const machine = get().getCurrentMachine();
+        if (!machine || !isKabaneriMachine(machine)) return;
+        const event: KabaneriCzEvent = { type: 'start', initialPoints: { mumei: fromZero ? 0 : null, ikoma: fromZero ? 0 : null }, id: uuidv4(), timestamp: Date.now() };
+        set((state) => updateCurrentMachine(state, (m) => !isKabaneriMachine(m) ? m : ({
+          ...m, czEvents: [...(m.czEvents ?? []), event], updatedAt: event.timestamp,
+        })));
+        syncCurrentMachine(get);
+      },
+
+      deleteKabaneriCzEvent: (id) => {
+        const machine = get().getCurrentMachine();
+        if (!machine || !isKabaneriMachine(machine)) return;
+        const event = (machine.czEvents ?? []).find((e) => e.id === id);
+        if (!event) return;
+        set((state) => updateCurrentMachine(state, (m) => !isKabaneriMachine(m) ? m : ({
+          ...m, counters: event.type === 'chance' ? applyChanceCounterDelta(m.counters, event, -1) : m.counters,
+          czEvents: (m.czEvents ?? []).filter((e) => e.id !== id), updatedAt: Date.now(),
+        })));
         syncCurrentMachine(get);
       },
 
@@ -984,7 +1043,7 @@ export const useMachineStore = create<MachineStore>()(
     }),
     {
       name: 'slot-counter-storage',
-      version: 10,
+      version: 11,
       partialize: (state) => {
         // currentMachineId を永続化しない → 常にTOP画面から開始
         return { ...state, currentMachineId: undefined };
@@ -1097,6 +1156,11 @@ export const useMachineStore = create<MachineStore>()(
               [id, normalizeKabaneriAnalysisTargets(value)]
             )
           );
+        }
+        if (version < 11 && state.machines) {
+          state.machines = state.machines.map((m: Record<string, unknown>) => m.machineType !== 'kabaneri' ? m : ({
+            ...m, czEvents: normalizeKabaneriCzEvents(m.czEvents),
+          }));
         }
         return state;
       },
