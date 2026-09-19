@@ -21,6 +21,35 @@ export interface KabaneriAnalysisTargets {
 
 export type KabaneriFlashAxis = 'mumeiIkoma' | 'kabane';
 
+export type KabaneriCzCharacter = 'mumei' | 'ikoma';
+export type KabaneriChanceRole = KabaneriChanceType | 'mumeiIkoma' | 'mumeiKabane' | 'ikomaKabane' | 'all';
+export type KabaneriChanceCondition = 'normal' | 'high' | 'super';
+
+export interface KabaneriChanceInput {
+  type: 'chance';
+  role: KabaneriChanceRole;
+  conditions: Record<KabaneriChanceType, KabaneriChanceCondition>;
+  flash: 'none' | 'yes' | 'unknown';
+  /** 発光率カウント対象の非高確・非発光中単独役だけtrue。 */
+  flashEligible: boolean;
+}
+
+export type KabaneriCzEventInput = KabaneriChanceInput | {
+  type: 'cz';
+  character: KabaneriCzCharacter;
+  doran: boolean;
+} | {
+  type: 'start';
+  /** nullは開始前の蓄積不明、0は区間リセット等で0から計測。 */
+  initialPoints: Record<KabaneriCzCharacter, number | null>;
+};
+
+/** 配列順が遊技順。CZは指定した当選契機の直後に挿入する。 */
+export type KabaneriCzEvent = KabaneriCzEventInput & {
+  id: string;
+  timestamp: number;
+};
+
 // 設定判別結果（設定1〜6）
 export interface KabaneriSettingAnalysis {
   setting1: number;

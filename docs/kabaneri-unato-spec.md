@@ -88,6 +88,8 @@
 
 ## 出典
 
+複合・高確の記録と無名／生駒CZの推定ポイントについては、[CZ記録・ポイント仕様](kabaneri-cz-points.md)を参照。発光率の推測対象とは別に集計する。
+
 - [ちょんぼりすた パチスロ解析](https://chonborista.com/slot/sammy-slot/248689/) — チャンス目出現率・下段ベル設定差
 - [なな徹 設定判別まとめ](https://nana-press.com/kaiseki/machine/1097/35404/) — 下段ベル設定差
 - [P-town 点灯率実戦値](https://p-town.dmm.com/specials/4895) — 発光率実戦値（設定1: 12.1%, 設定6: 21.3%）・カウント条件

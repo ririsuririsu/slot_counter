@@ -1,6 +1,6 @@
 import type { HokutoSession, HokutoLog } from './hokuto';
 import type { DenshoHelperState } from './densho';
-import type { KabaneriCounterState } from './kabaneri';
+import type { KabaneriCounterState, KabaneriCzEvent } from './kabaneri';
 import type { MonhanRiseCounterState, MonhanRiseEvent } from './monhanRise';
 
 // Re-export all hokuto types
@@ -110,6 +110,7 @@ export interface KabaneriMachine extends BaseMachine {
   machineType: 'kabaneri';
   counters: KabaneriCounterState;
   totalGames: number;
+  czEvents: KabaneriCzEvent[];
 }
 
 // ========================================
