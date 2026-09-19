@@ -12,6 +12,15 @@ export interface KabaneriCounterState {
   [counterId: string]: number;
 }
 
+/** 計測済みとして推測に採用する項目。カウント値とは独立に選択する。 */
+export interface KabaneriAnalysisTargets {
+  bell: boolean;
+  mumeiIkoma: boolean;
+  kabane: boolean;
+}
+
+export type KabaneriFlashAxis = 'mumeiIkoma' | 'kabane';
+
 // 設定判別結果（設定1〜6）
 export interface KabaneriSettingAnalysis {
   setting1: number;

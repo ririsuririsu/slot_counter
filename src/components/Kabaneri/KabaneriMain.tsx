@@ -9,7 +9,9 @@ import {
   GEDAN_BELL_KEY,
   BELL_COLOR,
   BELL_COLOR_SOFT,
+  kabaneriFlashAxes,
 } from '../../data/kabaneriDefinitions';
+import { getKabaneriFlashObservation } from '../../utils/kabaneriEstimation';
 import styles from './KabaneriMain.module.css';
 
 export function KabaneriMain() {
@@ -36,16 +38,6 @@ export function KabaneriMain() {
     base > 0 ? `${((flash / base) * 100).toFixed(1)}%` : '—';
 
   const handleRotate = () => setOrient((o) => (o + 90) % 360);
-
-  // チャンス目の合算発光率（全チャンス目の発光合算 / 成立合算）
-  const totalSeiritsu = chanceDefinitions.reduce(
-    (sum, d) => sum + (counters[d.countKey] ?? 0),
-    0
-  );
-  const totalHakkou = chanceDefinitions.reduce(
-    (sum, d) => sum + (counters[d.flashKey] ?? 0),
-    0
-  );
 
   return (
     <>
@@ -75,8 +67,11 @@ export function KabaneriMain() {
 
       <div className={`section-header ${styles.sectionHead}`}>
         <span>チャンス目</span>
-        <span className={styles.totalProb}>
-          発光率 {fmtRate(totalHakkou, totalSeiritsu)}
+        <span className={styles.flashSummary}>
+          {kabaneriFlashAxes.map((axis) => {
+            const { flashTotal, chanceTotal } = getKabaneriFlashObservation(counters, axis.id);
+            return <span key={axis.id}>{axis.label} {fmtRate(flashTotal, chanceTotal)}</span>;
+          })}
         </span>
       </div>
       <div className={styles.chanceGrid}>

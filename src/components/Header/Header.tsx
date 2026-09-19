@@ -48,9 +48,12 @@ export function Header({ onAddLog, onOpenShutter, onOpenTenha }: HeaderProps = {
   const timestamp = currentMachine
     ? new Date(currentMachine.createdAt).toLocaleDateString('ja-JP', { year: 'numeric', month: 'short', day: 'numeric' })
     : '';
+  const keepsPreviousRecord = currentMachine ? isKabaneriMachine(currentMachine) : false;
 
   const resetMessage =
-    currentMachine &&
+    keepsPreviousRecord
+      ? '現在の記録を残し、同じ台の新しい記録を開始します。これまでの記録はホームから確認でき、クラウド接続時は両方保存します。'
+      : currentMachine &&
     (isMonkeyTurnMachine(currentMachine) ||
       isKabaneriMachine(currentMachine) ||
       isMonhanRiseMachine(currentMachine))
@@ -87,7 +90,7 @@ export function Header({ onAddLog, onOpenShutter, onOpenTenha }: HeaderProps = {
             className={styles.resetButton}
             onClick={() => setIsResetDialogOpen(true)}
           >
-            リセット
+            {keepsPreviousRecord ? '新規記録' : 'リセット'}
           </button>
         </div>
       </header>
@@ -96,11 +99,11 @@ export function Header({ onAddLog, onOpenShutter, onOpenTenha }: HeaderProps = {
         isOpen={isResetDialogOpen}
         onClose={() => setIsResetDialogOpen(false)}
         onConfirm={handleReset}
-        title="リセット確認"
+        title={keepsPreviousRecord ? '新しい記録を開始' : 'リセット確認'}
         message={resetMessage}
-        confirmText="リセット"
+        confirmText={keepsPreviousRecord ? '開始' : 'リセット'}
         cancelText="キャンセル"
-        danger
+        danger={!keepsPreviousRecord}
       />
     </>
   );

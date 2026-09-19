@@ -1,4 +1,21 @@
-import type { KabaneriChanceType, KabaneriCounterState } from '../types/kabaneri';
+import type { KabaneriAnalysisTargets, KabaneriChanceType, KabaneriCounterState, KabaneriFlashAxis } from '../types/kabaneri';
+
+// 未計測の0回を観測として使わない。採用はユーザーが明示的に選択する。
+export const DEFAULT_KABANERI_ANALYSIS_TARGETS: KabaneriAnalysisTargets = {
+  bell: false,
+  mumeiIkoma: false,
+  kabane: false,
+};
+
+/** 旧flash選択は両軸へ引き継ぐ。新形式の明示的な選択を優先する。 */
+export function normalizeKabaneriAnalysisTargets(value: unknown): KabaneriAnalysisTargets {
+  const source = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+  return {
+    bell: source.bell === true,
+    mumeiIkoma: typeof source.mumeiIkoma === 'boolean' ? source.mumeiIkoma : source.flash === true,
+    kabane: typeof source.kabane === 'boolean' ? source.kabane : source.flash === true,
+  };
+}
 
 // ========================================
 // スマスロ 甲鉄城のカバネリ 海門決戦 定義データ
@@ -70,17 +87,36 @@ export const bellProbabilities: { setting: number; denominator: number }[] = [
   { setting: 6, denominator: 99.1 },
 ];
 
-// チャンス目成立時のアイコン発光率（実戦値ベースの参考値）
-// 公式解析値は未公表。設定1約10%・設定6約17%という実戦データを基に
-// 中間設定を補間した参考値であり、推測結果は目安として扱うこと。
+// ユーザー採用の暫定モデル。推定低設定の観測値を設定1の基準に仮置きし、
+// 設定2〜5は線形補間する。解析値・実測された設定別確率ではない。
+// 採用仕様: docs/kabaneri-flash-research.md §4
 // カウント条件: カバネリ高確以外かつ非発光中の単独チャンス目のみ。
-export const flashRates: { setting: number; rate: number }[] = [
-  { setting: 1, rate: 0.10 },
-  { setting: 2, rate: 0.11 },
-  { setting: 3, rate: 0.12 },
-  { setting: 4, rate: 0.135 },
-  { setting: 5, rate: 0.15 },
-  { setting: 6, rate: 0.17 },
+export const mumeiIkomaFlashRates = [
+  { setting: 1, rate: 0.08 },
+  { setting: 2, rate: 0.104 },
+  { setting: 3, rate: 0.128 },
+  { setting: 4, rate: 0.152 },
+  { setting: 5, rate: 0.176 },
+  { setting: 6, rate: 0.20 },
+];
+
+export const kabaneFlashRates = [
+  { setting: 1, rate: 0.23 },
+  { setting: 2, rate: 0.2466 },
+  { setting: 3, rate: 0.2632 },
+  { setting: 4, rate: 0.2798 },
+  { setting: 5, rate: 0.2964 },
+  { setting: 6, rate: 0.313 },
+];
+
+export const kabaneriFlashAxes: {
+  id: KabaneriFlashAxis;
+  label: string;
+  chanceIds: KabaneriChanceType[];
+  rates: { setting: number; rate: number }[];
+}[] = [
+  { id: 'mumeiIkoma', label: '無名＋生駒', chanceIds: ['mumei', 'ikoma'], rates: mumeiIkomaFlashRates },
+  { id: 'kabane', label: 'カバネ', chanceIds: ['kabane'], rates: kabaneFlashRates },
 ];
 
 // 有効な設定番号リスト

@@ -1,125 +1,114 @@
-import type { KabaneriSettingAnalysis } from '../types/kabaneri';
+import type {
+  KabaneriAnalysisTargets,
+  KabaneriCounterState,
+  KabaneriFlashAxis,
+  KabaneriSettingAnalysis,
+} from '../types/kabaneri';
 import { logBinomialPMF } from './binomialDistribution';
-import { bellProbabilities, flashRates } from '../data/kabaneriDefinitions';
+import { bellProbabilities, chanceDefinitions, kabaneriFlashAxes, GEDAN_BELL_KEY } from '../data/kabaneriDefinitions';
 
-// ========================================
-// カバネリ海門決戦 設定推測（ベイズ推定）
-// ========================================
+const SETTING_KEYS = ['setting1', 'setting2', 'setting3', 'setting4', 'setting5', 'setting6'] as const;
 
-const SETTING_KEYS = [
-  'setting1',
-  'setting2',
-  'setting3',
-  'setting4',
-  'setting5',
-  'setting6',
-] as const;
-
-/** 全設定均等（データなし時の事前分布） */
+/** 全設定均等の事前分布。画面では未計測をこの分布と区別する。 */
 export function createEqualAnalysis(): KabaneriSettingAnalysis {
-  const equal = 100 / SETTING_KEYS.length;
-  return {
-    setting1: equal,
-    setting2: equal,
-    setting3: equal,
-    setting4: equal,
-    setting5: equal,
-    setting6: equal,
-  };
+  return { setting1: 100 / 6, setting2: 100 / 6, setting3: 100 / 6, setting4: 100 / 6, setting5: 100 / 6, setting6: 100 / 6 };
 }
 
-/**
- * 二項分布の尤度から事後確率（%）を計算する汎用関数
- * 事前確率は均等を仮定
- */
-function posteriorFromBinomial(
-  k: number,
-  n: number,
-  settingProbs: { setting: number; p: number }[]
-): KabaneriSettingAnalysis {
-  if (n <= 0 || k < 0 || k > n) {
-    return createEqualAnalysis();
+function posterior(logs: number[]): KabaneriSettingAnalysis {
+  const max = Math.max(...logs);
+  if (!Number.isFinite(max)) return createEqualAnalysis();
+  const weights = logs.map((value) => Math.exp(value - max));
+  const total = weights.reduce((sum, value) => sum + value, 0);
+  const result = createEqualAnalysis();
+  SETTING_KEYS.forEach((key, index) => { result[key] = weights[index] / total * 100; });
+  return result;
+}
+
+function validObservation(k: number, n: number): boolean {
+  return Number.isSafeInteger(n) && n > 0 && Number.isSafeInteger(k) && k >= 0 && k <= n;
+}
+
+function binomialLogs(k: number, n: number, probabilities: number[]): number[] {
+  return probabilities.map((p) => logBinomialPMF(k, n, p));
+}
+
+/** 役別の不整合を合算で隠さない。無名・生駒とカバネは必ず別に集計する。 */
+export function getKabaneriFlashObservation(counters: KabaneriCounterState, axis: KabaneriFlashAxis) {
+  const definition = kabaneriFlashAxes.find((item) => item.id === axis)!;
+  let chanceTotal = 0;
+  let flashTotal = 0;
+  let error = false;
+  for (const id of definition.chanceIds) {
+    const role = chanceDefinitions.find((item) => item.id === id)!;
+    const count = counters[role.countKey] ?? 0;
+    const flash = counters[role.flashKey] ?? 0;
+    if (!Number.isSafeInteger(count) || !Number.isSafeInteger(flash) || count < 0 || flash < 0 || flash > count) {
+      error = true;
+    }
+    chanceTotal += count;
+    flashTotal += flash;
+  }
+  return { chanceTotal, flashTotal, error };
+}
+
+interface FlashAxisResult {
+  chanceTotal: number;
+  flashTotal: number;
+  error: boolean;
+  analysis: KabaneriSettingAnalysis | null;
+}
+
+/** 選択した有効な軸の対数尤度を直接加算し、一度だけ正規化する。 */
+export function calculateSelectedKabaneriAnalyses(
+  counters: KabaneriCounterState,
+  totalGames: number,
+  targets: KabaneriAnalysisTargets
+) {
+  const selectedLogs: number[][] = [];
+  const bellCount = counters[GEDAN_BELL_KEY] ?? 0;
+  const bellError = !Number.isSafeInteger(totalGames) || totalGames < 0 ||
+    !Number.isSafeInteger(bellCount) || bellCount < 0 || (totalGames > 0 && bellCount > totalGames);
+  let bellAnalysis: KabaneriSettingAnalysis | null = null;
+  if (targets.bell && !bellError && validObservation(bellCount, totalGames)) {
+    const logs = binomialLogs(bellCount, totalGames, bellProbabilities.map((p) => 1 / p.denominator));
+    selectedLogs.push(logs);
+    bellAnalysis = posterior(logs);
   }
 
-  const logLikelihoods = settingProbs.map((sp) => logBinomialPMF(k, n, sp.p));
-  const maxLogL = Math.max(...logLikelihoods);
-  const likelihoods = logLikelihoods.map((l) => Math.exp(l - maxLogL));
-  const total = likelihoods.reduce((sum, l) => sum + l, 0);
+  const flashes = {} as Record<KabaneriFlashAxis, FlashAxisResult>;
+  for (const axis of kabaneriFlashAxes) {
+    const observation = getKabaneriFlashObservation(counters, axis.id);
+    let analysis: KabaneriSettingAnalysis | null = null;
+    if (targets[axis.id] && !observation.error && validObservation(observation.flashTotal, observation.chanceTotal)) {
+      const logs = binomialLogs(observation.flashTotal, observation.chanceTotal, axis.rates.map((p) => p.rate));
+      selectedLogs.push(logs);
+      analysis = posterior(logs);
+    }
+    flashes[axis.id] = { ...observation, analysis };
+  }
 
-  if (total <= 0) return createEqualAnalysis();
-
-  const result = createEqualAnalysis();
-  settingProbs.forEach((sp, i) => {
-    result[`setting${sp.setting}` as keyof KabaneriSettingAnalysis] =
-      (likelihoods[i] / total) * 100;
-  });
-  return result;
+  const combined = selectedLogs.length > 0
+    ? posterior(SETTING_KEYS.map((_, index) => selectedLogs.reduce((sum, logs) => sum + logs[index], 0)))
+    : null;
+  return { bellCount, bellError, bellAnalysis, flashes, combined };
 }
 
-/**
- * 下段ベル確率による設定推測
- * @param bellCount 下段ベル出現回数
- * @param totalGames 総ゲーム数
- */
-export function calculateBellAnalysis(
-  bellCount: number,
-  totalGames: number
-): KabaneriSettingAnalysis {
-  return posteriorFromBinomial(
-    bellCount,
-    totalGames,
-    bellProbabilities.map((bp) => ({
-      setting: bp.setting,
-      p: 1 / bp.denominator,
-    }))
-  );
+export function calculateBellAnalysis(bellCount: number, totalGames: number): KabaneriSettingAnalysis {
+  if (!validObservation(bellCount, totalGames)) return createEqualAnalysis();
+  return posterior(binomialLogs(bellCount, totalGames, bellProbabilities.map((p) => 1 / p.denominator)));
 }
 
-/**
- * チャンス目アイコン発光率による設定推測（実戦値ベースの参考値）
- * @param flashCount 発光回数（3種チャンス目合算）
- * @param chanceCount チャンス目成立回数（3種合算）
- */
+/** 軸を明示して計算する。3役を混ぜた旧モデルは使用しない。 */
 export function calculateFlashAnalysis(
   flashCount: number,
-  chanceCount: number
+  chanceCount: number,
+  axis: KabaneriFlashAxis
 ): KabaneriSettingAnalysis {
-  return posteriorFromBinomial(
-    flashCount,
-    chanceCount,
-    flashRates.map((fr) => ({ setting: fr.setting, p: fr.rate }))
-  );
+  if (!validObservation(flashCount, chanceCount)) return createEqualAnalysis();
+  const definition = kabaneriFlashAxes.find((item) => item.id === axis)!;
+  return posterior(binomialLogs(flashCount, chanceCount, definition.rates.map((p) => p.rate)));
 }
 
-/**
- * 複数の推測結果を統合（独立事象として尤度を掛け合わせて正規化）
- */
-export function combineAnalyses(
-  analyses: KabaneriSettingAnalysis[]
-): KabaneriSettingAnalysis {
-  if (analyses.length === 0) return createEqualAnalysis();
-
-  const products = SETTING_KEYS.map((key) =>
-    analyses.reduce((prod, a) => prod * a[key], 1)
-  );
-  const total = products.reduce((sum, p) => sum + p, 0);
-
-  if (total <= 0) return createEqualAnalysis();
-
-  const result = createEqualAnalysis();
-  SETTING_KEYS.forEach((key, i) => {
-    result[key] = (products[i] / total) * 100;
-  });
-  return result;
-}
-
-/**
- * 確率の分母を計算（1/X.X 表示用）
- */
-export function calculateDenominator(
-  count: number,
-  totalGames: number
-): number | null {
-  if (count <= 0 || totalGames <= 0) return null;
-  return totalGames / count;
+export function calculateDenominator(count: number, totalGames: number): number | null {
+  return count > 0 && totalGames > 0 ? totalGames / count : null;
 }
