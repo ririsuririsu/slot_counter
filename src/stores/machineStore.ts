@@ -7,6 +7,7 @@ import type {
   HokutoMachine,
   KabaneriMachine,
   KabaneriChanceType,
+  KabaneriAnalysisTargets,
   MonhanRiseMachine,
   MonhanRiseEvent,
   MonhanRiseEventInput,
@@ -21,6 +22,7 @@ import { createInitialCounters, fiveCardIds } from '../data/koyakuDefinitions';
 import {
   createInitialKabaneriCounters,
   chanceDefinitions,
+  normalizeKabaneriAnalysisTargets,
 } from '../data/kabaneriDefinitions';
 import {
   createInitialMonhanRiseCounters,
@@ -82,6 +84,9 @@ export function getMachineTotalGames(m: Machine | null): number {
 interface MachineStore {
   machines: Machine[];
   currentMachineId: string | null;
+  /** 台ごとの推測表示設定。この端末のみで保存し、クラウドの遊技記録とは分離。 */
+  kabaneriAnalysisTargets: Record<string, KabaneriAnalysisTargets>;
+  setKabaneriAnalysisTarget: (target: keyof KabaneriAnalysisTargets, enabled: boolean) => void;
   showLogEntry: boolean;
   setShowLogEntry: (show: boolean) => void;
   showShutterModal: boolean;
@@ -271,6 +276,20 @@ export const useMachineStore = create<MachineStore>()(
     (set, get) => ({
       machines: [],
       currentMachineId: null,
+      kabaneriAnalysisTargets: {},
+      setKabaneriAnalysisTarget: (target, enabled) => {
+        const machine = get().getCurrentMachine();
+        if (!machine || !isKabaneriMachine(machine)) return;
+        set((state) => ({
+          kabaneriAnalysisTargets: {
+            ...state.kabaneriAnalysisTargets,
+            [machine.id]: {
+              ...normalizeKabaneriAnalysisTargets(state.kabaneriAnalysisTargets[machine.id]),
+              [target]: enabled,
+            },
+          },
+        }));
+      },
       showLogEntry: false,
       setShowLogEntry: (show: boolean) => set({ showLogEntry: show }),
       showShutterModal: false,
@@ -334,6 +353,8 @@ export const useMachineStore = create<MachineStore>()(
 
       deleteMachine: (id: string) => {
         const { machines, currentMachineId } = get();
+        const kabaneriAnalysisTargets = { ...get().kabaneriAnalysisTargets };
+        delete kabaneriAnalysisTargets[id];
         const filteredMachines = machines.filter((m) => m.id !== id);
         const newCurrentId =
           currentMachineId === id
@@ -342,6 +363,7 @@ export const useMachineStore = create<MachineStore>()(
         set({
           machines: filteredMachines,
           currentMachineId: newCurrentId,
+          kabaneriAnalysisTargets,
         });
         deleteMachineRemote(id).catch(() => {});
       },
@@ -741,23 +763,21 @@ export const useMachineStore = create<MachineStore>()(
       // --- Kabaneri: Reset ---
 
       resetKabaneriMachine: () => {
-        const machineId = get().currentMachineId;
-        set((state) =>
-          updateCurrentMachine(state, (m) => {
-            if (!isKabaneriMachine(m)) return m;
-            return {
-              ...m,
-              counters: createInitialKabaneriCounters(),
-              totalGames: 0,
-              updatedAt: Date.now(),
-            };
-          })
-        );
-        syncCurrentMachine(get);
-        if (machineId) deleteMachineRemote(machineId).then(() => {
-          const machine = get().getCurrentMachine();
-          if (machine) upsertMachine(machine).catch(() => {});
-        }).catch(() => {});
+        const previous = get().getCurrentMachine();
+        if (!previous || !isKabaneriMachine(previous)) return;
+        const next = { ...createNewKabaneriMachine(previous.name), number: previous.number };
+        set((state) => ({
+          machines: [...state.machines, next],
+          currentMachineId: next.id,
+          kabaneriAnalysisTargets: {
+            ...state.kabaneriAnalysisTargets,
+            [next.id]: normalizeKabaneriAnalysisTargets(state.kabaneriAnalysisTargets[previous.id]),
+          },
+        }));
+        // 過去の記録を削除・上書きしない。画面移動後も固定した2つのIDへ保存する。
+        // 通信に失敗しても両記録がローカルに残り、手動一括同期で再送できる。
+        upsertMachine(previous).catch(() => {});
+        upsertMachine(next).catch(() => {});
       },
 
       // --- MonhanRise: 軸1 カウンター ---
@@ -964,11 +984,10 @@ export const useMachineStore = create<MachineStore>()(
     }),
     {
       name: 'slot-counter-storage',
-      version: 9,
+      version: 10,
       partialize: (state) => {
         // currentMachineId を永続化しない → 常にTOP画面から開始
-        const { currentMachineId: _, ...rest } = state;
-        return rest;
+        return { ...state, currentMachineId: undefined };
       },
       migrate: (persisted: unknown, version: number) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1070,6 +1089,14 @@ export const useMachineStore = create<MachineStore>()(
             );
             return { ...m, events };
           });
+        }
+        if (version < 10) {
+          // カウンターはそのまま、端末内の推測項目選択だけを2軸へ移行。
+          state.kabaneriAnalysisTargets = Object.fromEntries(
+            Object.entries(state.kabaneriAnalysisTargets ?? {}).map(([id, value]) =>
+              [id, normalizeKabaneriAnalysisTargets(value)]
+            )
+          );
         }
         return state;
       },

@@ -52,6 +52,16 @@
   font-variant-numeric: tabular-nums;
 }
 
+.flashSummary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  color: var(--apple-yellow);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
 /* チャンス目: 成立/発光 を2列で */
 .chanceGrid {
   display: grid;
