@@ -62,7 +62,7 @@ export function Header({ onAddLog, onOpenShutter, onOpenTenha }: HeaderProps = {
 
   return (
     <>
-      <header className={styles.header}>
+      <header className={`${styles.header} ${currentMachine?.machineType === 'kabaneri' ? styles.kabaneriHeader : ''}`}>
         <div className={styles.content}>
           <button className={styles.backBtn} onClick={handleBack}>
             ‹

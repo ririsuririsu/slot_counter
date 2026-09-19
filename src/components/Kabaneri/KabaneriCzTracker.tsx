@@ -1,62 +1,15 @@
 import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
-import type { KabaneriChanceCondition, KabaneriChanceInput, KabaneriChanceRole, KabaneriCzCharacter, KabaneriCzEvent, KabaneriMachine } from '../../types';
+import type { KabaneriCzCharacter, KabaneriCzEvent, KabaneriMachine } from '../../types';
 import { useMachineStore } from '../../stores/machineStore';
 import { Modal } from '../common/Modal';
-import { playHaptic } from '../../utils/haptic';
 import {
-  CHANCE_ROLES, CHARACTER_LABELS, CZ_CHARACTERS, EMPTY_CZ_EVENTS, NORMAL_CONDITIONS,
-  chancePoints, czTriggerCandidates, describeCzEvent, summarizeKabaneriCz,
+  CHARACTER_LABELS, CZ_CHARACTERS, EMPTY_CZ_EVENTS, czTriggerCandidates, describeCzEvent, summarizeKabaneriCz,
 } from '../../utils/kabaneriCz';
 import styles from './KabaneriCzTracker.module.css';
 
 const COLORS = { mumei: '#ff8a82', ikoma: '#86efac', kabane: '#7ab8ff' };
 const pointText = (points: number, unknownCount: number) => `${points} pt${unknownCount ? ' ＋不明' : ''}`;
-
-function ChanceForm({ onClose }: { onClose: () => void }) {
-  const [role, setRole] = useState<KabaneriChanceRole>('mumeiIkoma');
-  const [conditions, setConditions] = useState<KabaneriChanceInput['conditions']>({ ...NORMAL_CONDITIONS });
-  const [flash, setFlash] = useState<KabaneriChanceInput['flash']>('unknown');
-  const record = useMachineStore((s) => s.recordKabaneriChance);
-  const definition = CHANCE_ROLES.find((r) => r.id === role)!;
-  const input: KabaneriChanceInput = { type: 'chance', role, conditions, flash, flashEligible: false };
-  return (
-    <form className={styles.form} onSubmit={(e) => { e.preventDefault(); record(input); onClose(); }}>
-      <label>成立したチャンス目
-        <select value={role} onChange={(e) => setRole(e.target.value as KabaneriChanceRole)}>
-          {CHANCE_ROLES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
-        </select>
-      </label>
-      <p className={styles.help}>成立した時点の各キャラの帯を選んでください。「ナビ高確」と「カバネリ高確」は別の状態です。</p>
-      {definition.members.map((character) => (
-        <label key={character}>{CHARACTER_LABELS[character]}の状態
-          <select value={conditions[character]} onChange={(e) => setConditions({ ...conditions, [character]: e.target.value as KabaneriChanceCondition })}>
-            <option value="normal">通常（帯なし）</option>
-            <option value="high">カバネリ高確</option>
-            <option value="super">超カバネリ高確</option>
-          </select>
-        </label>
-      ))}
-      {definition.members.length === 1 && conditions[definition.members[0]] === 'normal' && (
-        <label>発光の確認
-          <select value={flash} onChange={(e) => setFlash(e.target.value as KabaneriChanceInput['flash'])}>
-            <option value="unknown">不明（発光中など）</option>
-            <option value="none">非発光</option>
-            <option value="yes">発光</option>
-          </select>
-        </label>
-      )}
-      <div className={styles.preview}>
-        {CZ_CHARACTERS.filter((c) => definition.members.includes(c)).map((c) => (
-          <span key={c}>{CHARACTER_LABELS[c]}：{chancePoints(input, c) === null ? '換算不明' : `＋${chancePoints(input, c)} pt（推定）`}</span>
-        ))}
-        {role === 'kabane' && <span>カバネは周期抽選用です。無名・生駒のCZポイントには加えません。</span>}
-      </div>
-      <p className={styles.help}>この追加記録は発光率の推測対象に含めません。超高確・オールスターのCZは、告知を確認して別途記録してください。</p>
-      <button className={styles.primary} type="submit">チャンス目を記録</button>
-    </form>
-  );
-}
 
 function CzForm({ events, character, onClose }: { events: KabaneriCzEvent[]; character: KabaneriCzCharacter; onClose: () => void }) {
   const [trigger, setTrigger] = useState('');
@@ -86,19 +39,17 @@ function CzForm({ events, character, onClose }: { events: KabaneriCzEvent[]; cha
   );
 }
 
-export function KabaneriCzTracker({ machine, haptic, mode }: { machine: KabaneriMachine; haptic: boolean; mode: 'add' | 'sub' }) {
+export function KabaneriCzTracker({ machine }: { machine: KabaneriMachine }) {
   const events = machine.czEvents ?? EMPTY_CZ_EVENTS;
   const summary = useMemo(() => summarizeKabaneriCz(events), [events]);
   const positions = useMemo(() => new Map(events.map((event, index) => [event.id, index + 1])), [events]);
-  const [dialog, setDialog] = useState<'chance' | 'start' | KabaneriCzCharacter | null>(null);
+  const [dialog, setDialog] = useState<'start' | KabaneriCzCharacter | null>(null);
   const [fromZero, setFromZero] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
-  const recordChance = useMachineStore((s) => s.recordKabaneriChance);
   const start = useMachineStore((s) => s.startKabaneriCzTracking);
   const remove = useMachineStore((s) => s.deleteKabaneriCzEvent);
   const deleting = events.find((e) => e.id === deleteId);
-  const additionalCount = events.filter((e) => e.type === 'chance' && !e.flashEligible).length;
 
   return (
     <section className={styles.container} aria-label="CZポイント記録">
@@ -121,26 +72,6 @@ export function KabaneriCzTracker({ machine, haptic, mode }: { machine: Kabaneri
           );
         })}
       </div>
-      <p className={styles.help}>下の通常単独役ボタンからも自動加算します。発光なら「発光」だけを押してください。機能追加前のカウントはptに含めません。</p>
-      <div className={styles.quickHeading}>高確中の単独チャンス目</div>
-      <div className={styles.quickButtons}>
-        {(['mumei', 'ikoma', 'kabane'] as const).map((character) => (
-          <button key={character} type="button" style={{ '--accent': COLORS[character] } as CSSProperties}
-            onClick={() => {
-              if (mode === 'sub') {
-                const last = [...events].reverse().find((event) => event.type === 'chance' && event.role === character && event.conditions[character] === 'high');
-                if (last) remove(last.id);
-              } else {
-                recordChance({ type: 'chance', role: character, conditions: { ...NORMAL_CONDITIONS, [character]: 'high' }, flash: 'yes', flashEligible: false });
-              }
-              if (haptic) playHaptic();
-            }} aria-label={`${CHARACTER_LABELS[character]}高確チャンス目を${mode === 'sub' ? '減算' : '記録'}`}>
-            {CHARACTER_LABELS[character]}<small>{mode === 'sub' ? '直近1回を取消' : character === 'kabane' ? '記録のみ' : '＋15 pt'}</small>
-          </button>
-        ))}
-      </div>
-      <button type="button" className={styles.addButton} onClick={() => setDialog('chance')}>＋ 複合・超高確・その他の記録</button>
-      <p className={styles.help}>追加記録 {additionalCount}件。通常単独役のボタンとの二重入力は不要です。</p>
 
       <details className={styles.details}>
         <summary>CZ当選履歴（{summary.history.length}件）</summary>
@@ -177,8 +108,8 @@ export function KabaneriCzTracker({ machine, haptic, mode }: { machine: Kabaneri
         <button className={styles.addButton} type="button" onClick={() => setDialog('start')}>ここから集計を開始</button>
       </details>
 
-      {dialog !== null && <Modal isOpen onClose={() => setDialog(null)} title={dialog === 'chance' ? 'チャンス目を追加' : dialog === 'start' ? '集計開始位置を記録' : `${CHARACTER_LABELS[dialog]}CZ当選`}>
-        {dialog === 'chance' ? <ChanceForm onClose={() => setDialog(null)} /> : dialog === 'start' ? (
+      {dialog !== null && <Modal isOpen onClose={() => setDialog(null)} title={dialog === 'start' ? '集計開始位置を記録' : `${CHARACTER_LABELS[dialog]}CZ当選`}>
+        {dialog === 'start' ? (
           <form className={styles.form} onSubmit={(e) => { e.preventDefault(); start(fromZero); setDialog(null); }}>
             <p className={styles.help}>無名・生駒の現在の集計を区切ります。カウントと過去の履歴は残ります。</p>
             <label>開始時の状態<select value={fromZero ? 'zero' : 'unknown'} onChange={(e) => setFromZero(e.target.value === 'zero')}>

@@ -62,7 +62,7 @@ const { useMachineStore: store } = load('src/stores/machineStore.ts');
 const bellOnly = { ...off, bell: true };
 const flashOnly = { ...off, mumeiIkoma: true };
 const bothFlashes = { ...off, mumeiIkoma: true, kabane: true };
-const { summarizeKabaneriCz, chancePoints, NORMAL_CONDITIONS, normalizeKabaneriCzEvents } = load('src/utils/kabaneriCz.ts');
+const { summarizeKabaneriCz, chancePoints, flashCounterDelta, NORMAL_CONDITIONS, normalizeKabaneriCzEvents } = load('src/utils/kabaneriCz.ts');
 const realSync = load('src/lib/supabaseSync.ts');
 const chance = (role, overrides = {}) => ({ type: 'chance', role, conditions: { ...NORMAL_CONDITIONS }, flash: 'none', flashEligible: false, ...overrides });
 
@@ -359,4 +359,131 @@ test('他機種からカバネリの新規記録アクションを呼んでも�
   store.getState().resetKabaneriMachine();
   assert.equal(store.getState().machines, machines);
   assert.equal(remoteCalls.length, 0);
+});
+
+test('暫定換算表：単独・全複合組合せ・片側高確・超高確・オールスターを照合する', () => {
+  // 期待値は採用済みの換算表から固定する。カバネは無名・生駒のCZへ加算しない。
+  const cases = [
+    ['mumei', 'normal', 'normal', 'normal', 'none', [1, 0]],
+    ['mumei', 'normal', 'normal', 'normal', 'yes', [15, 0]],
+    ['ikoma', 'normal', 'normal', 'normal', 'none', [0, 1]],
+    ['ikoma', 'normal', 'normal', 'normal', 'yes', [0, 15]],
+    ['mumei', 'normal', 'normal', 'normal', 'unknown', [null, 0]],
+    ['ikoma', 'normal', 'normal', 'normal', 'unknown', [0, null]],
+    ['mumei', 'high', 'normal', 'normal', 'unknown', [15, 0]],
+    ['ikoma', 'normal', 'high', 'normal', 'unknown', [0, 15]],
+    ['mumei', 'normal', 'high', 'high', 'none', [1, 0]],
+    ['ikoma', 'high', 'normal', 'high', 'yes', [0, 15]],
+    ['kabane', 'normal', 'normal', 'normal', 'yes', [0, 0]],
+    ['kabane', 'normal', 'normal', 'high', 'yes', [0, 0]],
+    ['kabane', 'normal', 'normal', 'super', 'unknown', [0, 0]],
+    ['mumeiIkoma', 'normal', 'normal', 'normal', 'yes', [15, 15]],
+    ['mumeiIkoma', 'high', 'normal', 'normal', 'yes', [30, 15]],
+    ['mumeiIkoma', 'normal', 'high', 'normal', 'yes', [15, 30]],
+    ['mumeiIkoma', 'high', 'high', 'normal', 'yes', [30, 30]],
+    ['mumeiKabane', 'normal', 'normal', 'high', 'yes', [15, 0]],
+    ['mumeiKabane', 'high', 'normal', 'normal', 'yes', [30, 0]],
+    ['ikomaKabane', 'normal', 'normal', 'high', 'yes', [0, 15]],
+    ['ikomaKabane', 'normal', 'high', 'normal', 'yes', [0, 30]],
+    ['mumei', 'super', 'normal', 'normal', 'yes', [null, 0]],
+    ['ikoma', 'normal', 'super', 'normal', 'yes', [0, null]],
+    ['mumeiIkoma', 'super', 'normal', 'normal', 'yes', [null, 15]],
+    ['mumeiIkoma', 'high', 'super', 'normal', 'yes', [30, null]],
+    ['all', 'normal', 'normal', 'normal', 'yes', [null, null]],
+    ['all', 'high', 'high', 'high', 'yes', [null, null]],
+  ];
+  for (const [role, mumei, ikoma, kabane, flash, expected] of cases) {
+    const input = chance(role, { conditions: { mumei, ikoma, kabane }, flash });
+    assert.deepEqual(['mumei', 'ikoma'].map((character) => chancePoints(input, character)), expected,
+      JSON.stringify(input));
+  }
+});
+
+test('発光率：対応キャラだけの高確判定と、対象外データの二重防御', () => {
+  for (const role of ['mumei', 'ikoma', 'kabane']) {
+    assert.deepEqual(flashCounterDelta(chance(role, { flash: 'none', flashEligible: true })), { [role]: 1 });
+    assert.deepEqual(flashCounterDelta(chance(role, { flash: 'yes', flashEligible: true })), { [role]: 1, [`${role}Flash`]: 1 });
+    assert.deepEqual(flashCounterDelta(chance(role, { flash: 'unknown', flashEligible: true })), {});
+    assert.deepEqual(flashCounterDelta(chance(role, { flash: 'yes', flashEligible: false })), {});
+    for (const condition of ['high', 'super']) {
+      assert.deepEqual(flashCounterDelta(chance(role, {
+        conditions: { ...NORMAL_CONDITIONS, [role]: condition }, flash: 'yes', flashEligible: true,
+      })), {});
+    }
+  }
+  for (const role of ['mumeiIkoma', 'mumeiKabane', 'ikomaKabane', 'all']) {
+    assert.deepEqual(flashCounterDelta(chance(role, { flash: 'yes', flashEligible: true })), {});
+  }
+  assert.deepEqual(flashCounterDelta(chance('mumei', {
+    conditions: { ...NORMAL_CONDITIONS, ikoma: 'high', kabane: 'high' }, flash: 'yes', flashEligible: true,
+  })), { mumei: 1, mumeiFlash: 1 });
+});
+
+test('混在した入力の実例：発光率は2軸別、発光中は不明、取消で元に戻る', () => {
+  store.getState().addMachine('kabaneri');
+  store.getState().startKabaneriCzTracking(true);
+  const initial = structuredClone(store.getState().getCurrentMachine());
+  const inputs = [
+    chance('mumei', { flash: 'none', flashEligible: true }), // 無名 1
+    chance('mumei', { flash: 'yes', flashEligible: true }), // 無名 16
+    chance('ikoma', { flash: 'none', flashEligible: true }), // 生駒 1
+    chance('kabane', { flash: 'yes', flashEligible: true }),
+    chance('mumei', { conditions: { ...NORMAL_CONDITIONS, mumei: 'high' }, flash: 'yes' }), // 無名 31
+    chance('mumeiIkoma', { conditions: { ...NORMAL_CONDITIONS, ikoma: 'high' }, flash: 'yes' }), // 無名 46 / 生駒 31
+    chance('mumei', { flash: 'unknown' }), // 無名 不明1件
+    chance('ikomaKabane', { flash: 'yes' }), // 生駒 46
+  ];
+  const ids = [];
+  for (const input of inputs) {
+    store.getState().recordKabaneriChance(input);
+    ids.push(store.getState().getCurrentMachine().czEvents.at(-1).id);
+  }
+  const machine = store.getState().getCurrentMachine();
+  const result = summarizeKabaneriCz(machine.czEvents);
+  assert.deepEqual(result.current.mumei, { points: 46, unknownCount: 1, chanceCount: 5, complete: true });
+  assert.deepEqual(result.current.ikoma, { points: 46, unknownCount: 0, chanceCount: 3, complete: true });
+  const analysis = calculateSelectedKabaneriAnalyses(machine.counters, 0, bothFlashes);
+  assert.equal(analysis.flashes.mumeiIkoma.chanceTotal, 3);
+  assert.equal(analysis.flashes.mumeiIkoma.flashTotal, 1);
+  assert.equal(analysis.flashes.kabane.chanceTotal, 1);
+  assert.equal(analysis.flashes.kabane.flashTotal, 1);
+  assertPosterior(analysis.combined, referencePosterior([
+    [1, 3, mumeiIkomaFlashRates.map((r) => r.rate)], [1, 1, kabaneFlashRates.map((r) => r.rate)],
+  ]));
+  // 順不同の取消でも分子・分母とポイントの両方が元へ戻る。
+  for (const index of [2, 5, 0, 7, 4, 1, 6, 3]) store.getState().deleteKabaneriCzEvent(ids[index]);
+  const restored = store.getState().getCurrentMachine();
+  assert.deepEqual(restored.counters, initial.counters);
+  assert.deepEqual(restored.czEvents, initial.czEvents);
+});
+
+test('CZの遡及入力・取消・再入力が両キャラの不明分と次区間を保つ', () => {
+  store.getState().addMachine('kabaneri');
+  store.getState().startKabaneriCzTracking(true);
+  store.getState().recordKabaneriChance(chance('mumei', { flash: 'unknown' }));
+  store.getState().recordKabaneriChance(chance('mumeiIkoma', { flash: 'yes' }));
+  const trigger = store.getState().getCurrentMachine().czEvents.at(-1).id;
+  store.getState().incrementKabaneriFlash('mumei');
+  store.getState().incrementKabaneriCounter('ikoma');
+  const before = structuredClone(store.getState().getCurrentMachine());
+  store.getState().recordKabaneriCz('mumei', trigger, false);
+  let result = summarizeKabaneriCz(store.getState().getCurrentMachine().czEvents);
+  assert.equal(result.history[0].points, 15);
+  assert.equal(result.history[0].unknownCount, 1);
+  assert.equal(result.current.mumei.points, 15);
+  assert.equal(result.current.mumei.unknownCount, 0);
+  assert.equal(result.current.ikoma.points, 16);
+  store.getState().deleteKabaneriCzEvent(result.history[0].id);
+  assert.deepEqual(store.getState().getCurrentMachine().czEvents, before.czEvents);
+  assert.deepEqual(store.getState().getCurrentMachine().counters, before.counters);
+  store.getState().recordKabaneriCz('mumei', trigger, false);
+  store.getState().recordKabaneriCz('ikoma', trigger, false);
+  result = summarizeKabaneriCz(store.getState().getCurrentMachine().czEvents);
+  assert.equal(result.current.mumei.points, 15);
+  assert.equal(result.current.ikoma.points, 1);
+  const mumei = result.history.find((r) => r.character === 'mumei');
+  const ikoma = result.history.find((r) => r.character === 'ikoma');
+  assert.equal(mumei.unknownCount, 1);
+  assert.equal(ikoma.unknownCount, 0);
+  assert.equal(ikoma.points, 15);
 });

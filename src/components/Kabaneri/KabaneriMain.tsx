@@ -1,18 +1,16 @@
-import { useState, Fragment } from 'react';
+import { useState } from 'react';
 import { useMachineStore, isKabaneriMachine } from '../../stores/machineStore';
 import { GameInputModal } from '../GameInput/GameInputModal';
 import { KabaneriButton } from './KabaneriButton';
 import { KabaneriToolbar, type CountMode } from './KabaneriToolbar';
 import { KabaneriSettingAnalysis } from './KabaneriSettingAnalysis';
 import { KabaneriCzTracker } from './KabaneriCzTracker';
+import { KabaneriChanceInputPanel } from './KabaneriChanceInputPanel';
 import {
-  chanceDefinitions,
   GEDAN_BELL_KEY,
   BELL_COLOR,
   BELL_COLOR_SOFT,
-  kabaneriFlashAxes,
 } from '../../data/kabaneriDefinitions';
-import { getKabaneriFlashObservation } from '../../utils/kabaneriEstimation';
 import styles from './KabaneriMain.module.css';
 
 export function KabaneriMain() {
@@ -24,8 +22,6 @@ export function KabaneriMain() {
   const machine = useMachineStore((state) => state.getCurrentMachine());
   const incrementCounter = useMachineStore((state) => state.incrementKabaneriCounter);
   const decrementCounter = useMachineStore((state) => state.decrementKabaneriCounter);
-  const incrementFlash = useMachineStore((state) => state.incrementKabaneriFlash);
-  const decrementFlash = useMachineStore((state) => state.decrementKabaneriFlash);
 
   if (!machine || !isKabaneriMachine(machine)) return null;
 
@@ -34,10 +30,6 @@ export function KabaneriMain() {
   // 出現率（1/x.x）
   const fmtInverse = (count: number): string =>
     count > 0 && totalGames > 0 ? `1/${(totalGames / count).toFixed(1)}` : '—';
-  // 発光率（%）
-  const fmtRate = (flash: number, base: number): string =>
-    base > 0 ? `${((flash / base) * 100).toFixed(1)}%` : '—';
-
   const handleRotate = () => setOrient((o) => (o + 90) % 360);
 
   return (
@@ -66,63 +58,7 @@ export function KabaneriMain() {
         />
       </div>
 
-      <KabaneriCzTracker key={machine.id} machine={machine} haptic={haptic} mode={mode} />
-
-      <div className={`section-header ${styles.sectionHead}`}>
-        <span>通常単独チャンス目</span>
-        <span className={styles.flashSummary}>
-          {kabaneriFlashAxes.map((axis) => {
-            const { flashTotal, chanceTotal } = getKabaneriFlashObservation(counters, axis.id);
-            return <span key={axis.id}>{axis.label} {fmtRate(flashTotal, chanceTotal)}</span>;
-          })}
-        </span>
-      </div>
-      <div className={styles.chanceGrid}>
-        {chanceDefinitions.map((def) => {
-          const seiritsu = counters[def.countKey] ?? 0;
-          const hakkou = counters[def.flashKey] ?? 0;
-          return (
-            <Fragment key={def.id}>
-              <KabaneriButton
-                label={`${def.shortName} 発光`}
-                count={hakkou}
-                sub={fmtRate(hakkou, seiritsu)}
-                color={def.nameColor}
-                softColor={def.nameColorSoft}
-                mode={mode}
-                orient={orient}
-                haptic={haptic}
-                onCount={(dir) =>
-                  dir > 0 ? incrementFlash(def.id) : decrementFlash(def.id)
-                }
-              />
-              <KabaneriButton
-                label={`${def.shortName} 成立`}
-                count={seiritsu}
-                sub=""
-                color={def.nameColor}
-                softColor={def.nameColorSoft}
-                mode={mode}
-                orient={orient}
-                haptic={haptic}
-                onCount={(dir) =>
-                  dir > 0
-                    ? incrementCounter(def.countKey)
-                    : decrementCounter(def.countKey)
-                }
-              />
-            </Fragment>
-          );
-        })}
-      </div>
-
-      <div className={`section-header ${styles.sectionHead}`}>
-        <span>下段ベル</span>
-        <span className={styles.totalProb}>
-          確率 {fmtInverse(counters[GEDAN_BELL_KEY] ?? 0)}
-        </span>
-      </div>
-      <div className={styles.bellWrap}>
+      <KabaneriChanceInputPanel key={`chance-${machine.id}`} machine={machine} mode={mode} orient={orient} haptic={haptic} bellInput={
         <KabaneriButton
           label="下段ベル"
           count={counters[GEDAN_BELL_KEY] ?? 0}
@@ -138,7 +74,9 @@ export function KabaneriMain() {
               : decrementCounter(GEDAN_BELL_KEY)
           }
         />
-      </div>
+      } />
+
+      <KabaneriCzTracker key={`cz-${machine.id}`} machine={machine} />
 
       <div className="section-header">設定推測</div>
       <KabaneriSettingAnalysis />

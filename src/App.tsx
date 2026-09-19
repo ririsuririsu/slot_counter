@@ -60,7 +60,7 @@ function App() {
         onOpenShutter={isHokuto ? () => setShowShutterModal(true) : undefined}
         onOpenTenha={isHokuto ? () => setShowTenhaModal(true) : undefined}
       />
-      <main className={`container ${isHokuto ? styles.mainHokuto : styles.main}`}>
+      <main className={`container ${isHokuto ? styles.mainHokuto : styles.main} ${currentMachine?.machineType === 'kabaneri' ? styles.mainKabaneri : ''}`}>
         {renderMachineView()}
       </main>
     </>

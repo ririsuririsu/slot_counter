@@ -3,6 +3,8 @@
   padding-bottom: var(--spacing-xl);
 }
 
+.mainKabaneri { padding-top: 8px; }
+
 .mainHokuto {
   padding-top: var(--spacing-sm);
   padding-bottom: 0;

@@ -23,6 +23,21 @@
 }
 
 /* 大外枠（回転するリング） */
+.fit {
+  width: 100%;
+  max-width: 130px;
+  height: auto;
+  aspect-ratio: 1;
+  --ring-gap: 10.77%;
+}
+
+.fit .count { font-size: clamp(26px, 8vw, 38px); }
+.fit .prob { font-size: 10px; }
+
+.selected { border-radius: 50%; outline: 3px solid #ffe07b; outline-offset: 2px; }
+.selected .core { background: radial-gradient(circle, #594418, #181108 85%); }
+.selected .prob { color: #ffe07b; }
+
 .ringOuter {
   position: absolute;
   inset: 0;
