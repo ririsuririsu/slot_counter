@@ -615,7 +615,9 @@ function isValidKokakuEvent(value: unknown): value is KokakuEvent {
       case 'zone-point':
         return (
           typeof event.czWon === 'boolean' &&
-          (event.color === null || KOKAKU_ZONE_COLORS.includes(event.color))
+          (event.color === null || KOKAKU_ZONE_COLORS.includes(event.color)) &&
+          // game は後から足した項目。旧データは未入力として通す
+          (event.game == null || Number.isFinite(event.game))
         );
       case 'screen':
         return KOKAKU_SCREENS.some((s) => s.id === event.screen);

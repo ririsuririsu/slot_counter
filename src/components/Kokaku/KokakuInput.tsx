@@ -540,21 +540,30 @@ function ZoneForm({
         {isTachikoma
           ? 'タチコマSAMゾーン。殲滅ZONEではないのでモード推測には使いません。'
           : cell.unreached
-            ? 'ここは「まだ到達していない」扱いです。ゾーンが出たなら記録、出ずに通過しただけなら「ここまで通過」を押してください。'
-            : 'ここは「通過したが非当選」として観測に入っています。'}
+            ? 'ここはまだ「未観測」です。殲滅ZONEに行かなかったなら下のボタンで記録してください。空欄のままだと観測に入りません。'
+            : 'ここは「殲滅ZONEに行かなかった」として観測に入っています。'}
       </p>
 
-      {/* セルのタップだけで到達Gを伸ばせるようにする（ゲーム数カウンターを回さない運用） */}
-      {!cell.occurred && (
+      {/*
+        セルのタップだけで「行かなかった」を記録できるようにする。
+        実体は到達Gを伸ばすことなので、手前の規定G数もまとめて非当選になる
+        （そのG数に到達した以上、手前は必ず通過しているため）。
+      */}
+      {!cell.occurred && !isTachikoma && (
         <button
           type="button"
           className={cell.unreached ? styles.primary : styles.cancel}
           onClick={() => onSetReached(cell.game)}
         >
           {cell.unreached
-            ? `${cell.game}Gまで通過（非当選）`
-            : `到達Gをここまで戻す（現在 ${reachedGame}G）`}
+            ? `${cell.game}G は殲滅ZONEに行かなかった`
+            : `記録済み。ここより後を未観測に戻す（現在 ${reachedGame}G）`}
         </button>
+      )}
+      {!cell.occurred && cell.unreached && (
+        <p className={styles.hint}>
+          ※{cell.game}Gより手前の規定G数も、まとめて「行かなかった」になります。
+        </p>
       )}
 
       {!isTachikoma && (
@@ -619,12 +628,15 @@ function PointForm({
 }) {
   const [color, setColor] = useState<KokakuZoneColor | null>(null);
   const [czWon, setCzWon] = useState(false);
+  const [game, setGame] = useState(row.reachedGame);
 
   return (
     <div className={styles.form}>
       <p className={styles.hint}>
         殲滅ポイント（撃破数）契機の殲滅ZONE。規定ゲーム数のゾーンではないので
-        モード推測の尤度には入れません。色別のCZ当選率には数えます。
+        「どのG数で当選したか」はモード推測に使いません。
+        ただし<b>ゲーム数を入れると到達Gが伸び</b>、そこまでの規定G数ゾーンが
+        「行かなかった」という観測になります。色別のCZ当選率にも数えます。
       </p>
 
       {row.pointCells.length > 0 && (
@@ -632,6 +644,7 @@ function PointForm({
           {row.pointCells.map((pc) => (
             <li key={pc.eventIndex}>
               <span>
+                {pc.game != null ? `${pc.game}G ` : 'G数未入力 '}
                 {pc.color ? KOKAKU_COLOR_LABEL[pc.color] : '色未入力'}
                 {pc.czWon ? ' → CZ当選' : ' → 非当選'}
               </span>
@@ -639,6 +652,7 @@ function PointForm({
                 type="button"
                 onClick={() => onUpdate(pc.eventIndex, {
                   type: 'zone-point',
+                  game: pc.game,
                   color: pc.color,
                   czWon: !pc.czWon,
                 })}
@@ -652,6 +666,22 @@ function PointForm({
           ))}
         </ul>
       )}
+
+      <label className={styles.fieldLabel}>
+        発生したゲーム数
+        <span className={styles.sub}>
+          ここまでの規定G数ゾーンを「行かなかった」として観測に入れます
+        </span>
+      </label>
+      <input
+        className={styles.numberInput}
+        type="number"
+        inputMode="numeric"
+        min={0}
+        max={KOKAKU_AT_CEILING}
+        value={game}
+        onChange={(e) => setGame(Math.max(0, Number(e.target.value) || 0))}
+      />
 
       <label className={styles.fieldLabel}>マスの色</label>
       <ColorPicker value={color} onChange={setColor} />
@@ -677,7 +707,7 @@ function PointForm({
         type="button"
         className={styles.primary}
         onClick={() => {
-          onAdd({ type: 'zone-point', color, czWon });
+          onAdd({ type: 'zone-point', game: game > 0 ? game : null, color, czWon });
           onClose();
         }}
       >
@@ -788,7 +818,7 @@ function EndForm({
       <label className={styles.fieldLabel}>
         終了時のゲーム数
         <span className={styles.sub}>
-          未当選で打ち切った場合、このG数までの非当選が観測として効きます
+          このG数までの規定G数ゾーンが「行かなかった」という観測になります
         </span>
       </label>
       <input
@@ -800,6 +830,16 @@ function EndForm({
         value={endGame}
         onChange={(e) => setEndGame(Math.max(0, Number(e.target.value) || 0))}
       />
+      {/*
+        0のまま締めると観測が1つも残らず、そのサイクルはモード推測に効かない。
+        気づかずに締めると情報が黙って消えるので明示する。
+      */}
+      {endGame <= 0 && (
+        <p className={styles.warn}>
+          ！0Gのまま締めると、このサイクルは観測が無い扱いになりモード推測に効きません。
+          何G回したか入れてください。
+        </p>
+      )}
 
       {/*
         モードはサイクル終了時に引き直されるので、終了時に出た画面／そのあとの裏コマンドは

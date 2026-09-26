@@ -123,7 +123,14 @@ function resolveReachedGame(
   end: KokakuCycleEndEvent | null,
   currentGame: number
 ): number {
-  const recorded = draft.zoneEvents.reduce((max, z) => Math.max(max, z.game), 0);
+  // 規定G数のゾーン・タチコマゾーン・殲滅ポイント契機のゾーンは、
+  // いずれも「そのG数まで回した」証拠になる。
+  // pt契機を数えないと、220Gでpt契機だけ引いたサイクルの到達Gが0のままになり、
+  // そこまでの非当選が観測から丸ごと落ちる。
+  const recorded = Math.max(
+    draft.zoneEvents.reduce((max, z) => Math.max(max, z.game), 0),
+    draft.pointCells.reduce((max, p) => Math.max(max, p.game ?? 0), 0)
+  );
   const base = end ? end.endGame : currentGame;
   return Math.max(recorded, Number.isFinite(base) ? base : 0);
 }
@@ -171,7 +178,12 @@ export function buildKokakuGrid(events: KokakuEvent[], currentGame: number): Kok
         });
         break;
       case 'zone-point':
-        draft.pointCells.push({ color: event.color, czWon: event.czWon, eventIndex });
+        draft.pointCells.push({
+          game: event.game ?? null,
+          color: event.color,
+          czWon: event.czWon,
+          eventIndex,
+        });
         break;
       case 'screen':
         draft.screens.push({ screen: event.screen, occasion: event.occasion, eventIndex });

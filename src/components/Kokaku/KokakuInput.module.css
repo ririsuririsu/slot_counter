@@ -132,6 +132,15 @@
   cursor: pointer;
 }
 
+.warn {
+  padding: var(--spacing-sm);
+  background: rgba(255, 159, 10, 0.14);
+  border-radius: var(--radius-sm);
+  color: var(--apple-orange, #ff9f0a);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
 .conflictNote {
   padding: var(--spacing-sm);
   background: rgba(255, 159, 10, 0.14);
