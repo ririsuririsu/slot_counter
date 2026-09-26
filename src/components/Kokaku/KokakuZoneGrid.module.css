@@ -1,0 +1,367 @@
+.scroller {
+  overflow-x: auto;
+  margin-bottom: var(--spacing-sm);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+
+.grid {
+  border-collapse: separate;
+  border-spacing: 2px;
+  width: max-content;
+  min-width: 100%;
+}
+
+.corner,
+.colHead,
+.colHeadWide {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-sm);
+  vertical-align: bottom;
+}
+
+/*
+  左端のCZ列は sticky で固定する。背景を敷かないと、横スクロールした
+  セルが下に透けて読めなくなる。border-spacing の2px の隙間も box-shadow で塞ぐ。
+*/
+.corner {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  width: 52px;
+  padding: var(--spacing-xs);
+  background: var(--color-surface-elevated);
+  box-shadow: 2px 0 0 2px var(--color-surface), 6px 0 8px rgba(0, 0, 0, 0.45);
+}
+
+.colHead {
+  min-width: 46px;
+  padding: 3px 2px;
+  white-space: nowrap;
+}
+
+/* サムネイルを2枚並べても収まる幅 */
+.colHeadWide {
+  min-width: 128px;
+  padding: 3px var(--spacing-xs);
+  white-space: nowrap;
+}
+
+.colGame {
+  display: block;
+  font-variant-numeric: tabular-nums;
+}
+
+.colNote,
+.colCeiling {
+  display: block;
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.colNote {
+  color: var(--color-text-tertiary);
+}
+
+.colCeiling {
+  color: var(--apple-red, #ff453a);
+  font-weight: 700;
+}
+
+/* タチコマSAMゾーンは殲滅ZONEではないのでモード推測に使わない */
+.colTachikoma {
+  background: rgba(90, 200, 250, 0.18);
+}
+
+/* どのモードでも抽選が無いゲーム数 */
+.colDead {
+  opacity: 0.45;
+}
+
+.rowHeadCell {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 52px;
+  padding: 0;
+  background: var(--color-surface);
+  box-shadow: 2px 0 0 2px var(--color-surface), 6px 0 8px rgba(0, 0, 0, 0.45);
+}
+
+.rowHead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 100%;
+  min-height: 34px;
+  padding: 2px;
+  background: var(--color-surface-elevated);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rowNum {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.rowKind {
+  font-size: 9px;
+  line-height: 1;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.rowHeadReset {
+  background: rgba(90, 200, 250, 0.22);
+  border-color: #5ac8fa;
+}
+
+.rowHeadReset .rowKind {
+  color: #5ac8fa;
+  font-weight: 700;
+}
+
+.cell,
+.cellWide,
+.cellUnreached,
+.cellDead {
+  height: 34px;
+  padding: 0;
+  text-align: center;
+}
+
+.cellUnreached,
+.cellDead {
+  border-radius: var(--radius-sm);
+}
+
+.cellUnreached {
+  background: rgba(120, 120, 128, 0.1);
+}
+
+/* 抽選なしのゲーム数。タップしても意味がないので枠だけ残す */
+.cellDead {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(120, 120, 128, 0.1),
+    rgba(120, 120, 128, 0.1) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+.dash {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+}
+
+.cellBtn {
+  display: block;
+  width: 100%;
+  min-height: 34px;
+  padding: 0;
+  background: rgba(120, 120, 128, 0.18);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 通過したが非当選。入力ゼロでそのまま観測になる */
+.cellBtnMiss {
+  background: transparent;
+  border-color: rgba(120, 120, 128, 0.28);
+}
+
+/* まだ到達していない。タップすればここまで到達したことにできる */
+.cellBtnUnreached {
+  background: rgba(120, 120, 128, 0.08);
+  border-color: transparent;
+}
+
+.cellSelected {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.6);
+}
+
+.miss {
+  display: block;
+  padding: 4px 2px;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+  line-height: 1.2;
+}
+
+.chip {
+  display: block;
+  padding: 5px 2px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.won {
+  margin-left: 1px;
+  font-size: 10px;
+}
+
+.ptChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  justify-content: center;
+  padding: 2px;
+}
+
+.ptChip {
+  padding: 1px 3px;
+  border-radius: 3px;
+  background: rgba(120, 120, 128, 0.3);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.endBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  width: 100%;
+  min-height: 34px;
+  padding: 3px var(--spacing-xs);
+  background: rgba(120, 120, 128, 0.14);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.endLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.conflict {
+  margin-left: 3px;
+  color: var(--apple-orange, #ff9f0a);
+  font-weight: 800;
+}
+
+/* セル内の画面サムネイル。出現場面のタグを左下に重ねる */
+.screenThumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.screenThumb {
+  display: block;
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid transparent;
+  border-radius: 3px;
+  background: rgba(120, 120, 128, 0.3);
+  overflow: hidden;
+}
+
+.screenThumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbFallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 実機の枠色。画像が無いときはこの色だけが手掛かりになる */
+.thumbFrame_default {
+  border-color: rgba(48, 209, 88, 0.7);
+}
+
+.thumbFrame_red {
+  border-color: #ff453a;
+}
+
+.thumbFrame_purple {
+  border-color: #bf5af2;
+}
+
+.thumbFrame_gold {
+  border-color: #ffd60a;
+}
+
+.thumbFrame_default .thumbFallback {
+  background: rgba(48, 209, 88, 0.35);
+}
+
+.thumbFrame_red .thumbFallback {
+  background: rgba(255, 69, 58, 0.4);
+}
+
+.thumbFrame_purple .thumbFallback {
+  background: rgba(191, 90, 242, 0.4);
+}
+
+.thumbFrame_gold .thumbFallback {
+  background: rgba(255, 214, 10, 0.4);
+}
+
+.thumbTag {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 0 2px;
+  border-radius: 3px 0 0 0;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.modeChip {
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  white-space: nowrap;
+}
+
+.activeRow .rowHead:not(.rowHeadReset) {
+  background: var(--apple-orange, #ff9f0a);
+  color: #1c1c1e;
+}
+
+.activeRow .rowHead:not(.rowHeadReset) .rowKind {
+  color: rgba(28, 28, 30, 0.7);
+}

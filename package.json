@@ -9,6 +9,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test:kabaneri": "node --test tests/kabaneri.test.cjs",
+    "test:kokaku": "node --test tests/kokaku.test.cjs",
+    "test": "node --test tests/kabaneri.test.cjs tests/kokaku.test.cjs",
     "preview": "vite preview"
   },
   "dependencies": {

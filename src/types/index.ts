@@ -2,12 +2,14 @@ import type { HokutoSession, HokutoLog } from './hokuto';
 import type { DenshoHelperState } from './densho';
 import type { KabaneriCounterState, KabaneriCzEvent } from './kabaneri';
 import type { MonhanRiseCounterState, MonhanRiseEvent } from './monhanRise';
+import type { KokakuEvent } from './kokaku';
 
 // Re-export all hokuto types
 export * from './hokuto';
 export * from './densho';
 export * from './kabaneri';
 export * from './monhanRise';
+export * from './kokaku';
 
 // ========================================
 // 共通
@@ -17,7 +19,8 @@ export type MachineType =
   | 'monkey-turn-v'
   | 'hokuto-tensei2'
   | 'kabaneri'
-  | 'monhan-rise';
+  | 'monhan-rise'
+  | 'kokaku';
 
 interface BaseMachine {
   id: string;
@@ -130,6 +133,26 @@ export interface MonhanRiseMachine extends BaseMachine {
 }
 
 // ========================================
+// スマスロ 攻殻機動隊
+// ========================================
+
+export interface KokakuMachine extends BaseMachine {
+  machineType: 'kokaku';
+  /**
+   * 殲滅ZONE・CZ・AT・終了画面の観測イベント列。
+   * 順序が意味を持つ（サイクルの区切りとモード抽選テーブルの切り替え）ため配列のまま保持する。
+   * サイクル回数・ゾーン回数は events から導出し、フィールドには持たない。
+   * 詳細仕様は docs/kokaku-spec.md を参照。
+   */
+  events: KokakuEvent[];
+  /**
+   * 液晶の現在ゲーム数。進行中サイクルで「どの列まで到達したか」を決めるのに必須。
+   * モンハンライズと違い、この機種はゲーム数が主観測になる。
+   */
+  currentGame: number;
+}
+
+// ========================================
 // 判別共用体
 // ========================================
 
@@ -137,7 +160,8 @@ export type Machine =
   | MonkeyTurnMachine
   | HokutoMachine
   | KabaneriMachine
-  | MonhanRiseMachine;
+  | MonhanRiseMachine
+  | KokakuMachine;
 
 // 設定確率データ
 export interface SettingProbability {

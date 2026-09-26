@@ -31,3 +31,11 @@ dist-ssr
 
 .vercel
 .env*.local
+
+.vercel
+.env*.local
+
+# 攻殻機動隊の画面キャプチャ元データ。public/kokaku-screens/*.webp へ変換済み
+extracted_images/
+extracted_images.zip
+extracted_images_preview.jpg

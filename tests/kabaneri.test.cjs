@@ -58,7 +58,7 @@ function load(source) {
 }
 const { calculateSelectedKabaneriAnalyses, calculateBellAnalysis, calculateFlashAnalysis } = load('src/utils/kabaneriEstimation.ts');
 const { DEFAULT_KABANERI_ANALYSIS_TARGETS: off, mumeiIkomaFlashRates, kabaneFlashRates } = load('src/data/kabaneriDefinitions.ts');
-const { useMachineStore: store } = load('src/stores/machineStore.ts');
+const { useMachineStore: store, STORE_VERSION } = load('src/stores/machineStore.ts');
 const bellOnly = { ...off, bell: true };
 const flashOnly = { ...off, mumeiIkoma: true };
 const bothFlashes = { ...off, mumeiIkoma: true, kabane: true };
@@ -195,7 +195,8 @@ test('version 9の旧発光率選択は両軸へ移行し、明示オフも保�
   await store.persist.rehydrate();
   assert.deepEqual(store.getState().kabaneriAnalysisTargets.on, { bell: true, mumeiIkoma: true, kabane: true });
   assert.deepEqual(store.getState().kabaneriAnalysisTargets.off, off);
-  assert.equal(JSON.parse(storage.get('slot-counter-storage')).version, 11);
+  // 機種追加のたびに壊れないよう、ストアが持つ現在の版と突き合わせる
+  assert.equal(JSON.parse(storage.get('slot-counter-storage')).version, STORE_VERSION);
 });
 
 test('新規記録は旧記録を保持し、画面移動に関係なく旧・新IDをクラウドに送る', async () => {

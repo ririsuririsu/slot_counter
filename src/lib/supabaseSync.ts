@@ -6,9 +6,11 @@ import type {
   KabaneriMachine,
   MonhanRiseMachine,
   MonhanRiseEvent,
+  KokakuMachine,
   HistoryEntry,
   HokutoLog,
 } from '../types';
+import { normalizeKokakuEvents } from '../data/kokakuDefinitions';
 import { createInitialDenshoHelperState } from '../utils/denshoEstimation';
 import { createInitialKabaneriCounters } from '../data/kabaneriDefinitions';
 import { normalizeKabaneriCzEvents } from '../utils/kabaneriCz';
@@ -32,6 +34,10 @@ function isKabaneri(m: Machine): m is KabaneriMachine {
 
 function isMonhanRise(m: Machine): m is MonhanRiseMachine {
   return m.machineType === 'monhan-rise';
+}
+
+function isKokaku(m: Machine): m is KokakuMachine {
+  return m.machineType === 'kokaku';
 }
 
 // ========================================
@@ -58,6 +64,8 @@ export async function upsertMachine(machine: Machine) {
     await upsertKabaneriState(machine);
   } else if (isMonhanRise(machine)) {
     await upsertMonhanRiseState(machine);
+  } else if (isKokaku(machine)) {
+    await upsertKokakuState(machine);
   }
 }
 
@@ -107,6 +115,20 @@ async function upsertMonhanRiseState(machine: MonhanRiseMachine) {
   await supabase.from('monhan_rise_state').upsert({
     machine_id: machine.id,
     counters: machine.counters,
+    events: machine.events,
+    updated_at: new Date(machine.updatedAt).toISOString(),
+  });
+}
+
+// ========================================
+// Kokaku: State（現在G + イベント列）
+// ========================================
+
+async function upsertKokakuState(machine: KokakuMachine) {
+  if (!supabase) return;
+  await supabase.from('kokaku_state').upsert({
+    machine_id: machine.id,
+    current_game: machine.currentGame,
     events: machine.events,
     updated_at: new Date(machine.updatedAt).toISOString(),
   });
@@ -221,10 +243,35 @@ export async function loadAllMachines(): Promise<Machine[] | null> {
     } else if (row.machine_type === 'monhan-rise') {
       const machine = await loadMonhanRiseMachine(row);
       if (machine) machines.push(machine);
+    } else if (row.machine_type === 'kokaku') {
+      const machine = await loadKokakuMachine(row);
+      if (machine) machines.push(machine);
     }
   }
 
   return machines;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function loadKokakuMachine(row: any): Promise<KokakuMachine | null> {
+  if (!supabase) return null;
+
+  const { data: stateRow } = await supabase
+    .from('kokaku_state')
+    .select('*')
+    .eq('machine_id', row.id)
+    .single();
+
+  return {
+    id: row.id,
+    machineType: 'kokaku',
+    name: row.name,
+    number: row.number || '',
+    createdAt: new Date(row.created_at).getTime(),
+    updatedAt: new Date(row.updated_at).getTime(),
+    events: normalizeKokakuEvents(stateRow?.events),
+    currentGame: stateRow?.current_game || 0,
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
