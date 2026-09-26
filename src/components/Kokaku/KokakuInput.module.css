@@ -1,0 +1,467 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+/* --- 現在G --- */
+
+.topBar {
+  display: flex;
+  align-items: stretch;
+  gap: var(--spacing-sm);
+}
+
+.gameBtn {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-surface-elevated);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.gameLabel {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.gameSub {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+}
+
+.gameValue {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.editIcon {
+  margin-left: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+}
+
+/* --- 推定モードと次ゾーン --- */
+
+.outlook {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+
+.outlookHead {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.modeBars {
+  display: flex;
+  flex: 1;
+  gap: 2px;
+  height: 30px;
+}
+
+.modeBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4px;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.outlookRow {
+  display: flex;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+}
+
+.outlookItem {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 3px 2px;
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.outlookCeiling {
+  color: var(--apple-red, #ff453a);
+  font-weight: 800;
+}
+
+.outlookEmpty,
+.outlookNote {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.closeCycleBtn {
+  padding: var(--spacing-sm);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.conflictNote {
+  padding: var(--spacing-sm);
+  background: rgba(255, 159, 10, 0.14);
+  border-radius: var(--radius-sm);
+  color: var(--apple-orange, #ff9f0a);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+/* --- 終了画面・裏コマンド --- */
+
+.screenSection {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+
+.screenToggle {
+  width: 100%;
+  padding: var(--spacing-sm);
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.screenPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: 0 var(--spacing-sm) var(--spacing-sm);
+}
+
+.contextRow,
+.toggleRow {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+/* 出現場面は4択。390px幅では1行に並ばないので2列に折り返す */
+.occasionRow {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-xs);
+}
+
+.occasionBtn {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-surface-elevated);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.contextBtn,
+.toggleBtn {
+  flex: 1;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-surface-elevated);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.contextBtn {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.contextName {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.contextSub {
+  font-size: 9px;
+  line-height: 1.3;
+  color: var(--color-text-tertiary);
+}
+
+.contextSelected,
+.toggleSelected {
+  border-color: var(--color-primary, #0a84ff);
+  font-weight: 700;
+}
+
+.screenList {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-xs);
+}
+
+/* 画面選択のカード。画像があればサムネイル、無ければ枠色つきの文字カード */
+.screenCard {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0 0 var(--spacing-xs);
+  background: var(--color-surface-elevated);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+/* 実機の枠色に合わせる。画像が無くても強さが一目で分かるように */
+.frame_default {
+  border-color: rgba(48, 209, 88, 0.55);
+}
+
+.frame_red {
+  border-color: #ff453a;
+}
+
+.frame_purple {
+  border-color: #bf5af2;
+}
+
+.frame_gold {
+  border-color: #ffd60a;
+  box-shadow: inset 0 0 12px rgba(255, 214, 10, 0.25);
+}
+
+/* 締めと同時に記録する「終了時の画面」の選択状態 */
+.screenCardSelected {
+  outline: 3px solid var(--color-primary, #0a84ff);
+  outline-offset: 1px;
+}
+
+.screenCardSelected .screenName::before {
+  content: '✓ ';
+  color: var(--color-primary, #0a84ff);
+}
+
+/* キャプチャは実機画面そのままのほぼ正方形（250x241）。
+   枠の色が示唆そのものなので、切らずに全体を見せる */
+.screenThumb {
+  display: block;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: rgba(120, 120, 128, 0.16);
+  overflow: hidden;
+}
+
+.screenThumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.screenThumbFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: var(--spacing-xs);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.screenName {
+  padding: 0 var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.screenHint {
+  padding: 0 var(--spacing-xs);
+  font-size: 10px;
+  line-height: 1.3;
+  color: var(--color-text-tertiary);
+}
+
+/* --- モーダル内のフォーム --- */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.fieldLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.sub {
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--color-text-tertiary);
+}
+
+.hint {
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+  color: var(--color-text-tertiary);
+}
+
+.colorRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.colorBtn {
+  flex: 1 0 52px;
+  padding: var(--spacing-xs);
+  white-space: nowrap;
+  background: var(--color-surface-elevated);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.colorSelected {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+.presetList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.presetBtn {
+  padding: var(--spacing-sm);
+  background: var(--color-surface-elevated);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.presetSelected {
+  border-color: var(--color-primary, #0a84ff);
+  font-weight: 700;
+}
+
+.numberInput {
+  padding: var(--spacing-sm);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.recordList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recordList li {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+}
+
+.recordList li span {
+  flex: 1;
+}
+
+.recordList li button {
+  padding: 2px var(--spacing-xs);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.primary,
+.danger,
+.cancel {
+  padding: var(--spacing-sm);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary {
+  background: var(--color-primary, #0a84ff);
+  color: #fff;
+}
+
+.danger {
+  background: rgba(255, 69, 58, 0.16);
+  color: var(--apple-red, #ff453a);
+}
+
+.cancel {
+  background: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+}

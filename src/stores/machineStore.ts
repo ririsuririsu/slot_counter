@@ -14,6 +14,9 @@ import type {
   MonhanRiseMachine,
   MonhanRiseEvent,
   MonhanRiseEventInput,
+  KokakuMachine,
+  KokakuEvent,
+  KokakuEventInput,
   MachineType,
   HistoryEntry,
   SettingAnalysis,
@@ -33,6 +36,7 @@ import {
   WEAK_RARE_KEY,
   RIZE_ZONE_KEY,
 } from '../data/monhanRiseDefinitions';
+import { normalizeKokakuEvents } from '../data/kokakuDefinitions';
 import { calculateSettingProbabilities } from '../utils/binomialDistribution';
 import {
   createInitialDenshoHelperState,
@@ -51,6 +55,13 @@ import {
   syncAllMachines,
   loadAllMachines,
 } from '../lib/supabaseSync';
+
+/**
+ * localStorage のスキーマ版。**バージョンを上げるときは migrate の分岐を同じ変更で書くこと。**
+ * 2回に分けると、dev サーバー稼働中の HMR が分岐の無い新バージョンを先に刻んでしまい、
+ * その端末では二度と移行が走らなくなる（v7 で実際に起きた。v8 の分岐コメント参照）。
+ */
+export const STORE_VERSION = 13;
 
 // ========================================
 // 型ガード
@@ -72,9 +83,18 @@ export function isMonhanRiseMachine(m: Machine): m is MonhanRiseMachine {
   return m.machineType === 'monhan-rise';
 }
 
+export function isKokakuMachine(m: Machine): m is KokakuMachine {
+  return m.machineType === 'kokaku';
+}
+
 /**
- * ゲーム数を持つ機種のゲーム数を返す。
+ * セッション通算のゲーム数を返す。`updateTotalGames` と対になる getter。
+ *
  * モンハンライズは4軸のいずれもゲーム数を使わないため totalGames を持たない。
+ * **攻殻機動隊もここには含めない。** あちらの `currentGame` はサイクル内の
+ * 液晶G数で通算ではなく、専用の `updateKokakuCurrentGame` で書く。
+ * ここで読めるようにすると setter と非対称になり、
+ * GameInputModal から読めて書けない状態になる。
  */
 export function getMachineTotalGames(m: Machine | null): number {
   if (!m) return 0;
@@ -172,6 +192,14 @@ interface MachineStore {
   // MonhanRise: Reset
   resetMonhanRiseMachine: () => void;
 
+  // Kokaku: 現在ゲーム数・イベント列
+  updateKokakuCurrentGame: (game: number) => void;
+  addKokakuEvent: (input: KokakuEventInput) => void;
+  insertKokakuEventAt: (index: number, input: KokakuEventInput) => void;
+  updateKokakuEventAt: (index: number, input: KokakuEventInput) => void;
+  deleteKokakuEventAt: (index: number) => void;
+  resetKokakuMachine: () => void;
+
   // Supabase同期
   syncToSupabase: () => Promise<void>;
   loadFromSupabase: () => Promise<boolean>;
@@ -243,11 +271,25 @@ function createNewMonhanRiseMachine(name: string): MonhanRiseMachine {
   };
 }
 
+function createNewKokakuMachine(name: string): KokakuMachine {
+  return {
+    id: uuidv4(),
+    machineType: 'kokaku',
+    name,
+    number: '',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    events: [],
+    currentGame: 0,
+  };
+}
+
 const MACHINE_FACTORIES: Record<MachineType, (name: string) => Machine> = {
   'monkey-turn-v': createNewMonkeyTurnMachine,
   'hokuto-tensei2': createNewHokutoMachine,
   kabaneri: createNewKabaneriMachine,
   'monhan-rise': createNewMonhanRiseMachine,
+  kokaku: createNewKokakuMachine,
 };
 
 // ========================================
@@ -1024,6 +1066,98 @@ export const useMachineStore = create<MachineStore>()(
         syncCurrentMachine(get);
       },
 
+      // --- Kokaku: 現在G・イベント列 ---
+      // 順序がモード抽選テーブルの切り替えを決めるため、
+      // 追加は末尾または明示した添字、削除は添字指定のみを許す。
+
+      updateKokakuCurrentGame: (game: number) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isKokakuMachine(m)) return m;
+            return { ...m, currentGame: Math.max(0, Math.floor(game)), updatedAt: Date.now() };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      addKokakuEvent: (input: KokakuEventInput) => {
+        const event = { ...input, id: uuidv4(), timestamp: Date.now() } as KokakuEvent;
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isKokakuMachine(m)) return m;
+            return {
+              ...m,
+              events: [...m.events, event],
+              // サイクルを締めると通常時のゲーム数は0に戻る。
+              // 締めた行の到達Gは cycle-end.endGame に残るので観測は失われない。
+              // 途中の行を訂正する updateKokakuEventAt では現在Gを触らない。
+              currentGame: event.type === 'cycle-end' ? 0 : m.currentGame,
+              updatedAt: event.timestamp,
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      insertKokakuEventAt: (index: number, input: KokakuEventInput) => {
+        const event = { ...input, id: uuidv4(), timestamp: Date.now() } as KokakuEvent;
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isKokakuMachine(m)) return m;
+            const at = Math.max(0, Math.min(index, m.events.length));
+            return {
+              ...m,
+              events: [...m.events.slice(0, at), event, ...m.events.slice(at)],
+              updatedAt: event.timestamp,
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      // 値の訂正。id と時刻は元のまま残す
+      updateKokakuEventAt: (index: number, input: KokakuEventInput) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isKokakuMachine(m)) return m;
+            const current = m.events[index];
+            if (!current) return m;
+            const next = { ...input, id: current.id, timestamp: current.timestamp } as KokakuEvent;
+            return {
+              ...m,
+              events: m.events.map((e, i) => (i === index ? next : e)),
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      deleteKokakuEventAt: (index: number) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isKokakuMachine(m)) return m;
+            if (index < 0 || index >= m.events.length) return m;
+            return {
+              ...m,
+              events: m.events.filter((_, i) => i !== index),
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      resetKokakuMachine: () => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isKokakuMachine(m)) return m;
+            return { ...m, events: [], currentGame: 0, updatedAt: Date.now() };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
       // --- Supabase同期 ---
 
       syncToSupabase: async () => {
@@ -1043,7 +1177,7 @@ export const useMachineStore = create<MachineStore>()(
     }),
     {
       name: 'slot-counter-storage',
-      version: 11,
+      version: STORE_VERSION,
       partialize: (state) => {
         // currentMachineId を永続化しない → 常にTOP画面から開始
         return { ...state, currentMachineId: undefined };
@@ -1161,6 +1295,19 @@ export const useMachineStore = create<MachineStore>()(
           state.machines = state.machines.map((m: Record<string, unknown>) => m.machineType !== 'kabaneri' ? m : ({
             ...m, czEvents: normalizeKabaneriCzEvents(m.czEvents),
           }));
+        }
+        if (version < 13 && state.machines) {
+          // v12 で攻殻機動隊を追加。v13 では画面イベントの `context`（カタログ）を
+          // `occasion`（どの場面で見たか）へ読み替える。
+          // normalizeKokakuEvents が両方を面倒見るので、まとめて1回流せばよい。
+          state.machines = state.machines.map((m: Record<string, unknown>) => {
+            if (m.machineType !== 'kokaku') return m;
+            return {
+              ...m,
+              events: normalizeKokakuEvents(m.events),
+              currentGame: typeof m.currentGame === 'number' ? m.currentGame : 0,
+            };
+          });
         }
         return state;
       },

@@ -7,11 +7,13 @@ import { CounterList } from './components/Counter/CounterList';
 import { HokutoMain } from './components/Hokuto/HokutoMain';
 import { KabaneriMain } from './components/Kabaneri/KabaneriMain';
 import { MonhanRiseMain } from './components/MonhanRise/MonhanRiseMain';
+import { KokakuMain } from './components/Kokaku/KokakuMain';
 import {
   useMachineStore,
   isHokutoMachine,
   isKabaneriMachine,
   isMonhanRiseMachine,
+  isKokakuMachine,
 } from './stores/machineStore';
 import { initializeStore } from './stores/machineStore';
 import './styles/global.css';
@@ -45,11 +47,13 @@ function App() {
   const isHokuto = isHokutoMachine(currentMachine);
   const isKabaneri = isKabaneriMachine(currentMachine);
   const isMonhanRise = isMonhanRiseMachine(currentMachine);
+  const isKokaku = isKokakuMachine(currentMachine);
 
   const renderMachineView = () => {
     if (isHokuto) return <HokutoMain />;
     if (isKabaneri) return <KabaneriMain />;
     if (isMonhanRise) return <MonhanRiseMain />;
+    if (isKokaku) return <KokakuMain />;
     return <MonkeyTurnView />;
   };
 

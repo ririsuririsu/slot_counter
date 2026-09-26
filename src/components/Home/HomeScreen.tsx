@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMachineStore } from '../../stores/machineStore';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { supabase } from '../../lib/supabase';
-import type { Machine, MachineType, MonkeyTurnMachine, HokutoMachine, KabaneriMachine, MonhanRiseMachine } from '../../types';
+import type { Machine, MachineType, MonkeyTurnMachine, HokutoMachine, KabaneriMachine, MonhanRiseMachine, KokakuMachine } from '../../types';
 import { fiveCardIds } from '../../data/koyakuDefinitions';
 import { chanceDefinitions, GEDAN_BELL_KEY } from '../../data/kabaneriDefinitions';
 import { WEAK_RARE_KEY } from '../../data/monhanRiseDefinitions';
@@ -13,6 +13,7 @@ const MACHINE_TYPES: { type: MachineType; label: string; sub: string }[] = [
   { type: 'hokuto-tensei2', label: '北斗の拳 転生の章2', sub: 'ログ＆設定推測' },
   { type: 'kabaneri', label: 'カバネリ海門決戦', sub: 'チャンス目発光＆下段ベル' },
   { type: 'monhan-rise', label: 'モンハンライズ', sub: 'だるま落とし＆4軸設定推測' },
+  { type: 'kokaku', label: '攻殻機動隊', sub: '殲滅ZONE履歴＆殲滅モード推測' },
 ];
 
 const TYPE_COLORS: Record<MachineType, string> = {
@@ -20,6 +21,7 @@ const TYPE_COLORS: Record<MachineType, string> = {
   'hokuto-tensei2': 'var(--apple-red)',
   'kabaneri': 'var(--apple-green)',
   'monhan-rise': 'var(--apple-orange)',
+  'kokaku': 'var(--apple-purple, #bf5af2)',
 };
 
 function getMachineSummary(m: Machine): string {
@@ -53,6 +55,16 @@ function getMachineSummary(m: Machine): string {
     if (daruma > 0 || at > 0) return `だるま ${daruma}回 / AT ${at}回`;
     const weakRare = mr.counters[WEAK_RARE_KEY] ?? 0;
     if (weakRare > 0) return `弱レア役 ${weakRare}回`;
+    return 'データなし';
+  }
+  if (m.machineType === 'kokaku') {
+    const kk = m as KokakuMachine;
+    const cycles = kk.events.filter((e) => e.type === 'cycle-end').length;
+    const zones = kk.events.filter(
+      (e) => e.type === 'zone' || e.type === 'zone-point' || e.type === 'tachikoma-zone'
+    ).length;
+    if (cycles > 0 || zones > 0) return `CZ ${cycles}回 / 殲滅ZONE ${zones}回`;
+    if (kk.currentGame > 0) return `${kk.currentGame}G`;
     return 'データなし';
   }
   const hk = m as HokutoMachine;
