@@ -115,10 +115,16 @@ export interface KokakuTachikomaZoneEvent {
 
 /**
  * 殲滅ポイント（撃破数）契機の殲滅ZONE。規定ゲーム数ゾーンではないため
- * **モード推測の尤度には入れない**。
+ * **モード推測の出力（どのG数で当選したか）には使わない**。
+ *
+ * ただし `game` は到達Gに効く。220Gでpt契機のゾーンに入ったなら
+ * 50/100/150/200G は素通りした＝非当選、という観測がそこから取れる。
+ * これが無いと到達Gが0のままになり、そのサイクルの情報が丸ごと消える。
  */
 export interface KokakuZonePointEvent {
   type: 'zone-point';
+  /** 発生したときの通常時ゲーム数。null は未入力（到達Gに寄与しない） */
+  game: number | null;
   color: KokakuZoneColor | null;
   czWon: boolean;
 }
@@ -211,6 +217,8 @@ export interface KokakuZoneCell {
 
 /** 殲滅ポイント契機のゾーン（グリッド右端のpt列） */
 export interface KokakuPointCell {
+  /** 発生したときのゲーム数。到達Gに効く */
+  game: number | null;
   color: KokakuZoneColor | null;
   czWon: boolean;
   eventIndex: number;

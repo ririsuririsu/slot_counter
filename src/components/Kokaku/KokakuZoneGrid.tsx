@@ -211,6 +211,7 @@ export function KokakuZoneGrid({
                                 : {}
                             }
                           >
+                            {pc.game != null ? `${pc.game}G` : ''}
                             {pc.color ? KOKAKU_COLOR_LABEL[pc.color] : '？'}
                             {pc.czWon && '◎'}
                           </span>

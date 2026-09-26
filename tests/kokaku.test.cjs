@@ -196,6 +196,69 @@ test('CZ天井を超えて未当選ならそのモードは尤度0', () => {
   assert.ok(est.cycleEmission('normalA', deep) > 0, '通常Aだけが残る');
 });
 
+test('殲滅ポイント契機のゾーンのG数が到達Gに効く', () => {
+  // G数ゾーンには一度も行かず、220Gでpt契機だけ引いたサイクル。
+  // pt契機がG数を持たないと到達Gが0のままになり、観測が丸ごと消えてモードが割れない。
+  const events = [
+    ev({ type: 'cycle-start', reset: false }),
+    ev({ type: 'zone-point', game: 220, color: 'red', czWon: true }),
+  ];
+  const [row] = est.buildKokakuGrid(events, 0);
+  assert.equal(row.reachedGame, 220);
+
+  // 50/100/150G は「行かなかった」として観測に入る
+  assert.equal(row.cells.find((c) => c.game === 50).unreached, false);
+  assert.equal(row.cells.find((c) => c.game === 150).unreached, false);
+  assert.equal(row.cells.find((c) => c.game === 250).unreached, true);
+
+  // 220G > 通常Dの天井150 なので通常Dは消え、50G素通りでさらに否定される
+  assert.equal(est.cycleEmission('normalD', row), 0);
+  const [posterior] = est.calculateKokakuModePosteriors(
+    est.buildKokakuGrid(events, 0),
+    new Array(6).fill(1 / 6)
+  );
+  assert.equal(posterior.prior, false, '観測ありとして扱われる');
+  assert.equal(posterior.distribution.normalD, 0);
+  // 通常Cの天井は250Gなので220Gではまだ生きている。
+  // 通常AとCは250Gまで期待度が同一なので、この時点では同じ確率になる
+  assert.ok(posterior.distribution.normalC > 0);
+  assert.ok(
+    Math.abs(posterior.distribution.normalA - posterior.distribution.normalC) < 1e-9,
+    '通常AとCは250Gまで分離できない'
+  );
+});
+
+test('G数未入力のpt契機は到達Gを動かさない（旧データ互換）', () => {
+  const [row] = est.buildKokakuGrid(
+    [ev({ type: 'zone-point', game: null, color: 'red', czWon: true })],
+    0
+  );
+  assert.equal(row.reachedGame, 0);
+  assert.equal(row.pointCells[0].game, null);
+
+  // game を持たない旧形式もそのまま読める
+  const restored = defs.normalizeKokakuEvents([
+    { id: 'a', timestamp: 1, type: 'zone-point', color: 'red', czWon: true },
+  ]);
+  assert.equal(restored.length, 1);
+  assert.equal(est.buildKokakuGrid(restored, 0)[0].pointCells[0].game, null);
+});
+
+test('セルのタップで「行かなかった」を記録すると手前もまとめて観測になる', () => {
+  // 進行中の行は currentGame が到達Gの実体。250Gを「行かなかった」にする＝250Gまで到達
+  const events = [ev({ type: 'cycle-start', reset: false })];
+  const [row] = est.buildKokakuGrid(events, 250);
+
+  for (const g of [50, 100, 150, 250]) {
+    assert.equal(row.cells.find((c) => c.game === g).unreached, false, `${g}Gが観測に入る`);
+  }
+  assert.equal(row.cells.find((c) => c.game === 300).unreached, true);
+
+  // 250Gまで未当選 → 通常C(250天井)・通常D(150天井) は残るが50G素通りでDは消える
+  assert.equal(est.cycleEmission('normalD', row), 0, '50G素通りで通常Dは否定');
+  assert.ok(est.cycleEmission('normalA', row) > 0);
+});
+
 test('タチコマSAMゾーンと殲滅ポイント契機はモード尤度に影響しない', () => {
   const base = est.buildKokakuGrid([zone(50)], 250)[0];
   const withExtras = est.buildKokakuGrid(
