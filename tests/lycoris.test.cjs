@@ -81,7 +81,7 @@ const cz = (game, trigger = 'zone') => ev({ type: 'cz', game, trigger });
 const notice = (game, ceiling) => ev({ type: 'short-notice', game, ceiling });
 const analyze = (events, overrides = {}) =>
   est.calculateLycorisAnalysis({
-    events, bell: 0, weakLycoris: 0, weakLycorisKoukaku: 0, startGame: 0, currentGame: 0, ...overrides,
+    events, bell: 0, weakLycoris: 0, weakLycorisKoukaku: 0, totalGames: 0, startGame: 0, currentGame: 0, ...overrides,
   });
 const axisOf = (analysis, id) => analysis.axes.find((a) => a.id === id);
 const near = (actual, expected, eps = 1e-9) =>
@@ -137,34 +137,38 @@ test('濃厚の制約はすべて設定6を含む（制約どうしの矛盾は�
 });
 
 // ========================================
-// サイクルと通常G数
+// サイクルとグリッド
 // ========================================
 
-test('ATでサイクルが切れ、1行目だけ打ち始めGから数える', () => {
+test('ATでサイクルが切れ、1行目だけ打ち始めGを持つ', () => {
   const events = [cz(30, 'stamp'), at(120), zone(150, 'moved')];
   const cycles = est.buildLycorisCycles(events, 20, 180);
 
   assert.equal(cycles.length, 2);
   assert.equal(cycles[0].startGame, 20);
   assert.equal(cycles[0].reachedGame, 120);
-  assert.equal(cycles[0].normalGames, 100, '打ち始め前の20Gは数えない');
   assert.equal(cycles[0].previousAt, null);
   assert.equal(cycles[0].insertIndex, 1, '過去の行への追記はATの直前');
 
   assert.equal(cycles[1].startGame, 0);
   assert.equal(cycles[1].reachedGame, 180);
-  assert.equal(cycles[1].normalGames, 180);
   assert.equal(cycles[1].previousAt.game, 120);
   assert.equal(cycles[1].active, true);
   assert.equal(cycles[1].insertIndex, 3);
-
-  assert.equal(analyze(events, { startGame: 20, currentGame: 180 }).normalGames, 280);
 });
 
-test('到達Gは記録済みのG数を下回らない（現在Gの更新忘れで通常G数が減らない）', () => {
+test('共通ベル・直撃の分母は手入力のトータルG数（グリッドのG数からは導かない）', () => {
+  const events = [cz(30, 'stamp'), at(120), zone(150, 'moved')];
+  const analysis = analyze(events, { bell: 20, totalGames: 2000, startGame: 20, currentGame: 180 });
+  assert.equal(analysis.totalGames, 2000);
+  assert.equal(axisOf(analysis, 'bell').total, 2000);
+  assert.equal(axisOf(analysis, 'direct').total, 2000);
+  assert.equal(analysis.reference.find((r) => r.id === 'at').total, 2000);
+});
+
+test('到達Gは記録済みのG数を下回らない', () => {
   const cycles = est.buildLycorisCycles([cz(200, 'other')], 0, 0);
   assert.equal(cycles[0].reachedGame, 200);
-  assert.equal(cycles[0].normalGames, 200);
 });
 
 test('記録はG数順に並ぶ（同じGは記録順）', () => {
@@ -205,17 +209,12 @@ test('グリッドは規定G数の固定列と「他」列に分かれる', () =
   assert.deepEqual(row.others.map((o) => o.eventIndex), [2, 3]);
 });
 
-test('打ち始めGより手前で締めても通常G数は負にならない', () => {
-  const cycles = est.buildLycorisCycles([at(100)], 300, 0);
-  assert.equal(cycles[0].normalGames, 0);
-});
-
 // ========================================
 // 共通ベル・直撃
 // ========================================
 
 test('共通ベルは通常G数あたりの二項で尤度を取る', () => {
-  const analysis = analyze([], { bell: 30, currentGame: 3000 });
+  const analysis = analyze([], { bell: 30, totalGames: 3000 });
   const bell = axisOf(analysis, 'bell');
   assert.equal(bell.usable, true);
   for (let s = 0; s < 6; s++) {
@@ -226,14 +225,14 @@ test('共通ベルは通常G数あたりの二項で尤度を取る', () => {
 test('ベルが多ければ高設定に、設定1〜3は同じ確率になる', () => {
   // 1/79.1 ちょうどの頻度。ベルの軸だけを見る
   // （全体の事後には「直撃が0回だった」という直撃の軸も入るので、設定1〜3が揃わない）
-  const { posterior } = axisOf(analyze([], { bell: 120, currentGame: 9492 }), 'bell');
+  const { posterior } = axisOf(analyze([], { bell: 120, totalGames: 9492 }), 'bell');
   assert.ok(posterior.setting6 > posterior.setting5);
   assert.ok(posterior.setting5 > posterior.setting4);
   near(posterior.setting1, posterior.setting3, 1e-9);
 });
 
 test('直撃が0回でも、通常G数が伸びれば高設定がわずかに下がる', () => {
-  const direct = axisOf(analyze([], { currentGame: 6000 }), 'direct');
+  const direct = axisOf(analyze([], { totalGames: 6000 }), 'direct');
   assert.equal(direct.usable, true);
   assert.ok(direct.posterior.setting1 > direct.posterior.setting6);
 });
@@ -243,14 +242,14 @@ test('通常G数が0、またはベルが通常G数を超えるときはベル�
   assert.equal(none.usable, false);
   assert.ok(none.warning);
 
-  const over = axisOf(analyze([], { bell: 50, currentGame: 10 }), 'bell');
+  const over = axisOf(analyze([], { bell: 50, totalGames: 10 }), 'bell');
   assert.equal(over.usable, false);
   assert.ok(over.warning.includes('超えて'));
 });
 
 test('直撃は route=direct のATだけを数える', () => {
   const events = [at(300, { route: 'direct' }), at(200), at(500, { route: 'at-ceiling' })];
-  const direct = axisOf(analyze(events), 'direct');
+  const direct = axisOf(analyze(events, { totalGames: 1000 }), 'direct');
   assert.equal(direct.hit, 1);
   assert.equal(direct.total, 1000);
   near(direct.logLikelihoods[5], binom(1, 1000, 1 / defs.LYCORIS_DIRECT_DENOM[5]));
@@ -489,7 +488,9 @@ test('参考値はAT初当り・CZ・帯の出現率を数える', () => {
     zone(50, 'unknown'), // 判別不能は数えない
     zone(450, 'moved'),
   ];
-  const reference = Object.fromEntries(analyze(events, { currentGame: 460 }).reference.map((r) => [r.id, r]));
+  const reference = Object.fromEntries(
+    analyze(events, { currentGame: 460, totalGames: 730 }).reference.map((r) => [r.id, r])
+  );
   assert.equal(reference.at.hit, 1);
   assert.equal(reference.at.total, 730);
   assert.equal(reference.cz.hit, 2, '変換からのCZと規定G数のCZ');
@@ -548,7 +549,7 @@ test('記録を足すと到達Gが伸び、AT当選で現在Gが0に戻る', () 
   assert.ok(typeof machine.events[0].id === 'string');
 });
 
-test('誤って記録したマスを消すと到達Gも元に戻る（ベル・直撃の分母を増やしたままにしない）', () => {
+test('誤って記録したマスを消すと到達Gも元に戻る（グリッドの通過判定を広げたままにしない）', () => {
   store.getState().addMachine('lycoris-recoil');
   const s = () => store.getState();
   const cycle = () => est.calculateLycorisAnalysis(s().getCurrentMachine()).cycles.at(-1);
@@ -557,7 +558,7 @@ test('誤って記録したマスを消すと到達Gも元に戻る（ベル・�
   assert.equal(cycle().reachedGame, 450);
   s().deleteLycorisEventAt(0);
   assert.equal(cycle().reachedGame, 120);
-  assert.equal(cycle().normalGames, 120);
+  assert.equal(cycle().cells.find((c) => c.game === 250).unreached, true);
 });
 
 test('形の合わない入力は記録しない', () => {
@@ -639,20 +640,25 @@ test('リセットで記録・カウンター・G数が消える', () => {
   s().incrementLycorisCounter('bell');
   s().incrementLycorisCounter('weakLycoris');
   s().incrementLycorisCounter('weakLycorisKoukaku');
+  s().updateTotalGames(1500);
   s().updateLycorisStartGame(100);
   s().addLycorisEvent({ type: 'cz', game: 250, trigger: 'zone' });
   s().resetLycorisMachine();
   const m = s().getCurrentMachine();
   assert.deepEqual(
-    [m.bell, m.weakLycoris, m.weakLycorisKoukaku, m.startGame, m.currentGame, m.events.length],
-    [0, 0, 0, 0, 0, 0]
+    [m.bell, m.weakLycoris, m.weakLycorisKoukaku, m.totalGames, m.startGame, m.currentGame, m.events.length],
+    [0, 0, 0, 0, 0, 0, 0]
   );
 });
 
-test('getMachineTotalGames はリコリスの現在Gを返さない', () => {
+test('トータルG数は共通のゲーム数入力（updateTotalGames）で読み書きし、グリッドの到達Gとは別', () => {
+  // GameInputModal が getMachineTotalGames で読み、updateTotalGames で書く。読めて書けない非対称を作らない
   store.getState().addMachine('lycoris-recoil');
-  store.getState().updateLycorisCurrentGame(250);
-  assert.equal(getMachineTotalGames(store.getState().getCurrentMachine()), 0);
+  const s = () => store.getState();
+  s().updateTotalGames(2400);
+  s().updateLycorisCurrentGame(250);
+  assert.equal(getMachineTotalGames(s().getCurrentMachine()), 2400);
+  assert.equal(s().getCurrentMachine().currentGame, 250, '到達Gは別の値');
 });
 
 test('壊れたイベントは読み込み時に落とし、ATは任意項目だけ直して残す', () => {
@@ -711,28 +717,30 @@ test('localStorage の古い・壊れたリコリス台は読み込み時に直�
   est.calculateLycorisAnalysis(first);
 });
 
-test('v14 で保存された古い形のリコリス台（弱リコ目カウンター無し）も読み込み時に直す', () => {
-  const { STORE_VERSION } = load('src/stores/machineStore.ts');
-  assert.ok(STORE_VERSION >= 15);
-  const persisted = {
-    machines: [{
-      id: 'm1', machineType: 'lycoris-recoil', name: '台1', createdAt: 1, updatedAt: 1,
-      bell: 9, startGame: 0, currentGame: 900,
-      // 旧入力方式のレア役イベントと、廃止した650Gの高確記録
-      events: [
-        { id: 'r', timestamp: 1, type: 'rare', game: 10, role: 'cherry', convert: 'none', koukaku: 'stay' },
-        { id: 'z', timestamp: 2, type: 'koukaku-zone', game: 650, result: 'stay' },
-      ],
-    }],
-  };
-  const [machine] = store.persist.getOptions().migrate(structuredClone(persisted), 14).machines;
-  assert.deepEqual([machine.weakLycoris, machine.weakLycorisKoukaku], [0, 0]);
-  assert.deepEqual(machine.events, []);
-  // 欠けたカウンターで推定全体が NaN → 均等に化けないこと
-  const { setting } = est.calculateLycorisAnalysis(machine);
-  assert.ok(Object.values(setting).every(Number.isFinite));
-  assert.ok(setting.setting1 > setting.setting6, 'ベル1/100は低設定寄り');
-});
+for (const fromVersion of [14, 15]) {
+  test(`v${fromVersion} で保存された古い形のリコリス台（カウンター・トータルG数が無い）も読み込み時に直す`, () => {
+    const { STORE_VERSION } = load('src/stores/machineStore.ts');
+    assert.ok(STORE_VERSION >= 16);
+    const persisted = {
+      machines: [{
+        id: 'm1', machineType: 'lycoris-recoil', name: '台1', createdAt: 1, updatedAt: 1,
+        bell: 9, startGame: 0, currentGame: 900,
+        // 旧入力方式のレア役イベントと、廃止した650Gの高確記録
+        events: [
+          { id: 'r', timestamp: 1, type: 'rare', game: 10, role: 'cherry', convert: 'none', koukaku: 'stay' },
+          { id: 'z', timestamp: 2, type: 'koukaku-zone', game: 650, result: 'stay' },
+        ],
+      }],
+    };
+    const [machine] = store.persist.getOptions().migrate(structuredClone(persisted), fromVersion).machines;
+    assert.deepEqual([machine.weakLycoris, machine.weakLycorisKoukaku, machine.totalGames], [0, 0, 0]);
+    assert.deepEqual(machine.events, []);
+    // 欠けた項目で推定全体が NaN → 均等に化けないこと
+    const { setting } = est.calculateLycorisAnalysis({ ...machine, totalGames: 900 });
+    assert.ok(Object.values(setting).every(Number.isFinite));
+    assert.ok(setting.setting1 > setting.setting6, 'ベル1/100は低設定寄り');
+  });
+}
 
 test('クラウドの状態行の取得に失敗したら、空の台で置き換えずに失敗させる', async () => {
   const realSync = load('src/lib/supabaseSync.ts');
@@ -767,6 +775,7 @@ test('クラウドへ往復しても記録が保たれる', async () => {
     bell: 42,
     weakLycoris: 9,
     weakLycorisKoukaku: 3,
+    totalGames: 4321,
     startGame: 120,
     currentGame: 210,
     events: [
@@ -783,7 +792,7 @@ test('クラウドへ往復しても記録が保たれる', async () => {
 
   assert.equal(restored.machineType, 'lycoris-recoil');
   assert.equal(restored.bell, 42);
-  assert.deepEqual([restored.weakLycoris, restored.weakLycorisKoukaku], [9, 3]);
+  assert.deepEqual([restored.weakLycoris, restored.weakLycorisKoukaku, restored.totalGames], [9, 3, 4321]);
   assert.equal(restored.startGame, 120);
   assert.equal(restored.currentGame, 210);
   assert.deepEqual(restored.events, machine.events);
@@ -802,7 +811,7 @@ test('状態行が無くても読み込みは既定値で通る', async () => {
   const loaded = await realSync.loadAllMachines();
   const restored = loaded.find((m) => m.machineType === 'lycoris-recoil');
   assert.deepEqual(
-    [restored.bell, restored.weakLycoris, restored.weakLycorisKoukaku, restored.startGame, restored.currentGame, restored.events],
-    [0, 0, 0, 0, 0, []]
+    [restored.bell, restored.weakLycoris, restored.weakLycorisKoukaku, restored.totalGames, restored.startGame, restored.currentGame, restored.events],
+    [0, 0, 0, 0, 0, 0, []]
   );
 });

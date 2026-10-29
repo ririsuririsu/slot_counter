@@ -180,9 +180,10 @@ function buildGrid(
 /**
  * イベント列をAT間サイクルに切り分ける。AT当選でサイクルが締まる。
  *
- * 到達Gは「締めた行はAT当選G、進行中の行は現在G」を基本にし、
- * 記録済みのG数を下回らないよう引き上げる（現在Gの更新忘れで通常G数が減らないように）。
- * 1行目は打ち始めのGから数え始める。自分が回していないG数を通常G数に入れないため。
+ * 到達Gは「締めた行はAT当選G、進行中の行は現在G（セルの「ここまで回した」で決まる）」を基本にし、
+ * 記録済みのG数を下回らないよう引き上げる。グリッドの通過・未到達の判定に使う。
+ * 1行目は打ち始めGより手前の列を「見ていない」扱いにする。
+ * 共通ベル・直撃の分母はここからは導かない（手入力のトータルG数を使う）。
  */
 export function buildLycorisCycles(
   events: LycorisEvent[],
@@ -210,7 +211,6 @@ export function buildLycorisCycles(
       atEventIndex: eventIndex,
       previousAt,
       reachedGame,
-      normalGames: Math.max(0, reachedGame - rowStart),
       insertIndex: eventIndex,
       active: false,
     });
@@ -230,7 +230,6 @@ export function buildLycorisCycles(
     atEventIndex: -1,
     previousAt,
     reachedGame,
-    normalGames: Math.max(0, reachedGame - rowStart),
     insertIndex: events.length,
     active: true,
   });
@@ -266,7 +265,7 @@ function makeAxis(
   };
 }
 
-/** 通常G数あたりの二項の軸（ベル・直撃） */
+/** トータルG数あたりの二項の軸（ベル・直撃） */
 function perGameAxis(
   id: LycorisAxisId,
   label: string,
@@ -276,11 +275,11 @@ function perGameAxis(
 ): LycorisAxis {
   if (games <= 0) {
     return makeAxis(id, label, 'games', hit, games, null,
-      hit > 0 ? 'サブ液晶のG数を入れると計算できます' : null);
+      hit > 0 ? 'トータルG数を入れると計算できます' : null);
   }
   if (hit > games) {
     return makeAxis(id, label, 'games', hit, games, null,
-      '回数が通常G数を超えています。現在G・打ち始めGを見直してください');
+      '回数がトータルG数を超えています。トータルG数を見直してください');
   }
   return makeAxis(id, label, 'games', hit, games,
     denominators.map((d) => binomialLogLikelihood(hit, games, 1 / d)));
@@ -530,7 +529,7 @@ export function summarizeLycorisHints(cycles: LycorisCycle[]): LycorisHintTally[
 // 5. 参考値（事後確率には入れない）
 // ========================================
 
-function collectReference(cycles: LycorisCycle[], normalGames: number): LycorisReferenceRate[] {
+function collectReference(cycles: LycorisCycle[], totalGames: number): LycorisReferenceRate[] {
   const atCount = cycles.filter((c) => c.at !== null).length;
   let czCount = 0;
   // 設定差の無い契機の帯出現率。帯が出る割合（0.9）の確認用
@@ -555,7 +554,7 @@ function collectReference(cycles: LycorisCycle[], normalGames: number): LycorisR
       id: 'at',
       label: 'AT初当り',
       hit: atCount,
-      total: normalGames,
+      total: totalGames,
       setting1: `1/${LYCORIS_AT_DENOM[0]}`,
       setting6: `1/${LYCORIS_AT_DENOM[5]}`,
     },
@@ -563,7 +562,7 @@ function collectReference(cycles: LycorisCycle[], normalGames: number): LycorisR
       id: 'cz',
       label: 'CZ',
       hit: czCount,
-      total: normalGames,
+      total: totalGames,
       setting1: `1/${LYCORIS_CZ_DENOM[0]}`,
       setting6: `1/${LYCORIS_CZ_DENOM[5]}`,
       note: '記録したCZ（変換・規定G・スタンプ等）のみ',
@@ -589,20 +588,22 @@ export interface LycorisAnalysisInput {
   bell: number;
   weakLycoris: number;
   weakLycorisKoukaku: number;
+  /** 手入力のトータルG数（共通ベル・直撃の分母） */
+  totalGames: number;
   startGame: number;
   currentGame: number;
 }
 
 export function calculateLycorisAnalysis(input: LycorisAnalysisInput): LycorisAnalysis {
   const cycles = buildLycorisCycles(input.events, input.startGame, input.currentGame);
-  const normalGames = cycles.reduce((sum, c) => sum + c.normalGames, 0);
+  const { totalGames } = input;
   const directCount = cycles.filter((c) => c.at?.route === 'direct').length;
 
   const axes: LycorisAxis[] = [
-    perGameAxis('bell', '共通ベル', input.bell, normalGames, LYCORIS_BELL_DENOM),
+    perGameAxis('bell', '共通ベル', input.bell, totalGames, LYCORIS_BELL_DENOM),
     weakKoukakuAxis(input.weakLycoris, input.weakLycorisKoukaku),
     koukaku150Axis(cycles),
-    perGameAxis('direct', '直撃', directCount, normalGames, LYCORIS_DIRECT_DENOM),
+    perGameAxis('direct', '直撃', directCount, totalGames, LYCORIS_DIRECT_DENOM),
     shortCeilingAxis(cycles),
   ];
 
@@ -615,12 +616,12 @@ export function calculateLycorisAnalysis(input: LycorisAnalysisInput): LycorisAn
 
   return {
     cycles,
-    normalGames,
+    totalGames,
     setting: fromLogLikelihoods(logLikelihoods),
     axes,
     excludedSettings,
     settingConflict,
     hints: summarizeLycorisHints(cycles),
-    reference: collectReference(cycles, normalGames),
+    reference: collectReference(cycles, totalGames),
   };
 }

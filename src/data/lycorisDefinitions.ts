@@ -447,6 +447,8 @@ export function normalizeLycorisMachineFields(machine: Record<string, unknown>):
     bell: normalizeLycorisCount(machine.bell),
     weakLycoris: normalizeLycorisCount(machine.weakLycoris),
     weakLycorisKoukaku: normalizeLycorisCount(machine.weakLycorisKoukaku),
+    // トータルG数はサブ液晶のG数ではないので999で丸めない
+    totalGames: normalizeLycorisCount(machine.totalGames),
     startGame: normalizeLycorisGame(machine.startGame),
     currentGame: normalizeLycorisGame(machine.currentGame),
     events: normalizeLycorisEvents(machine.events),

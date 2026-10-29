@@ -68,7 +68,7 @@ import {
  * 2回に分けると、dev サーバー稼働中の HMR が分岐の無い新バージョンを先に刻んでしまい、
  * その端末では二度と移行が走らなくなる（v7 で実際に起きた。v8 の分岐コメント参照）。
  */
-export const STORE_VERSION = 15;
+export const STORE_VERSION = 16;
 
 // ========================================
 // 型ガード
@@ -102,14 +102,15 @@ export function isLycorisMachine(m: Machine): m is LycorisMachine {
  * セッション通算のゲーム数を返す。`updateTotalGames` と対になる getter。
  *
  * モンハンライズは4軸のいずれもゲーム数を使わないため totalGames を持たない。
- * **攻殻機動隊・リコリス・リコイルもここには含めない。** どちらも `currentGame` は
- * サイクル内の液晶G数で通算ではなく、専用の `update*CurrentGame` で書く。
- * ここで読めるようにすると setter と非対称になり、
+ * **攻殻機動隊もここには含めない。** `currentGame` はサイクル内の液晶G数で通算ではなく、
+ * 専用の `updateKokakuCurrentGame` で書く。ここで読めるようにすると setter と非対称になり、
  * GameInputModal から読めて書けない状態になる。
+ * リコリス・リコイルは手入力の `totalGames`（共通ベル・直撃の分母）を持つので含める。
+ * あちらの `currentGame`（グリッドの到達G）とは別物。
  */
 export function getMachineTotalGames(m: Machine | null): number {
   if (!m) return 0;
-  return isMonkeyTurnMachine(m) || isKabaneriMachine(m) ? m.totalGames : 0;
+  return isMonkeyTurnMachine(m) || isKabaneriMachine(m) || isLycorisMachine(m) ? m.totalGames : 0;
 }
 
 // ========================================
@@ -317,6 +318,7 @@ function createNewLycorisMachine(name: string): LycorisMachine {
     bell: 0,
     weakLycoris: 0,
     weakLycorisKoukaku: 0,
+    totalGames: 0,
     startGame: 0,
     currentGame: 0,
     events: [],
@@ -518,7 +520,7 @@ export const useMachineStore = create<MachineStore>()(
       updateTotalGames: (games: number) => {
         set((state) =>
           updateCurrentMachine(state, (m) => {
-            if (!isMonkeyTurnMachine(m) && !isKabaneriMachine(m)) return m;
+            if (!isMonkeyTurnMachine(m) && !isKabaneriMachine(m) && !isLycorisMachine(m)) return m;
             return { ...m, totalGames: games, updatedAt: Date.now() };
           })
         );
@@ -1361,6 +1363,7 @@ export const useMachineStore = create<MachineStore>()(
               bell: 0,
               weakLycoris: 0,
               weakLycorisKoukaku: 0,
+              totalGames: 0,
               startGame: 0,
               currentGame: 0,
               events: [],
@@ -1530,10 +1533,11 @@ export const useMachineStore = create<MachineStore>()(
             m.machineType === 'lycoris-recoil' ? normalizeLycorisMachineFields(m) : m
           );
         }
-        if (version < 15 && state.machines) {
+        if (version < 16 && state.machines) {
           // v15 で弱リコ目の2カウンターを追加し、レア役イベントと650Gの高確列を廃止した。
-          // v14 を刻んだ端末では上の分岐がもう走らないので、同じ正規化（冪等）をやり直す。
-          // カウンターが欠けたままだと尤度が NaN になり、推定全体が黙って均等に化ける。
+          // v16 でトータルG数（手入力）を追加した。どちらも項目が欠けたままだと尤度が NaN になり、
+          // 推定全体が黙って均等に化ける。v14・v15 を刻んだ端末では上の分岐がもう走らないので、
+          // 同じ正規化（冪等）をやり直す。プレビュー環境で台を作った端末がこれに当たる。
           state.machines = state.machines.map((m: Record<string, unknown>) =>
             m.machineType === 'lycoris-recoil' ? normalizeLycorisMachineFields(m) : m
           );

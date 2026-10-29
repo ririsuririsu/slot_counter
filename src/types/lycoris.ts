@@ -200,8 +200,6 @@ export interface LycorisCycle {
   previousAt: LycorisStoredAtEvent | null;
   /** そのサイクルで到達したG。記録済みのG数を下回らない */
   reachedGame: number;
-  /** この行の通常G数（到達G − 開始G） */
-  normalGames: number;
   /** この行に記録を足すときの挿入先 */
   insertIndex: number;
   active: boolean;
@@ -262,8 +260,8 @@ export interface LycorisReferenceRate {
 
 export interface LycorisAnalysis {
   cycles: LycorisCycle[];
-  /** 通常G数の合計 */
-  normalGames: number;
+  /** 手入力のトータルG数（共通ベル・直撃・参考値の分母） */
+  totalGames: number;
   setting: LycorisSettingAnalysis;
   axes: LycorisAxis[];
   /** 終了画面・トロフィーの「濃厚」で除外した設定 */

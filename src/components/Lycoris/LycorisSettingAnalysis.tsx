@@ -99,16 +99,16 @@ function leadingSetting(axis: LycorisAxis): string | null {
 }
 
 export function LycorisSettingAnalysis({ machine }: { machine: LycorisMachine }) {
-  const { events, bell, weakLycoris, weakLycorisKoukaku, startGame, currentGame } = machine;
+  const { events, bell, weakLycoris, weakLycorisKoukaku, totalGames, startGame, currentGame } = machine;
   const analysis = useMemo(
-    () => calculateLycorisAnalysis({ events, bell, weakLycoris, weakLycorisKoukaku, startGame, currentGame }),
-    [events, bell, weakLycoris, weakLycorisKoukaku, startGame, currentGame]
+    () => calculateLycorisAnalysis({ events, bell, weakLycoris, weakLycorisKoukaku, totalGames, startGame, currentGame }),
+    [events, bell, weakLycoris, weakLycorisKoukaku, totalGames, startGame, currentGame]
   );
 
   return (
     <div className={styles.container}>
       <div className={styles.sectionLabel}>
-        設定推測（通常 {analysis.normalGames.toLocaleString()}G・AT {analysis.cycles.filter((c) => c.at).length}回）
+        設定推測（トータル {analysis.totalGames.toLocaleString()}G・AT {analysis.cycles.filter((c) => c.at).length}回）
       </div>
       <SettingGrid analysis={analysis.setting} />
 

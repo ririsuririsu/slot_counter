@@ -172,11 +172,19 @@ export interface LycorisMachine extends BaseMachine {
   weakLycoris: number;
   weakLycorisKoukaku: number;
   /**
+   * 通常時のトータルG数（手入力）。共通ベル・直撃の分母。
+   * 以前はグリッドの各行のG数から導いていたが、ユーザー指定で手入力にした（2026-10-30）。
+   */
+  totalGames: number;
+  /**
    * 打ち始めたときのサブ液晶G（1行目の開始G）。
-   * 途中から打った台で、自分が回していないG数を通常G数に数えないために要る。
+   * 途中から打った台で、自分が見ていない列をグリッド上で「未到達」にするために使う。
    */
   startGame: number;
-  /** 進行中サイクルのサブ液晶G（AT間）。AT当選で0に戻る */
+  /**
+   * 進行中サイクルの到達G（AT間）。グリッドのセルの「ここまで回した」で決まり、AT当選で0に戻る。
+   * 画面に入力欄は無い（到達Gは記録とこの値の大きい方）。
+   */
   currentGame: number;
   /**
    * レア役・規定ゲーム数・CZ・短縮告知・ATの記録。AT当選でサイクルが切れる。

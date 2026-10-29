@@ -19,6 +19,7 @@ import type {
 import { useMachineStore, type LycorisCounterKey } from '../../stores/machineStore';
 import { Modal } from '../common/Modal';
 import { DrumPicker } from '../GameInput/DrumPicker';
+import { GameInputModal } from '../GameInput/GameInputModal';
 import { MonhanRiseCountButton } from '../MonhanRise/MonhanRiseCountButton';
 import { LycorisZoneGrid, type LycorisCellPosition } from './LycorisZoneGrid';
 import {
@@ -73,7 +74,8 @@ const percent = (hit: number, total: number) => (total > 0 ? `${((hit / total) *
 
 export function LycorisInput({ machine }: { machine: LycorisMachine }) {
   const [selected, setSelected] = useState<LycorisCellPosition | null>(null);
-  const [gameModal, setGameModal] = useState<'current' | 'start' | null>(null);
+  const [totalModalOpen, setTotalModalOpen] = useState(false);
+  const [startModalOpen, setStartModalOpen] = useState(false);
 
   const increment = useMachineStore((s) => s.incrementLycorisCounter);
   const decrement = useMachineStore((s) => s.decrementLycorisCounter);
@@ -84,10 +86,10 @@ export function LycorisInput({ machine }: { machine: LycorisMachine }) {
   const updateEvent = useMachineStore((s) => s.updateLycorisEventAt);
   const deleteEvent = useMachineStore((s) => s.deleteLycorisEventAt);
 
-  const { events, bell, weakLycoris, weakLycorisKoukaku, startGame, currentGame } = machine;
+  const { events, bell, weakLycoris, weakLycorisKoukaku, totalGames, startGame, currentGame } = machine;
   const analysis = useMemo(
-    () => calculateLycorisAnalysis({ events, bell, weakLycoris, weakLycorisKoukaku, startGame, currentGame }),
-    [events, bell, weakLycoris, weakLycorisKoukaku, startGame, currentGame]
+    () => calculateLycorisAnalysis({ events, bell, weakLycoris, weakLycorisKoukaku, totalGames, startGame, currentGame }),
+    [events, bell, weakLycoris, weakLycorisKoukaku, totalGames, startGame, currentGame]
   );
   const cycles = analysis.cycles;
   const activeCycle = cycles[cycles.length - 1];
@@ -96,8 +98,9 @@ export function LycorisInput({ machine }: { machine: LycorisMachine }) {
   const pendingAtEnd = previous && previous.outcome === null ? cycles[cycles.length - 2] : null;
 
   const counterSub: Record<LycorisCounterKey, string> = {
-    bell: rate(bell, analysis.normalGames),
-    weakLycoris: `通常 ${analysis.normalGames.toLocaleString()}G`,
+    bell: rate(bell, totalGames),
+    // 弱リコリス目の出現率（約1/50.3）。大きく外れるなら数え漏れの目安
+    weakLycoris: rate(weakLycoris, totalGames),
     weakLycorisKoukaku: `帯 ${percent(weakLycorisKoukaku, weakLycoris)}`,
   };
 
@@ -136,13 +139,13 @@ export function LycorisInput({ machine }: { machine: LycorisMachine }) {
         <p className={styles.warn}>「→高確」が「弱リコ目」の回数を超えています。数え間違いがないか見直してください。</p>
       )}
 
-      <button type="button" className={styles.gameBtn} onClick={() => setGameModal('current')}>
+      <button type="button" className={styles.gameBtn} onClick={() => setTotalModalOpen(true)}>
         <span className={styles.gameLabel}>
-          {activeCycle.index}回目のサブ液晶G（AT間）
-          <span className={styles.gameSub}>セルを押すと伸びます。CZ失敗ではリセットされません</span>
+          トータルG数
+          <span className={styles.gameSub}>共通ベル・直撃の分母（通常時のG数）</span>
         </span>
         <span className={styles.gameValue}>
-          {String(activeCycle.reachedGame).padStart(3, '0')}
+          {String(totalGames).padStart(4, '0')}
           <span className={styles.editIcon}>✏️</span>
         </span>
       </button>
@@ -167,7 +170,7 @@ export function LycorisInput({ machine }: { machine: LycorisMachine }) {
         cycles={cycles}
         selected={selected}
         onSelect={setSelected}
-        onEditStart={() => setGameModal('start')}
+        onEditStart={() => setStartModalOpen(true)}
       />
 
       {/* AT列は横スクロールの右端で隠れるので、いちばん押す「AT当選」は表の下にも置く */}
@@ -183,20 +186,18 @@ export function LycorisInput({ machine }: { machine: LycorisMachine }) {
         規定G数以外のCZ（小役変換・スタンプ等）と短縮告知は「他」列に入れてください。
       </p>
 
-      <Modal
-        isOpen={gameModal !== null}
-        onClose={() => setGameModal(null)}
-        title={gameModal === 'start' ? '打ち始めのサブ液晶G' : '現在のサブ液晶G'}
-      >
-        {gameModal !== null && (
+      {/* トータルG数はモンキーターン・カバネリと同じ共通のゲーム数入力（totalGames）で書く */}
+      <GameInputModal isOpen={totalModalOpen} onClose={() => setTotalModalOpen(false)} />
+
+      <Modal isOpen={startModalOpen} onClose={() => setStartModalOpen(false)} title="打ち始めのサブ液晶G">
+        {startModalOpen && (
           <DrumPicker
-            initialValue={gameModal === 'start' ? startGame : activeCycle.reachedGame}
+            initialValue={startGame}
             onConfirm={(value) => {
-              if (gameModal === 'start') updateStartGame(value);
-              else updateCurrentGame(value);
-              setGameModal(null);
+              updateStartGame(value);
+              setStartModalOpen(false);
             }}
-            onCancel={() => setGameModal(null)}
+            onCancel={() => setStartModalOpen(false)}
           />
         )}
       </Modal>

@@ -72,9 +72,12 @@ function getMachineSummary(m: Machine): string {
   if (m.machineType === 'lycoris-recoil') {
     const lr = m as LycorisMachine;
     const at = lr.events.filter((e) => e.type === 'at').length;
+    if (lr.totalGames > 0 && lr.bell > 0) {
+      return `${lr.totalGames}G / 共通ベル 1/${(lr.totalGames / lr.bell).toFixed(1)}`;
+    }
     if (at > 0 || lr.bell > 0) return `AT ${at}回 / 共通ベル ${lr.bell}回`;
+    if (lr.totalGames > 0) return `${lr.totalGames}G`;
     if (lr.events.length > 0) return `記録 ${lr.events.length}件`;
-    if (lr.currentGame > 0) return `${lr.currentGame}G`;
     return 'データなし';
   }
   const hk = m as HokutoMachine;
