@@ -173,6 +173,21 @@ test('記録はG数順に並ぶ（同じGは記録順）', () => {
   assert.deepEqual(cycles[0].entries.map((e) => e.eventIndex), [1, 0, 2]);
 });
 
+test('1行目は打ち始めGより手前の列と0G列（引き戻し）を見ていない扱いにする', () => {
+  const cell = (row, game) => row.cells.find((c) => c.game === game);
+  // 300Gから座った。0〜250Gは自分で見ていない
+  const [mid] = est.buildLycorisCycles([], 300, 320);
+  for (const game of [0, 50, 100, 150, 250]) assert.equal(cell(mid, game).unreached, true, `${game}G`);
+  assert.equal(cell(mid, 400).unreached, true, '320Gなので400Gは未到達');
+  // 朝一から打っても1行目の0Gは直前のATが無いので引き戻しが起きない
+  const [morning] = est.buildLycorisCycles([], 0, 200);
+  assert.equal(cell(morning, 0).unreached, true);
+  assert.equal(cell(morning, 50).unreached, false);
+  // 2行目以降の0Gは、回し始めたら通過済み
+  assert.equal(cell(est.buildLycorisCycles([at(100)], 0, 0)[1], 0).unreached, true, 'AT直後はまだ');
+  assert.equal(cell(est.buildLycorisCycles([at(100)], 0, 5)[1], 0).unreached, false);
+});
+
 test('グリッドは規定G数の固定列と「他」列に分かれる', () => {
   const events = [cz(100), zone(150, 'moved'), cz(180, 'convert'), notice(200, 400), cz(250)];
   const [row] = est.buildLycorisCycles(events, 0, 300);
@@ -181,8 +196,8 @@ test('グリッドは規定G数の固定列と「他」列に分かれる', () =
   const cell = (game) => row.cells.find((c) => c.game === game);
   assert.equal(cell(100).czWon, true);
   assert.equal(cell(100).eventIndex, 0);
-  assert.equal(cell(0).czWon, false, '通過して空のCZ列は「CZなし」');
-  assert.equal(cell(0).unreached, false);
+  assert.equal(cell(250).czWon, true);
+  assert.equal(cell(400).czWon, false, '未到達のCZ列は空');
   assert.equal(cell(150).koukaku, 'moved');
   assert.equal(cell(50).koukaku, null, '高確列の空は「未入力」');
   assert.equal(cell(400).unreached, true);
@@ -513,14 +528,15 @@ test('リコリスの台を作って3つのカウンターを独立に増減で�
   assert.equal(axis.total, 2);
 });
 
-test('記録を足すと現在Gが伸び、AT当選で0に戻る', () => {
+test('記録を足すと到達Gが伸び、AT当選で現在Gが0に戻る', () => {
   store.getState().addMachine('lycoris-recoil');
   const s = () => store.getState();
+  const reached = () => est.calculateLycorisAnalysis(s().getCurrentMachine()).cycles.at(-1).reachedGame;
   s().updateLycorisCurrentGame(80);
   s().addLycorisEvent({ type: 'cz', game: 140, trigger: 'stamp' });
-  assert.equal(s().getCurrentMachine().currentGame, 140);
+  assert.equal(reached(), 140, '到達Gは記録から導く');
   s().addLycorisEvent({ type: 'koukaku-zone', game: 50, result: 'stay' });
-  assert.equal(s().getCurrentMachine().currentGame, 140, '手前のGの記録では戻らない');
+  assert.equal(reached(), 140, '手前のGの記録では戻らない');
 
   s().addLycorisEvent({
     type: 'at', game: 260, route: 'cz', shortCeiling: null, prologue: 'ep1',
@@ -530,6 +546,18 @@ test('記録を足すと現在Gが伸び、AT当選で0に戻る', () => {
   assert.equal(machine.currentGame, 0);
   assert.equal(machine.events.length, 3);
   assert.ok(typeof machine.events[0].id === 'string');
+});
+
+test('誤って記録したマスを消すと到達Gも元に戻る（ベル・直撃の分母を増やしたままにしない）', () => {
+  store.getState().addMachine('lycoris-recoil');
+  const s = () => store.getState();
+  const cycle = () => est.calculateLycorisAnalysis(s().getCurrentMachine()).cycles.at(-1);
+  s().updateLycorisCurrentGame(120);
+  s().addLycorisEvent({ type: 'koukaku-zone', game: 450, result: 'stay' });
+  assert.equal(cycle().reachedGame, 450);
+  s().deleteLycorisEventAt(0);
+  assert.equal(cycle().reachedGame, 120);
+  assert.equal(cycle().normalGames, 120);
 });
 
 test('形の合わない入力は記録しない', () => {
@@ -681,6 +709,29 @@ test('localStorage の古い・壊れたリコリス台は読み込み時に直�
   assert.equal(second.currentGame, defs.LYCORIS_MAX_GAME);
   // 補正後の台で推定が例外を出さない
   est.calculateLycorisAnalysis(first);
+});
+
+test('v14 で保存された古い形のリコリス台（弱リコ目カウンター無し）も読み込み時に直す', () => {
+  const { STORE_VERSION } = load('src/stores/machineStore.ts');
+  assert.ok(STORE_VERSION >= 15);
+  const persisted = {
+    machines: [{
+      id: 'm1', machineType: 'lycoris-recoil', name: '台1', createdAt: 1, updatedAt: 1,
+      bell: 9, startGame: 0, currentGame: 900,
+      // 旧入力方式のレア役イベントと、廃止した650Gの高確記録
+      events: [
+        { id: 'r', timestamp: 1, type: 'rare', game: 10, role: 'cherry', convert: 'none', koukaku: 'stay' },
+        { id: 'z', timestamp: 2, type: 'koukaku-zone', game: 650, result: 'stay' },
+      ],
+    }],
+  };
+  const [machine] = store.persist.getOptions().migrate(structuredClone(persisted), 14).machines;
+  assert.deepEqual([machine.weakLycoris, machine.weakLycorisKoukaku], [0, 0]);
+  assert.deepEqual(machine.events, []);
+  // 欠けたカウンターで推定全体が NaN → 均等に化けないこと
+  const { setting } = est.calculateLycorisAnalysis(machine);
+  assert.ok(Object.values(setting).every(Number.isFinite));
+  assert.ok(setting.setting1 > setting.setting6, 'ベル1/100は低設定寄り');
 });
 
 test('クラウドの状態行の取得に失敗したら、空の台で置き換えずに失敗させる', async () => {

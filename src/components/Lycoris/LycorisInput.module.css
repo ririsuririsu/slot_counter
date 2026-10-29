@@ -386,7 +386,8 @@
   color: #fff;
 }
 
-.primary:disabled {
+.primary:disabled,
+.secondary:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }

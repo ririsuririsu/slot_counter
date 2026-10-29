@@ -131,10 +131,27 @@ function isZoneCz(event: LycorisEvent): boolean {
   return event.type === 'cz' && event.trigger === 'zone';
 }
 
+/**
+ * その列を「見ていない」扱いにするか。
+ * - 到達Gより先
+ * - 1行目で打ち始めGより手前（途中から座った台で、自分が見ていない枠）
+ * - 0G列（AT終了直後の即前兆＝引き戻し）は、1行目には直前のATが無いので常に対象外。
+ *   2行目以降も、まだ1Gも回していなければ未到達
+ */
+function isUnobserved(game: number, reachedGame: number, startGame: number, firstRow: boolean): boolean {
+  if (game > reachedGame || game < startGame) return true;
+  return game === 0 && (firstRow || reachedGame === 0);
+}
+
 /** 固定列のセルと、列に入らない記録（「他」列）に分ける */
-function buildGrid(entries: Entry[], reachedGame: number): Pick<LycorisCycle, 'cells' | 'others'> {
+function buildGrid(
+  entries: Entry[],
+  reachedGame: number,
+  startGame: number,
+  firstRow: boolean
+): Pick<LycorisCycle, 'cells' | 'others'> {
   const cells = LYCORIS_GRID_COLUMNS.map((column) => {
-    const unreached = column.game > reachedGame;
+    const unreached = isUnobserved(column.game, reachedGame, startGame, firstRow);
     if (column.kind === 'koukaku') {
       const found = koukakuZoneEntry(entries, column.game);
       return {
@@ -188,7 +205,7 @@ export function buildLycorisCycles(
       index: cycles.length + 1,
       startGame: rowStart,
       entries: sorted,
-      ...buildGrid(sorted, reachedGame),
+      ...buildGrid(sorted, reachedGame, rowStart, previousAt === null),
       at: event,
       atEventIndex: eventIndex,
       previousAt,
@@ -208,7 +225,7 @@ export function buildLycorisCycles(
     index: cycles.length + 1,
     startGame: rowStart,
     entries: sorted,
-    ...buildGrid(sorted, reachedGame),
+    ...buildGrid(sorted, reachedGame, rowStart, previousAt === null),
     at: null,
     atEventIndex: -1,
     previousAt,

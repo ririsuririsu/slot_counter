@@ -68,7 +68,7 @@ import {
  * 2回に分けると、dev サーバー稼働中の HMR が分岐の無い新バージョンを先に刻んでしまい、
  * その端末では二度と移行が走らなくなる（v7 で実際に起きた。v8 の分岐コメント参照）。
  */
-export const STORE_VERSION = 14;
+export const STORE_VERSION = 15;
 
 // ========================================
 // 型ガード
@@ -1282,8 +1282,10 @@ export const useMachineStore = create<MachineStore>()(
               ...m,
               events: [...m.events, event],
               // AT当選でサイクルが締まり、次は0Gから。締めた行の到達Gは at.game に残る。
-              // それ以外の記録は「そのG数まで回した」証拠なので現在Gを引き上げる。
-              currentGame: event.type === 'at' ? 0 : Math.max(m.currentGame, event.game),
+              // それ以外の記録では現在Gを書き換えない。到達Gは記録済みの最大G数から導くので
+              // （buildLycorisCycles）、ここで引き上げると、誤記録を消しても到達Gが戻らず
+              // ベル・直撃の分母が黙って増えたままになる（攻殻の addKokakuEvent と同じ方針）。
+              currentGame: event.type === 'at' ? 0 : m.currentGame,
               updatedAt: event.timestamp,
             };
           })
@@ -1524,6 +1526,14 @@ export const useMachineStore = create<MachineStore>()(
           // v14 でリコリス・リコイルを追加。開発中の古い形の台や手で触った記録が
           // localStorage に残っていると、欠けた項目（events・episodes 等）で描画が落ちて
           // ホーム画面ごと開けなくなるので、読み込み境界で一度だけ直す。
+          state.machines = state.machines.map((m: Record<string, unknown>) =>
+            m.machineType === 'lycoris-recoil' ? normalizeLycorisMachineFields(m) : m
+          );
+        }
+        if (version < 15 && state.machines) {
+          // v15 で弱リコ目の2カウンターを追加し、レア役イベントと650Gの高確列を廃止した。
+          // v14 を刻んだ端末では上の分岐がもう走らないので、同じ正規化（冪等）をやり直す。
+          // カウンターが欠けたままだと尤度が NaN になり、推定全体が黙って均等に化ける。
           state.machines = state.machines.map((m: Record<string, unknown>) =>
             m.machineType === 'lycoris-recoil' ? normalizeLycorisMachineFields(m) : m
           );

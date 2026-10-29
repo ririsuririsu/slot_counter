@@ -140,13 +140,6 @@ export const LYCORIS_KOUKAKU_LABEL: Record<LycorisKoukakuResult, string> = {
   unknown: '判別不能',
 };
 
-/** 一覧に出す短い表記。結果待ち（null）は呼び出し側で別に出す */
-export const LYCORIS_KOUKAKU_SHORT: Record<LycorisKoukakuResult, string> = {
-  moved: '高確○',
-  stay: '高確×',
-  unknown: '高確?',
-};
-
 export const LYCORIS_CZ_TRIGGER_LABEL: Record<LycorisCzTrigger, string> = {
   zone: '規定G数',
   convert: '小役変換',

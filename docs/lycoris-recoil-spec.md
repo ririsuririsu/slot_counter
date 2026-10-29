@@ -345,7 +345,13 @@ EP3 の示唆は**同一ラッシュ内の1回目の選択時だけ**有効。�
   帯は見落としやすく「空＝帯なし」にすると低設定に偏る（§4-2）
 - 規定G数の高確は 50/150/450G。300G は移行濃厚、650G は 25% で設定差なしなので列に置かない
 - 1行目の行見出しを押すと打ち始めGを入れられる
-- 記録を足すと現在Gがそのゲーム数まで伸びる。AT当選で0に戻る
+- **到達Gは記録から導き、記録の追加で現在Gは書き換えない**（攻殻と同じ）。ストアで現在Gを引き上げると、
+  誤って記録したマスを消しても到達Gが戻らず、ベル・直撃の分母が黙って増えたままになる（レビューで発覚）。
+  AT当選で現在Gは0に戻る
+- **見ていない枠には記録できない**: 1行目の打ち始めGより手前の列と、1行目の0G列（直前のATが無いので
+  引き戻しが無い）は「未到達」扱い。締めた行でAT当選Gより先のマスと「他」列のG数も記録できない
+  （起こりえない記録で、通常G数と天井短縮の打ち切りを壊すため）
+- 2行目以降の0G列は、1Gでも回せば通過済み（「ここまで回した」は1Gにする）
 - AT当選時に分かるのは当選G・経路・プロローグまで。終了情報はAT終了後に、その行のAT列か
   お知らせからタップして追記する
 - CZの成否はAT列の経路（CZ成功）で表すので、CZイベントには成否を持たせていない
@@ -396,9 +402,11 @@ type LycorisEvent = (
   `normalizeLycorisGame` で0〜999に丸める（上限超えを通すと入力フォームの既定Gが上限超えになり、
   保存時の検証で黙って弾かれて「記録を押しても何も起きない」状態になる）
 - ストアも保存前に同じ関数で検証する（`toLycorisEvent`）
-- **`STORE_VERSION` = 14。** v14 の移行で localStorage のリコリス台を `normalizeLycorisMachineFields`
-  で一度だけ直す。正規化をクラウド読み込みだけに掛けていると、開発中に残った古い形の台
-  （例: `episodes` の無いAT、`events` の無い台）がホーム画面の描画ごと落とし、アプリが起動しなくなる
+- **`STORE_VERSION` = 15。** v14 の移行で localStorage のリコリス台を `normalizeLycorisMachineFields`
+  で直す。正規化をクラウド読み込みだけに掛けていると、開発中に残った古い形の台
+  （例: `episodes` の無いAT、`events` の無い台）がホーム画面の描画ごと落とし、アプリが起動しなくなる。
+  v15 では弱リコ目の2カウンターを足し、レア役イベントと650G列を廃止したので、同じ正規化（冪等）をやり直す。
+  v14 を刻んだ端末ではカウンターが欠けたままになり、尤度が NaN で推定全体が黙って均等に化けるため
 - クラウド読み込みは、状態行が無い（PGRST116）ときだけ空の台として読み、**それ以外の失敗は投げる**
   （カバネリと同じ）。黙って空の台を返すと、ダウンロードがローカルの記録を空で置き換え、
   次の自動同期でクラウドも消える。upsert の失敗も投げるので、手動アップロードで失敗が見える
@@ -415,7 +423,7 @@ type LycorisEvent = (
 | [src/data/lycorisDefinitions.ts](../src/data/lycorisDefinitions.ts) | 確率表・示唆カタログ・私服の判定・読み込み境界。**本書と対で更新** |
 | [src/utils/lycorisEstimation.ts](../src/utils/lycorisEstimation.ts) | サイクル切り分け・5軸の尤度・制約・示唆の集計・参考値 |
 | [src/components/Lycoris/](../src/components/Lycoris/) | LycorisMain / LycorisInput（カウンター・モーダル）/ LycorisZoneGrid（固定列グリッド）/ LycorisSettingAnalysis。カウンターのボタンは `MonhanRiseCountButton` を流用 |
-| [tests/lycoris.test.cjs](../tests/lycoris.test.cjs) | 49件。`npm run test:lycoris` |
+| [tests/lycoris.test.cjs](../tests/lycoris.test.cjs) | 52件。`npm run test:lycoris` |
 | [supabase/migrations/20261029000000_add_lycoris.sql](../supabase/migrations/20261029000000_add_lycoris.sql) | `lycoris_state`（bell・start_game・current_game・events）＋ machine_type 制約 |
 | [supabase/migrations/20261029120000_add_lycoris_weak_counters.sql](../supabase/migrations/20261029120000_add_lycoris_weak_counters.sql) | `weak_lycoris`・`weak_lycoris_koukaku` 列の追加 |
 

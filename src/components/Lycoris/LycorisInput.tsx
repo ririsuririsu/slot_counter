@@ -280,12 +280,13 @@ function CellModal({ cycle, col, onClose, onInsert, onUpdate, onDelete, onSetRea
           cycle={cycle}
           onRecord={done(() => onInsert({ type: 'cz', game: cell.game, trigger: 'zone' }))}
           onDelete={done(() => onDelete(cell.eventIndex))}
-          onSetReached={done(() => onSetReached(cell.game))}
+          // 0G列（引き戻し）は1Gでも回せば通過済みになる
+          onSetReached={done(() => onSetReached(Math.max(cell.game, 1)))}
         />
       ) : (
         <KoukakuCellForm
           cell={cell}
-          firstCycle={cycle.previousAt === null}
+          cycle={cycle}
           onSave={(result) => {
             const body = { type: 'koukaku-zone' as const, game: cell.game as 50 | 150 | 450, result };
             if (cell.eventIndex >= 0) onUpdate(cell.eventIndex, body);
@@ -297,6 +298,25 @@ function CellModal({ cycle, col, onClose, onInsert, onUpdate, onDelete, onSetRea
       )}
     </Modal>
   );
+}
+
+/**
+ * そのセルに記録できない理由。記録できるなら null。
+ * - 自分で見ていない枠（1行目の打ち始めGより手前、1行目の0G＝直前のATが無い）
+ * - 締めた行で AT当選Gより先（起こりえない記録で、通常G数と天井短縮の打ち切りを壊す）
+ */
+function cellLockReason(cell: LycorisGridCell, cycle: LycorisCycle): string | null {
+  if (cell.game < cycle.startGame) return `打ち始め（${cycle.startGame}G）より手前なので、見ていない枠です。`;
+  if (cell.game === 0 && cycle.previousAt === null) return '1行目は直前のATを見ていないので、引き戻しの枠はありません。';
+  if (cycle.at && cell.game > cycle.at.game) {
+    return `このサイクルは${cycle.at.game}GでAT当選しています。それより先には記録できません（AT当選Gを直すならAT列から）。`;
+  }
+  return null;
+}
+
+/** その行で記録済みの最大G数。到達Gはこれより手前に戻せない */
+function maxRecordedGame(cycle: LycorisCycle): number {
+  return cycle.entries.reduce((max, { event }) => Math.max(max, event.game), 0);
 }
 
 function CzCellForm({
@@ -312,6 +332,8 @@ function CzCellForm({
   onDelete: () => void;
   onSetReached: () => void;
 }) {
+  const locked = cellLockReason(cell, cycle);
+  const recorded = maxRecordedGame(cycle);
   return (
     <div className={styles.form}>
       <p className={styles.hint}>
@@ -322,20 +344,27 @@ function CzCellForm({
             ? 'まだ未到達です。'
             : '通過済みで「CZなし」として扱っています。'}
       </p>
-      {!cell.czWon && (
+      {locked && !cell.czWon && <p className={styles.warn}>{locked}</p>}
+      {!cell.czWon && !locked && (
         <button type="button" className={styles.primary} onClick={onRecord}>
           ◎ このゾーンからCZ当選
         </button>
       )}
       {/* 到達Gを動かせるのは進行中の行だけ。締めた行はAT当選Gで決まっている */}
-      {!cell.czWon && cycle.active && (
-        <button type="button" className={styles.secondary} onClick={onSetReached}>
-          {cell.unreached
-            ? `${cell.game}Gまで回した（CZなし）`
-            : `到達Gを${cell.game}Gに戻す（ここより後を未到達に）`}
-        </button>
+      {!cell.czWon && !locked && cycle.active && (
+        cell.unreached || cell.game >= recorded ? (
+          <button type="button" className={styles.secondary} onClick={onSetReached}>
+            {cell.unreached
+              ? `${cell.game}Gまで回した（CZなし）`
+              : `到達Gを${cell.game}Gに戻す（現在 ${cycle.reachedGame}G。ここより後を未到達に）`}
+          </button>
+        ) : (
+          <p className={styles.hint}>
+            記録済みの{recorded}Gより手前には戻せません（現在 {cycle.reachedGame}G）。その記録を消すと戻ります。
+          </p>
+        )
       )}
-      {cell.unreached && cycle.active && !cell.czWon && (
+      {cell.unreached && !locked && cycle.active && !cell.czWon && (
         <p className={styles.hint}>※手前の規定G数も、まとめて「通過・CZなし」になります。</p>
       )}
       {cell.czWon && (
@@ -350,15 +379,16 @@ function CzCellForm({
 
 function KoukakuCellForm({
   cell,
-  firstCycle,
+  cycle,
   onSave,
   onDelete,
 }: {
   cell: LycorisGridCell;
-  firstCycle: boolean;
+  cycle: LycorisCycle;
   onSave: (result: LycorisKoukakuResult) => void;
   onDelete: (() => void) | null;
 }) {
+  const locked = cell.eventIndex < 0 ? cellLockReason(cell, cycle) : null;
   return (
     <div className={styles.form}>
       <p className={styles.hint}>
@@ -366,23 +396,26 @@ function KoukakuCellForm({
         帯（液晶左下）が出たかを押してください。すでに高確中・前兆中なら「判別不能」。
         {cell.game === 150 ? ' 150Gだけ設定差があり、設定推測に入ります。' : ' 設定差はなく、帯の見え方の確認に使います。'}
       </p>
-      {firstCycle && cell.game === 150 && (
+      {cycle.previousAt === null && cell.game === 150 && (
         <p className={styles.warn}>
           1行目の150Gは推定に入りません。朝一は表示G数と内部G数がずれる（設定変更でランダム加算・据え置きなら前日の続き）ためです。
         </p>
       )}
-      <div className={styles.resultRow}>
-        {KOUKAKU_RESULTS.map((result) => (
-          <button
-            key={result}
-            type="button"
-            className={`${styles.resultBtn} ${cell.koukaku === result ? styles.chipSelected : ''}`}
-            onClick={() => onSave(result)}
-          >
-            {LYCORIS_KOUKAKU_LABEL[result]}
-          </button>
-        ))}
-      </div>
+      {locked && <p className={styles.warn}>{locked}</p>}
+      {!locked && (
+        <div className={styles.resultRow}>
+          {KOUKAKU_RESULTS.map((result) => (
+            <button
+              key={result}
+              type="button"
+              className={`${styles.resultBtn} ${cell.koukaku === result ? styles.chipSelected : ''}`}
+              onClick={() => onSave(result)}
+            >
+              {LYCORIS_KOUKAKU_LABEL[result]}
+            </button>
+          ))}
+        </div>
+      )}
       <DeleteButton onDelete={onDelete} label="この記録を削除（未入力に戻す）" />
     </div>
   );
@@ -402,6 +435,8 @@ function OthersForm({
   const [ceiling, setCeiling] = useState<LycorisShortCeiling>(
     LYCORIS_SHORT_CEILINGS.find((c) => c > cycle.reachedGame) ?? 750
   );
+  // 締めた行で AT当選Gより先の記録は起こりえない（通常G数と天井短縮の打ち切りを壊す）
+  const beyondAt = cycle.at !== null && game > cycle.at.game;
 
   return (
     <div className={styles.form}>
@@ -424,10 +459,20 @@ function OthersForm({
       )}
 
       <GameField value={game} onChange={setGame} />
+      {beyondAt && cycle.at && (
+        <p className={styles.warn}>
+          このサイクルは{cycle.at.game}GでAT当選しています。それより先のG数には記録できません。
+        </p>
+      )}
 
       <h3 className={styles.formSection}>CZ当選</h3>
       <Chips options={OTHER_CZ_TRIGGERS} value={trigger} label={(t) => LYCORIS_CZ_TRIGGER_LABEL[t]} onChange={setTrigger} />
-      <button type="button" className={styles.primary} onClick={() => onAdd({ type: 'cz', game, trigger })}>
+      <button
+        type="button"
+        className={styles.primary}
+        disabled={beyondAt}
+        onClick={() => onAdd({ type: 'cz', game, trigger })}
+      >
         {game}G CZ当選（{LYCORIS_CZ_TRIGGER_LABEL[trigger]}）を記録
       </button>
 
@@ -440,6 +485,7 @@ function OthersForm({
       <button
         type="button"
         className={styles.secondary}
+        disabled={beyondAt}
         onClick={() => onAdd({ type: 'short-notice', game, ceiling })}
       >
         短縮告知（{ceiling}G）を記録

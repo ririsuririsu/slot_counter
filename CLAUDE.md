@@ -23,10 +23,10 @@ Vercel にデプロイ済み (dashboard: filaments-projects-9502b3f7/slot-counte
 - `npm run dev` — Start Vite dev server with HMR
 - `npm run build` — TypeScript check + Vite production build (`tsc -b && vite build`)
 - `npm run lint` — ESLint
-- `npm test` — all three suites (127 tests)
+- `npm test` — all three suites (130 tests)
 - `npm run test:kabaneri` — 23 tests
 - `npm run test:kokaku` — 55 tests
-- `npm run test:lycoris` — 49 tests
+- `npm run test:lycoris` — 52 tests
 - `npm run preview` — Preview production build locally
 - `npx supabase db push` — Apply migrations in [supabase/migrations/](supabase/migrations/) to the linked project
 - `npx supabase start` — (optional) start local Supabase stack
@@ -49,7 +49,7 @@ Vercel にデプロイ済み (dashboard: filaments-projects-9502b3f7/slot-counte
 
 Non-obvious persistence rules:
 - `partialize` strips `currentMachineId` → app **always boots to HomeScreen**, never restores last-viewed machine.
-- `STORE_VERSION` (exported from the store, currently **14**) with cumulative `if (version < N)` migration branches: v2 backfills `machineType`, v3 adds `denshoHelper`, v4 adds `pendingMisses`, v5 adds `denshoCurrentGame`, v6 backfills MonhanRise `counters`/`events`, v8 converts MonhanRise `at-hit.questCount` → `route`, v9 converts `reset` events → per-cycle `cycle-start`, v10 migrates `kabaneriAnalysisTargets` from the single `flash` flag to the two axes, v11 normalizes `KabaneriMachine.czEvents`, v13 backfills Kokaku `events`/`currentGame` and rewrites screen `context` → `occasion` (v12 added the machine), v14 adds Lycoris and runs `normalizeLycorisMachineFields` over its machines. Any breaking schema change must bump `STORE_VERSION` and append a branch. Tests assert against the exported constant, so a bump doesn't break them.
+- `STORE_VERSION` (exported from the store, currently **15**) with cumulative `if (version < N)` migration branches: v2 backfills `machineType`, v3 adds `denshoHelper`, v4 adds `pendingMisses`, v5 adds `denshoCurrentGame`, v6 backfills MonhanRise `counters`/`events`, v8 converts MonhanRise `at-hit.questCount` → `route`, v9 converts `reset` events → per-cycle `cycle-start`, v10 migrates `kabaneriAnalysisTargets` from the single `flash` flag to the two axes, v11 normalizes `KabaneriMachine.czEvents`, v13 backfills Kokaku `events`/`currentGame` and rewrites screen `context` → `occasion` (v12 added the machine), v14 adds Lycoris and runs `normalizeLycorisMachineFields` over its machines, v15 re-runs it (idempotent) after the input rework added the 弱リコ目 counters — devices already stamped v14 would otherwise keep `undefined` counters, turning the likelihood into NaN and the posterior silently uniform. Any breaking schema change must bump `STORE_VERSION` and append a branch. Tests assert against the exported constant, so a bump doesn't break them.
 - **There is deliberately no `version < 7` branch.** v7 held the `at-hit` route conversion, but terminals that rehydrated mid-development got stamped `version: 7` with the branch not yet written, so it could never fire. v8 redoes the same (idempotent) conversion to guarantee it runs once. Don't "tidy up" the gap.
 - `initializeStore()` (called once from `App.tsx`) auto-creates a monkey-turn-v machine when the list is empty.
 
@@ -129,6 +129,7 @@ The mode/table transition display (`MonhanRiseModePath`) uses **Viterbi** for th
 - **私服 end screens depend on which ラッシュ ended** (opposite character and not ラッシュW → 設定4以上濃厚). That's why the end screen lives on the `at` event next to `rush`/`outcome`; tallies split 私服 rows by resolved meaning.
 - `normalizeLycorisEvents` is the read boundary for cloud loads, the v14 localStorage migration, and the store's own writes. It drops malformed events (non-integer or out-of-range games, `trigger:'zone'` CZs off a zone game) but **keeps an `at` with valid game/route and nulls its broken optional fields** — dropping an `at` would merge two cycles.
 - **Cloud load throws on any `lycoris_state` error except PGRST116**, like Kabaneri: returning an empty machine would let a download wipe local records and the next auto-sync wipe the cloud copy. Migrations [20261029000000](supabase/migrations/20261029000000_add_lycoris.sql) and [20261029120000](supabase/migrations/20261029120000_add_lycoris_weak_counters.sql) (the two counter columns) were applied to production 2026-10-29.
+- **Reach is derived from records; `addLycorisEvent` does not raise `currentGame`** (only `at` resets it to 0), same as Kokaku. Raising it in the store meant deleting a mis-tapped far cell left the reach — and the bell/直撃 denominator — inflated. The grid also refuses records in cells nobody saw: row 1 before `startGame`, row 1's 0G column (no preceding AT, so no 引き戻し), and anything past a closed row's AT game.
 - 通常G is derived (Σ reached − start per row; reached never drops below a recorded game) and is not in `getMachineTotalGames`. Deleting the **last** `at` restores its game into `currentGame`, otherwise that row's reach (the bell/直撃 denominator) silently vanishes.
 
 **Migration trap worth knowing:** bumping `version` and adding its `migrate` branch in two separate edits is unsafe while a dev server is running. Vite HMR rehydrates the store in between, stamps the new version with no branch to run, and that branch can then never fire — leaving permanently unmigrated data. Bump the version and write its branch in the same change, and prefer normalizing at the read boundary for fields whose absence would crash.
