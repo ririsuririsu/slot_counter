@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMachineStore, isMonkeyTurnMachine, isHokutoMachine, isKabaneriMachine, isMonhanRiseMachine, isKokakuMachine } from '../../stores/machineStore';
+import { useMachineStore, isMonkeyTurnMachine, isHokutoMachine, isKabaneriMachine, isMonhanRiseMachine, isKokakuMachine, isLycorisMachine } from '../../stores/machineStore';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import type { MachineType } from '../../types';
 import styles from './Header.module.css';
@@ -10,6 +10,7 @@ const MACHINE_TYPE_LABELS: Record<MachineType, string> = {
   'kabaneri': 'カバネリ海門決戦',
   'monhan-rise': 'モンハンライズ',
   'kokaku': '攻殻機動隊',
+  'lycoris-recoil': 'リコリス・リコイル',
 };
 
 interface HeaderProps {
@@ -28,6 +29,7 @@ export function Header({ onAddLog, onOpenShutter, onOpenTenha }: HeaderProps = {
   const resetKabaneriMachine = useMachineStore((state) => state.resetKabaneriMachine);
   const resetMonhanRiseMachine = useMachineStore((state) => state.resetMonhanRiseMachine);
   const resetKokakuMachine = useMachineStore((state) => state.resetKokakuMachine);
+  const resetLycorisMachine = useMachineStore((state) => state.resetLycorisMachine);
 
   const handleBack = () => {
     selectMachine('');
@@ -42,6 +44,8 @@ export function Header({ onAddLog, onOpenShutter, onOpenTenha }: HeaderProps = {
       resetMonhanRiseMachine();
     } else if (currentMachine && isKokakuMachine(currentMachine)) {
       resetKokakuMachine();
+    } else if (currentMachine && isLycorisMachine(currentMachine)) {
+      resetLycorisMachine();
     } else {
       resetCurrentMachine();
     }
@@ -61,7 +65,8 @@ export function Header({ onAddLog, onOpenShutter, onOpenTenha }: HeaderProps = {
     (isMonkeyTurnMachine(currentMachine) ||
       isKabaneriMachine(currentMachine) ||
       isMonhanRiseMachine(currentMachine) ||
-      isKokakuMachine(currentMachine))
+      isKokakuMachine(currentMachine) ||
+      isLycorisMachine(currentMachine))
       ? '全てのカウンターと履歴をリセットしますか？この操作は取り消せません。'
       : '全てのログとセッション情報をリセットしますか？この操作は取り消せません。';
 

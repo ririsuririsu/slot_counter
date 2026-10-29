@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMachineStore } from '../../stores/machineStore';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { supabase } from '../../lib/supabase';
-import type { Machine, MachineType, MonkeyTurnMachine, HokutoMachine, KabaneriMachine, MonhanRiseMachine, KokakuMachine } from '../../types';
+import type { Machine, MachineType, MonkeyTurnMachine, HokutoMachine, KabaneriMachine, MonhanRiseMachine, KokakuMachine, LycorisMachine } from '../../types';
 import { fiveCardIds } from '../../data/koyakuDefinitions';
 import { chanceDefinitions, GEDAN_BELL_KEY } from '../../data/kabaneriDefinitions';
 import { WEAK_RARE_KEY } from '../../data/monhanRiseDefinitions';
@@ -14,6 +14,7 @@ const MACHINE_TYPES: { type: MachineType; label: string; sub: string }[] = [
   { type: 'kabaneri', label: 'カバネリ海門決戦', sub: 'チャンス目発光＆下段ベル' },
   { type: 'monhan-rise', label: 'モンハンライズ', sub: 'だるま落とし＆4軸設定推測' },
   { type: 'kokaku', label: '攻殻機動隊', sub: '殲滅ZONE履歴＆殲滅モード推測' },
+  { type: 'lycoris-recoil', label: 'リコリス・リコイル', sub: 'ベル・高確移行・短縮＆設定推測' },
 ];
 
 const TYPE_COLORS: Record<MachineType, string> = {
@@ -22,6 +23,7 @@ const TYPE_COLORS: Record<MachineType, string> = {
   'kabaneri': 'var(--apple-green)',
   'monhan-rise': 'var(--apple-orange)',
   'kokaku': 'var(--apple-purple, #bf5af2)',
+  'lycoris-recoil': 'var(--apple-pink, #ff375f)',
 };
 
 function getMachineSummary(m: Machine): string {
@@ -65,6 +67,14 @@ function getMachineSummary(m: Machine): string {
     ).length;
     if (cycles > 0 || zones > 0) return `CZ ${cycles}回 / 殲滅ZONE ${zones}回`;
     if (kk.currentGame > 0) return `${kk.currentGame}G`;
+    return 'データなし';
+  }
+  if (m.machineType === 'lycoris-recoil') {
+    const lr = m as LycorisMachine;
+    const at = lr.events.filter((e) => e.type === 'at').length;
+    if (at > 0 || lr.bell > 0) return `AT ${at}回 / 共通ベル ${lr.bell}回`;
+    if (lr.events.length > 0) return `記録 ${lr.events.length}件`;
+    if (lr.currentGame > 0) return `${lr.currentGame}G`;
     return 'データなし';
   }
   const hk = m as HokutoMachine;
