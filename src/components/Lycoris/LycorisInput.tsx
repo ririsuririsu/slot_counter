@@ -153,7 +153,7 @@ export function LycorisInput({ machine }: { machine: LycorisMachine }) {
       <p className={styles.ceilingNote}>
         {previous
           ? `前回: ${previous.outcome ? `${LYCORIS_OUTCOME_LABEL[previous.outcome]} → ${LYCORIS_CEILING_AFTER[previous.outcome]}` : 'AT終了情報が未入力'}`
-          : '1行目は直前のATを見ていないので、150Gと天井短縮の軸に入りません（行見出しで打ち始めGを入力）'}
+          : '1行目は直前のATを見ていないので、天井短縮の軸に入りません（途中から打つときは行見出しで打ち始めGを入力）'}
       </p>
 
       {pendingAtEnd?.at && (
@@ -397,11 +397,6 @@ function KoukakuCellForm({
         帯（液晶左下）が出たかを押してください。すでに高確中・前兆中なら「判別不能」。
         {cell.game === 150 ? ' 150Gだけ設定差があり、設定推測に入ります。' : ' 設定差はなく、帯の見え方の確認に使います。'}
       </p>
-      {cycle.previousAt === null && cell.game === 150 && (
-        <p className={styles.warn}>
-          1行目の150Gは推定に入りません。朝一は表示G数と内部G数がずれる（設定変更でランダム加算・据え置きなら前日の続き）ためです。
-        </p>
-      )}
       {locked && <p className={styles.warn}>{locked}</p>}
       {!locked && (
         <div className={styles.resultRow}>

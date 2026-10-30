@@ -275,14 +275,14 @@ test('「→高確」が「弱リコ目」を超えたら数え間違いとし�
   assert.ok(axis.warning.includes('超えて'));
 });
 
-test('150Gの高確移行は1行目を使わない（朝一は表示G数と内部G数がずれる）', () => {
+test('150Gの高確移行は1行目も含めてすべての行を使う（G数は打ち手が見当を付けられる）', () => {
   const events = [zone(150, 'moved'), zone(50, 'moved'), at(200), zone(150, 'stay'), zone(450, 'moved')];
   const axis = axisOf(analyze(events), 'koukaku150');
-  assert.equal(axis.hit, 0);
-  assert.equal(axis.total, 1, '2行目の150Gだけ。50G・450Gは設定差なし');
-  assert.ok(axis.warning.includes('1行目'));
+  assert.equal(axis.hit, 1, '1行目の帯あり');
+  assert.equal(axis.total, 2, '1行目と2行目の150G。50G・450Gは設定差なし');
+  assert.equal(axis.warning, null);
   for (let s = 0; s < 6; s++) {
-    near(axis.logLikelihoods[s], binom(0, 1, 0.9 * defs.LYCORIS_150_KOUKAKU_RATE[s]));
+    near(axis.logLikelihoods[s], binom(1, 2, 0.9 * defs.LYCORIS_150_KOUKAKU_RATE[s]));
   }
 });
 

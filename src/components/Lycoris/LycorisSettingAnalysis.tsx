@@ -149,9 +149,7 @@ export function LycorisSettingAnalysis({ machine }: { machine: LycorisMachine })
       <p className={styles.note}>
         ※変換高確は<b>帯が出る割合（{pct(LYCORIS_BAND_VISIBILITY, 0)}）を掛けた値</b>と比べています。
         移行しても約10%は煽りが失敗して帯が出ないためです。補正しないと設定6が設定4〜5に見えます。
-        弱リコリス目は「弱リコ目」「→高確」の2つのカウンターから取ります（高確中に引いたものは数えない）。
-        150Gは1行目を使いません（朝一は表示G数と内部G数がずれるため）。
-      </p>
+        弱リコリス目は「弱リコ目」「→高確」の2つのカウンターから取ります（高確中に引いたものは数えない）。      </p>
       <p className={styles.note}>
         ※天井短縮はラッシュ50終了後のサイクルだけが対象です。短縮告知・短縮天井での当選は短縮天井が確定、
         CZ成功・直撃での当選は「そのG数より{LYCORIS_SHORT_CEILING_MARGIN}G以上手前の短縮天井は無かった」として使います

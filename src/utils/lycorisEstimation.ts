@@ -321,29 +321,21 @@ function koukakuResultAt(cycle: LycorisCycle, game: number): LycorisKoukakuResul
 }
 
 /**
- * 150G の変換高確移行。**1行目は使わない。**
- * 朝一は設定変更でも電源OFF→ONでも表示が0Gから始まり、内部G数と一致しない
- * （設定変更時はランダム加算、据え置きなら前日の続き）。途中から打った行も直前のATを見ていない。
- * 2行目以降はAT終了で内部G数が確実に0になるので、表示の150Gを信用できる。
+ * 150G の変換高確移行。**1行目も使う**（ユーザー指定 2026-10-30）。
+ * 朝一は表示G数と内部G数がずれうる（設定変更でランダム加算・据え置きなら前日の続き）が、
+ * 打ち手はG数の見当を付けられるので、記録された150Gの結果をそのまま信用する。
+ * 1行目の打ち始めGより手前の150Gは見ていない枠なので、グリッドがそもそも記録させない。
  */
 function koukaku150Axis(cycles: LycorisCycle[]): LycorisAxis {
   let moved = 0;
   let total = 0;
-  let skipped = 0;
   for (const cycle of cycles) {
     const result = koukakuResultAt(cycle, 150);
     if (result === null || result === 'unknown') continue;
-    if (cycle.previousAt === null) {
-      skipped++;
-      continue;
-    }
     total++;
     if (result === 'moved') moved++;
   }
-  const warning = skipped > 0
-    ? `1行目の150G（${skipped}件）は表示G数と内部G数がずれうるので除外しています`
-    : null;
-  return koukakuAxis('koukaku150', '変換高確移行（150G）', moved, total, LYCORIS_150_KOUKAKU_RATE, warning);
+  return koukakuAxis('koukaku150', '変換高確移行（150G）', moved, total, LYCORIS_150_KOUKAKU_RATE, null);
 }
 
 /** そのサイクルで最後にCZへ入ったG（契機は問わない。小役変換からのCZも含む） */
