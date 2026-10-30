@@ -17,6 +17,8 @@ import type {
   KokakuMachine,
   KokakuEvent,
   KokakuEventInput,
+  LycorisMachine,
+  LycorisEventInput,
   MachineType,
   HistoryEntry,
   SettingAnalysis,
@@ -37,6 +39,11 @@ import {
   RIZE_ZONE_KEY,
 } from '../data/monhanRiseDefinitions';
 import { normalizeKokakuEvents } from '../data/kokakuDefinitions';
+import {
+  LYCORIS_MAX_GAME,
+  normalizeLycorisEvents,
+  normalizeLycorisMachineFields,
+} from '../data/lycorisDefinitions';
 import { calculateSettingProbabilities } from '../utils/binomialDistribution';
 import {
   createInitialDenshoHelperState,
@@ -61,7 +68,7 @@ import {
  * 2回に分けると、dev サーバー稼働中の HMR が分岐の無い新バージョンを先に刻んでしまい、
  * その端末では二度と移行が走らなくなる（v7 で実際に起きた。v8 の分岐コメント参照）。
  */
-export const STORE_VERSION = 13;
+export const STORE_VERSION = 16;
 
 // ========================================
 // 型ガード
@@ -87,18 +94,23 @@ export function isKokakuMachine(m: Machine): m is KokakuMachine {
   return m.machineType === 'kokaku';
 }
 
+export function isLycorisMachine(m: Machine): m is LycorisMachine {
+  return m.machineType === 'lycoris-recoil';
+}
+
 /**
  * セッション通算のゲーム数を返す。`updateTotalGames` と対になる getter。
  *
  * モンハンライズは4軸のいずれもゲーム数を使わないため totalGames を持たない。
- * **攻殻機動隊もここには含めない。** あちらの `currentGame` はサイクル内の
- * 液晶G数で通算ではなく、専用の `updateKokakuCurrentGame` で書く。
- * ここで読めるようにすると setter と非対称になり、
+ * **攻殻機動隊もここには含めない。** `currentGame` はサイクル内の液晶G数で通算ではなく、
+ * 専用の `updateKokakuCurrentGame` で書く。ここで読めるようにすると setter と非対称になり、
  * GameInputModal から読めて書けない状態になる。
+ * リコリス・リコイルは手入力の `totalGames`（共通ベル・直撃の分母）を持つので含める。
+ * あちらの `currentGame`（グリッドの到達G）とは別物。
  */
 export function getMachineTotalGames(m: Machine | null): number {
   if (!m) return 0;
-  return isMonkeyTurnMachine(m) || isKabaneriMachine(m) ? m.totalGames : 0;
+  return isMonkeyTurnMachine(m) || isKabaneriMachine(m) || isLycorisMachine(m) ? m.totalGames : 0;
 }
 
 // ========================================
@@ -200,6 +212,17 @@ interface MachineStore {
   deleteKokakuEventAt: (index: number) => void;
   resetKokakuMachine: () => void;
 
+  // Lycoris: カウンター（共通ベル・弱リコ目・弱リコ目→高確）・G数・イベント列
+  incrementLycorisCounter: (key: LycorisCounterKey) => void;
+  decrementLycorisCounter: (key: LycorisCounterKey) => void;
+  updateLycorisCurrentGame: (game: number) => void;
+  updateLycorisStartGame: (game: number) => void;
+  addLycorisEvent: (input: LycorisEventInput) => void;
+  insertLycorisEventAt: (index: number, input: LycorisEventInput) => void;
+  updateLycorisEventAt: (index: number, input: LycorisEventInput) => void;
+  deleteLycorisEventAt: (index: number) => void;
+  resetLycorisMachine: () => void;
+
   // Supabase同期
   syncToSupabase: () => Promise<void>;
   loadFromSupabase: () => Promise<boolean>;
@@ -284,13 +307,48 @@ function createNewKokakuMachine(name: string): KokakuMachine {
   };
 }
 
+function createNewLycorisMachine(name: string): LycorisMachine {
+  return {
+    id: uuidv4(),
+    machineType: 'lycoris-recoil',
+    name,
+    number: '',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    bell: 0,
+    weakLycoris: 0,
+    weakLycorisKoukaku: 0,
+    totalGames: 0,
+    startGame: 0,
+    currentGame: 0,
+    events: [],
+  };
+}
+
+/**
+ * リコリスの独立したカウンター。弱リコ目（分母）と →高確（分子）は互いに触らない
+ * （帯は引いた時点では分からないので、別々のタイミングで押す）。
+ */
+export type LycorisCounterKey = 'bell' | 'weakLycoris' | 'weakLycorisKoukaku';
+
 const MACHINE_FACTORIES: Record<MachineType, (name: string) => Machine> = {
   'monkey-turn-v': createNewMonkeyTurnMachine,
   'hokuto-tensei2': createNewHokutoMachine,
   kabaneri: createNewKabaneriMachine,
   'monhan-rise': createNewMonhanRiseMachine,
   kokaku: createNewKokakuMachine,
+  'lycoris-recoil': createNewLycorisMachine,
 };
+
+/** G数入力を 0〜上限の整数に寄せる */
+function clampLycorisGame(game: number): number {
+  return Number.isFinite(game) ? Math.min(LYCORIS_MAX_GAME, Math.max(0, Math.floor(game))) : 0;
+}
+
+/** 入力を検証して id・時刻を付ける。形の合わない入力は null（記録しない） */
+function toLycorisEvent(input: LycorisEventInput, id: string, timestamp: number) {
+  return normalizeLycorisEvents([{ ...input, id, timestamp }])[0] ?? null;
+}
 
 // ========================================
 // ヘルパー: 現在の台を更新
@@ -462,7 +520,7 @@ export const useMachineStore = create<MachineStore>()(
       updateTotalGames: (games: number) => {
         set((state) =>
           updateCurrentMachine(state, (m) => {
-            if (!isMonkeyTurnMachine(m) && !isKabaneriMachine(m)) return m;
+            if (!isMonkeyTurnMachine(m) && !isKabaneriMachine(m) && !isLycorisMachine(m)) return m;
             return { ...m, totalGames: games, updatedAt: Date.now() };
           })
         );
@@ -1158,6 +1216,164 @@ export const useMachineStore = create<MachineStore>()(
         syncCurrentMachine(get);
       },
 
+      // --- Lycoris: 共通ベル・G数・イベント列 ---
+      // G数はすべてサブ液晶のAT間G。AT当選でサイクルが締まり、次は0Gから数える。
+
+      incrementLycorisCounter: (key: LycorisCounterKey) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isLycorisMachine(m)) return m;
+            return { ...m, [key]: m[key] + 1, updatedAt: Date.now() };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      decrementLycorisCounter: (key: LycorisCounterKey) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isLycorisMachine(m) || m[key] <= 0) return m;
+            return { ...m, [key]: m[key] - 1, updatedAt: Date.now() };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      updateLycorisCurrentGame: (game: number) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isLycorisMachine(m)) return m;
+            return { ...m, currentGame: clampLycorisGame(game), updatedAt: Date.now() };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      // 打ち始めのG。1行目がまだ進行中なら現在Gを追従させる。
+      // まだ回していない（現在G＝旧打ち始めG）なら新しい値へ下げる。誤入力の訂正で、
+      // 回していないG数が通常G数に残らないように。回し進めたあとは下げない。
+      updateLycorisStartGame: (game: number) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isLycorisMachine(m)) return m;
+            const startGame = clampLycorisGame(game);
+            const firstCycleActive = !m.events.some((e) => e.type === 'at');
+            const notPlayedYet = m.currentGame === m.startGame;
+            return {
+              ...m,
+              startGame,
+              currentGame: !firstCycleActive
+                ? m.currentGame
+                : notPlayedYet
+                  ? startGame
+                  : Math.max(m.currentGame, startGame),
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      addLycorisEvent: (input: LycorisEventInput) => {
+        const event = toLycorisEvent(input, uuidv4(), Date.now());
+        if (!event) return;
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isLycorisMachine(m)) return m;
+            return {
+              ...m,
+              events: [...m.events, event],
+              // AT当選でサイクルが締まり、次は0Gから。締めた行の到達Gは at.game に残る。
+              // それ以外の記録では現在Gを書き換えない。到達Gは記録済みの最大G数から導くので
+              // （buildLycorisCycles）、ここで引き上げると、誤記録を消しても到達Gが戻らず
+              // ベル・直撃の分母が黙って増えたままになる（攻殻の addKokakuEvent と同じ方針）。
+              currentGame: event.type === 'at' ? 0 : m.currentGame,
+              updatedAt: event.timestamp,
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      // 過去のサイクルへの追記。現在Gは触らない
+      insertLycorisEventAt: (index: number, input: LycorisEventInput) => {
+        const event = toLycorisEvent(input, uuidv4(), Date.now());
+        if (!event) return;
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isLycorisMachine(m)) return m;
+            const at = Math.max(0, Math.min(index, m.events.length));
+            return {
+              ...m,
+              events: [...m.events.slice(0, at), event, ...m.events.slice(at)],
+              updatedAt: event.timestamp,
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      // 値の訂正。id と時刻は元のまま残す。現在Gは触らない
+      updateLycorisEventAt: (index: number, input: LycorisEventInput) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isLycorisMachine(m)) return m;
+            const current = m.events[index];
+            if (!current) return m;
+            const next = toLycorisEvent(input, current.id, current.timestamp);
+            if (!next) return m;
+            return {
+              ...m,
+              events: m.events.map((e, i) => (i === index ? next : e)),
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      // AT を消すと前後のサイクルが結合する。最後のATを消したときは、その行が
+      // 進行中に戻るので、AT当選Gを現在Gへ戻す（AT記録で0にしたままだと到達Gが消え、
+      // 通常G数＝ベル・直撃の分母が黙って減る）
+      deleteLycorisEventAt: (index: number) => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isLycorisMachine(m)) return m;
+            const target = m.events[index];
+            if (!target) return m;
+            const reopensActive =
+              target.type === 'at' && !m.events.slice(index + 1).some((e) => e.type === 'at');
+            return {
+              ...m,
+              events: m.events.filter((_, i) => i !== index),
+              currentGame: reopensActive ? Math.max(m.currentGame, target.game) : m.currentGame,
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
+      resetLycorisMachine: () => {
+        set((state) =>
+          updateCurrentMachine(state, (m) => {
+            if (!isLycorisMachine(m)) return m;
+            return {
+              ...m,
+              bell: 0,
+              weakLycoris: 0,
+              weakLycorisKoukaku: 0,
+              totalGames: 0,
+              startGame: 0,
+              currentGame: 0,
+              events: [],
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        syncCurrentMachine(get);
+      },
+
       // --- Supabase同期 ---
 
       syncToSupabase: async () => {
@@ -1308,6 +1524,23 @@ export const useMachineStore = create<MachineStore>()(
               currentGame: typeof m.currentGame === 'number' ? m.currentGame : 0,
             };
           });
+        }
+        if (version < 14 && state.machines) {
+          // v14 でリコリス・リコイルを追加。開発中の古い形の台や手で触った記録が
+          // localStorage に残っていると、欠けた項目（events・episodes 等）で描画が落ちて
+          // ホーム画面ごと開けなくなるので、読み込み境界で一度だけ直す。
+          state.machines = state.machines.map((m: Record<string, unknown>) =>
+            m.machineType === 'lycoris-recoil' ? normalizeLycorisMachineFields(m) : m
+          );
+        }
+        if (version < 16 && state.machines) {
+          // v15 で弱リコ目の2カウンターを追加し、レア役イベントと650Gの高確列を廃止した。
+          // v16 でトータルG数（手入力）を追加した。どちらも項目が欠けたままだと尤度が NaN になり、
+          // 推定全体が黙って均等に化ける。v14・v15 を刻んだ端末では上の分岐がもう走らないので、
+          // 同じ正規化（冪等）をやり直す。プレビュー環境で台を作った端末がこれに当たる。
+          state.machines = state.machines.map((m: Record<string, unknown>) =>
+            m.machineType === 'lycoris-recoil' ? normalizeLycorisMachineFields(m) : m
+          );
         }
         return state;
       },

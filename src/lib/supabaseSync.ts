@@ -7,10 +7,16 @@ import type {
   MonhanRiseMachine,
   MonhanRiseEvent,
   KokakuMachine,
+  LycorisMachine,
   HistoryEntry,
   HokutoLog,
 } from '../types';
 import { normalizeKokakuEvents } from '../data/kokakuDefinitions';
+import {
+  normalizeLycorisCount,
+  normalizeLycorisEvents,
+  normalizeLycorisGame,
+} from '../data/lycorisDefinitions';
 import { createInitialDenshoHelperState } from '../utils/denshoEstimation';
 import { createInitialKabaneriCounters } from '../data/kabaneriDefinitions';
 import { normalizeKabaneriCzEvents } from '../utils/kabaneriCz';
@@ -40,6 +46,10 @@ function isKokaku(m: Machine): m is KokakuMachine {
   return m.machineType === 'kokaku';
 }
 
+function isLycoris(m: Machine): m is LycorisMachine {
+  return m.machineType === 'lycoris-recoil';
+}
+
 // ========================================
 // Machines
 // ========================================
@@ -66,6 +76,8 @@ export async function upsertMachine(machine: Machine) {
     await upsertMonhanRiseState(machine);
   } else if (isKokaku(machine)) {
     await upsertKokakuState(machine);
+  } else if (isLycoris(machine)) {
+    await upsertLycorisState(machine);
   }
 }
 
@@ -132,6 +144,28 @@ async function upsertKokakuState(machine: KokakuMachine) {
     events: machine.events,
     updated_at: new Date(machine.updatedAt).toISOString(),
   });
+}
+
+// ========================================
+// Lycoris: State（共通ベル・G数 + イベント列）
+// ========================================
+
+// カバネリと同じく、失敗は握りつぶさずに投げる。手動アップロードで失敗が見えるようにする
+// （ストア側の自動同期は従来どおり .catch で受け流す）
+async function upsertLycorisState(machine: LycorisMachine) {
+  if (!supabase) return;
+  const { error } = await supabase.from('lycoris_state').upsert({
+    machine_id: machine.id,
+    bell: machine.bell,
+    weak_lycoris: machine.weakLycoris,
+    weak_lycoris_koukaku: machine.weakLycorisKoukaku,
+    total_games: machine.totalGames,
+    start_game: machine.startGame,
+    current_game: machine.currentGame,
+    events: machine.events,
+    updated_at: new Date(machine.updatedAt).toISOString(),
+  });
+  if (error) throw error;
 }
 
 // ========================================
@@ -246,10 +280,45 @@ export async function loadAllMachines(): Promise<Machine[] | null> {
     } else if (row.machine_type === 'kokaku') {
       const machine = await loadKokakuMachine(row);
       if (machine) machines.push(machine);
+    } else if (row.machine_type === 'lycoris-recoil') {
+      const machine = await loadLycorisMachine(row);
+      if (machine) machines.push(machine);
     }
   }
 
   return machines;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function loadLycorisMachine(row: any): Promise<LycorisMachine | null> {
+  if (!supabase) return null;
+
+  const { data: stateRow, error } = await supabase
+    .from('lycoris_state')
+    .select('*')
+    .eq('machine_id', row.id)
+    .single();
+
+  // 行が無い（PGRST116）だけは空の台として読む。それ以外の失敗（通信エラー・テーブル未作成）で
+  // 空の台を返すと、ダウンロードがローカルの記録を空で置き換え、次の自動同期でクラウドも消える。
+  // カバネリと同じく、黙って [] を返さずに失敗させる。
+  if (error && error.code !== 'PGRST116') throw error;
+
+  return {
+    id: row.id,
+    machineType: 'lycoris-recoil',
+    name: row.name,
+    number: row.number || '',
+    createdAt: new Date(row.created_at).getTime(),
+    updatedAt: new Date(row.updated_at).getTime(),
+    bell: normalizeLycorisCount(stateRow?.bell),
+    weakLycoris: normalizeLycorisCount(stateRow?.weak_lycoris),
+    weakLycorisKoukaku: normalizeLycorisCount(stateRow?.weak_lycoris_koukaku),
+    totalGames: normalizeLycorisCount(stateRow?.total_games),
+    startGame: normalizeLycorisGame(stateRow?.start_game),
+    currentGame: normalizeLycorisGame(stateRow?.current_game),
+    events: normalizeLycorisEvents(stateRow?.events),
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

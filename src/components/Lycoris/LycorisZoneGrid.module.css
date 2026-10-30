@@ -1,0 +1,282 @@
+/* 攻殻機動隊のグリッド（KokakuZoneGrid.module.css）と同じ寸法・同じ見え方にそろえる */
+
+.scroller {
+  overflow-x: auto;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+
+.grid {
+  border-collapse: separate;
+  border-spacing: 2px;
+  width: max-content;
+  min-width: 100%;
+}
+
+.corner,
+.colHead,
+.colHeadWide {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-sm);
+  vertical-align: bottom;
+}
+
+/* 左端の行見出しは sticky で固定する。背景を敷かないと横スクロールしたセルが透ける */
+.corner {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  width: 48px;
+  padding: var(--spacing-xs);
+  box-shadow: 2px 0 0 2px var(--color-surface), 6px 0 8px rgba(0, 0, 0, 0.45);
+}
+
+.colHead {
+  min-width: 42px;
+  padding: 3px 2px;
+  white-space: nowrap;
+}
+
+.colHeadWide {
+  min-width: 112px;
+  padding: 3px var(--spacing-xs);
+  white-space: nowrap;
+}
+
+.colGame {
+  display: block;
+  font-variant-numeric: tabular-nums;
+}
+
+.colNote {
+  display: block;
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--color-text-tertiary);
+}
+
+/* 高確列。CZ列と見分けられるよう色を敷く */
+.colKoukaku {
+  background: rgba(48, 209, 88, 0.16);
+}
+
+/* 150G は設定差のある唯一の規定G数 */
+.colKey {
+  background: rgba(48, 209, 88, 0.3);
+  color: var(--color-text);
+}
+
+.colKey .colNote {
+  color: var(--apple-green, #30d158);
+  font-weight: 700;
+}
+
+.rowHeadCell {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 48px;
+  padding: 0;
+  background: var(--color-surface);
+  box-shadow: 2px 0 0 2px var(--color-surface), 6px 0 8px rgba(0, 0, 0, 0.45);
+}
+
+.rowHead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 100%;
+  min-height: 36px;
+  padding: 2px;
+  background: var(--color-surface-elevated);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+span.rowHead {
+  cursor: default;
+}
+
+.rowNum {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.rowSub {
+  font-size: 9px;
+  line-height: 1;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.activeRow .rowHead {
+  background: var(--apple-pink, #ff375f);
+  color: #fff;
+}
+
+.activeRow .rowSub {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.cell,
+.cellWide {
+  height: 36px;
+  padding: 0;
+  text-align: center;
+}
+
+.cellBtn {
+  display: block;
+  width: 100%;
+  min-height: 36px;
+  padding: 0;
+  background: rgba(120, 120, 128, 0.18);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 通過したがCZなし。入力ゼロでそのまま観測になる */
+.cellBtnMiss {
+  background: transparent;
+  border-color: rgba(120, 120, 128, 0.28);
+}
+
+/* まだ到達していない。タップすればここまで到達したことにできる */
+.cellBtnUnreached {
+  background: rgba(120, 120, 128, 0.08);
+}
+
+/* 高確列で通過したのに未入力。推定に入らないので入力を促す */
+.cellBtnTodo {
+  background: transparent;
+  border: 2px dashed rgba(48, 209, 88, 0.55);
+}
+
+.cellSelected {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.6);
+}
+
+.dash {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+}
+
+.miss,
+.todo {
+  display: block;
+  padding: 4px 2px;
+  font-size: var(--font-size-xs);
+  line-height: 1.2;
+}
+
+.miss {
+  color: var(--color-text-tertiary);
+}
+
+.todo {
+  color: var(--apple-green, #30d158);
+  font-weight: 700;
+}
+
+.chip {
+  display: block;
+  padding: 6px 2px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.chipCz {
+  background: var(--apple-orange, #ff9f0a);
+  color: #1c1c1e;
+}
+
+.chipMoved {
+  background: var(--apple-green, #30d158);
+  color: #1c1c1e;
+}
+
+.chipStay {
+  background: rgba(120, 120, 128, 0.35);
+  color: var(--color-text);
+}
+
+.otherChips {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px;
+}
+
+.otherChip {
+  padding: 1px 3px;
+  border-radius: 3px;
+  background: rgba(100, 210, 255, 0.25);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.atBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  width: 100%;
+  min-height: 36px;
+  padding: 3px var(--spacing-xs);
+  background: rgba(120, 120, 128, 0.14);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.atBtnClosed {
+  background: rgba(255, 69, 58, 0.14);
+}
+
+.atWin {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.atEnd,
+.atPending {
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.atEnd {
+  color: var(--color-text-secondary);
+}
+
+.atPending {
+  color: var(--apple-orange, #ff9f0a);
+}

@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "test:kabaneri": "node --test tests/kabaneri.test.cjs",
     "test:kokaku": "node --test tests/kokaku.test.cjs",
-    "test": "node --test tests/kabaneri.test.cjs tests/kokaku.test.cjs",
+    "test:lycoris": "node --test tests/lycoris.test.cjs",
+    "test": "node --test tests/kabaneri.test.cjs tests/kokaku.test.cjs tests/lycoris.test.cjs",
     "preview": "vite preview"
   },
   "dependencies": {

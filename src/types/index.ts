@@ -3,6 +3,7 @@ import type { DenshoHelperState } from './densho';
 import type { KabaneriCounterState, KabaneriCzEvent } from './kabaneri';
 import type { MonhanRiseCounterState, MonhanRiseEvent } from './monhanRise';
 import type { KokakuEvent } from './kokaku';
+import type { LycorisEvent } from './lycoris';
 
 // Re-export all hokuto types
 export * from './hokuto';
@@ -10,6 +11,7 @@ export * from './densho';
 export * from './kabaneri';
 export * from './monhanRise';
 export * from './kokaku';
+export * from './lycoris';
 
 // ========================================
 // 共通
@@ -20,7 +22,8 @@ export type MachineType =
   | 'hokuto-tensei2'
   | 'kabaneri'
   | 'monhan-rise'
-  | 'kokaku';
+  | 'kokaku'
+  | 'lycoris-recoil';
 
 interface BaseMachine {
   id: string;
@@ -153,6 +156,45 @@ export interface KokakuMachine extends BaseMachine {
 }
 
 // ========================================
+// スマスロ リコリス・リコイル
+// ========================================
+
+export interface LycorisMachine extends BaseMachine {
+  machineType: 'lycoris-recoil';
+  /** 通常時の共通ベル（右下がり）の回数。頻度が高いのでイベントにせず回数だけ持つ */
+  bell: number;
+  /**
+   * 弱リコリス目（分母）と、そこから変換高確に移行した回数（分子・帯で判断）。
+   * **2つのカウンターは独立**（モンハンライズのライズゾーンと同じ）。帯は煽りのあと、
+   * 次のレア役を引いたあとに出ることもあるので、引いたときに「弱リコ目」、帯が出たら「→高確」を押す。
+   * 高確中（帯が出ている間）に引いた弱リコリス目は分母に数えない。
+   */
+  weakLycoris: number;
+  weakLycorisKoukaku: number;
+  /**
+   * 通常時のトータルG数（手入力）。共通ベル・直撃の分母。
+   * 以前はグリッドの各行のG数から導いていたが、ユーザー指定で手入力にした（2026-10-30）。
+   */
+  totalGames: number;
+  /**
+   * 打ち始めたときのサブ液晶G（1行目の開始G）。
+   * 途中から打った台で、自分が見ていない列をグリッド上で「未到達」にするために使う。
+   */
+  startGame: number;
+  /**
+   * 進行中サイクルの到達G（AT間）。グリッドのセルの「ここまで回した」で決まり、AT当選で0に戻る。
+   * 画面に入力欄は無い（到達Gは記録とこの値の大きい方）。
+   */
+  currentGame: number;
+  /**
+   * レア役・規定ゲーム数・CZ・短縮告知・ATの記録。AT当選でサイクルが切れる。
+   * サイクル数・通常G数は events から導出し、フィールドには持たない。
+   * 詳細仕様は docs/lycoris-recoil-spec.md を参照。
+   */
+  events: LycorisEvent[];
+}
+
+// ========================================
 // 判別共用体
 // ========================================
 
@@ -161,7 +203,8 @@ export type Machine =
   | HokutoMachine
   | KabaneriMachine
   | MonhanRiseMachine
-  | KokakuMachine;
+  | KokakuMachine
+  | LycorisMachine;
 
 // 設定確率データ
 export interface SettingProbability {

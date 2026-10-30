@@ -1,0 +1,286 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.sectionLabel {
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.settingsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+
+.settingItem {
+  display: grid;
+  grid-template-columns: 48px 56px 1fr;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.settingLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.settingValue {
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.highProbability {
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.bar {
+  display: block;
+  height: 8px;
+  background: rgba(120, 120, 128, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+}
+
+.excluded {
+  padding: var(--spacing-sm);
+  background: rgba(10, 132, 255, 0.14);
+  border-radius: var(--radius-sm);
+  color: var(--color-primary, #0a84ff);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+.conflict {
+  padding: var(--spacing-sm);
+  background: rgba(255, 159, 10, 0.14);
+  border-radius: var(--radius-sm);
+  color: var(--apple-orange, #ff9f0a);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+.note {
+  font-size: var(--font-size-xs);
+  line-height: 1.6;
+  color: var(--color-text-tertiary);
+}
+
+.empty {
+  padding: var(--spacing-sm);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+  text-align: center;
+}
+
+/* --- 軸ごとの実測 --- */
+
+.axisList,
+.hintList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.axisRow {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+
+.axisIdle {
+  opacity: 0.6;
+}
+
+.axisHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+.axisLead {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.axisObserved {
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.axisReference {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+}
+
+.axisWarning {
+  font-size: 10px;
+  color: var(--apple-orange, #ff9f0a);
+}
+
+/* --- 示唆の集計 --- */
+
+.hintGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.hintGroupLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.hintRow {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-surface);
+  border-left: 4px solid transparent;
+  border-radius: var(--radius-sm);
+}
+
+/* 示唆の強さ。赤＝濃厚で推定の制約に入っている */
+.strength_default,
+.strength_none {
+  border-left-color: rgba(120, 120, 128, 0.4);
+}
+
+.strength_weak {
+  border-left-color: rgba(48, 209, 88, 0.7);
+}
+
+.strength_strong {
+  border-left-color: var(--apple-orange, #ff9f0a);
+}
+
+.strength_constraint {
+  border-left-color: var(--apple-red, #ff453a);
+}
+
+.hintHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+}
+
+.hintCount {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.hint,
+.hintStrong {
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+}
+
+.hint {
+  color: var(--color-text-tertiary);
+}
+
+.hintStrong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.hintWhere {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.hintChip {
+  padding: 0 4px;
+  border-radius: 3px;
+  background: rgba(120, 120, 128, 0.25);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.6;
+}
+
+/* --- 参考値テーブル --- */
+
+.observedTable,
+.modelTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs);
+}
+
+.observedTable th,
+.observedTable td,
+.modelTable th,
+.modelTable td {
+  padding: var(--spacing-xs);
+  border-bottom: 1px solid var(--color-border);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.observedTable thead th,
+.modelTable thead th {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.observedTable tbody th,
+.modelTable tbody th {
+  text-align: left;
+  font-weight: 600;
+}
+
+.obsNote {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--color-text-tertiary);
+}
+
+.obsCount {
+  margin-left: 4px;
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+}
+
+.details {
+  padding: var(--spacing-sm);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+
+.details summary {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.details table {
+  margin-top: var(--spacing-sm);
+}
